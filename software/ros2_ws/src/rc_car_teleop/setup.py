@@ -15,16 +15,12 @@ setup(
     zip_safe=True,
     maintainer='jj',
     maintainer_email='jj@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
-    extras_require={
-        'test': [
-            'pytest',
-        ],
-    },
+    description='RC car teleoperation node',
+    license='Apache-2.0',
+    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'teleop = rc_car_teleop.teleop_node:main'
+            'teleop_node = rc_car_teleop.teleop_node:main',
         ],
     },
 )
