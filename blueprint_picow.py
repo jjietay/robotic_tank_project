@@ -6,7 +6,7 @@ TURN_DUTY   = 0.80
 INNER_DUTY  = 0.55
 OUTER_DUTY  = 0.90
 
-class Sensor:
+class Electronics:
     def __init__(self, name, status):
         self.name = name
         self.status = status
@@ -18,7 +18,7 @@ class Sensor:
         print(f"{self.name} disconnected.")
 
 
-class Ultrasonic(Sensor):
+class Ultrasonic(Electronics):
     def __init__(self, name, status, trigger_pin, echo_pin, current=15e-3, voltage=5, sound_vel=340):
         super().__init__(name, status)
         self.trigger_pin = Pin(trigger_pin, Pin.OUT)
@@ -39,7 +39,8 @@ class Ultrasonic(Sensor):
             
         time1 = time.ticks_us()             # Start Stopwatch
         while self.echo_pin.value():
-            pass
+            if time.ticks_diff(time.ticks_us(), timeout) > 38000:
+                return "out of range"
         time2 = time.ticks_us()             # Stop Stopwatch
         diff = time.ticks_diff(time2, time1)
         if diff > 38000:                    # If out of range
@@ -47,10 +48,11 @@ class Ultrasonic(Sensor):
         else:
             dist = (diff * 1e-6 * self.sound_vel / 2) * 100
             return dist     # in cm
+        
 
-
-class Motor:
-    def __init__(self, l_in1, l_in2, l_en, r_in1, r_in2, r_en, freq=1907):
+class Motor(Electronics):     # NOTE: TAKES IN (0.2, 0.4) from RPI4
+    def __init__(self, name, status, l_in1, l_in2, l_en, r_in1, r_in2, r_en, freq=1907):
+        super().__init__(name, status)
         self.l_in1 = Pin(l_in1, Pin.OUT)
         self.l_in2 = Pin(l_in2, Pin.OUT)
         self.l_pwm = PWM(Pin(l_en));  self.l_pwm.freq(freq)
@@ -59,25 +61,22 @@ class Motor:
         self.r_in2 = Pin(r_in2, Pin.OUT)
         self.r_pwm = PWM(Pin(r_en));  self.r_pwm.freq(freq)
 
-    def _set(self, in1, in2, pwm, speed):       # private class
-        speed = max(-1.0, min(1.0, speed))
-        if speed > 0:   in1.value(0); in2.value(1)
-        elif speed < 0: in1.value(1); in2.value(0)
-        else:           in1.value(1); in2.value(1)  # brake
-        pwm.duty_u16(int(abs(speed) * 65535))
+    def _set(self, in1, in2, pwm, speed):               # private class (speed between -1 to 1)
+        speed = max(-1.0, min(1.0, speed))              # used to clamp speed within -1 to 1
+        if speed > 0:   in1.value(0); in2.value(1)      # THIS IS FOR DIRECTION (W)
+        elif speed < 0: in1.value(1); in2.value(0)      # THIS IS FOR DIRECTION (S)
+        else:           in1.value(1); in2.value(1)      # THIS IS FOR DIRECTION (STOP)
+        pwm.duty_u16(int(abs(speed) * 65535))           # 0 - 65535 (DUTY CYCLE - CHANGE SPEED)
 
     def move(self, left, right):
         self._set(self.l_in1, self.l_in2, self.l_pwm, left)
         self._set(self.r_in1, self.r_in2, self.r_pwm, right)
 
+    # THIS IS FOR FIXED MOVEMENTS
     def forward(self):          self.move( DRIVE_DUTY,  DRIVE_DUTY)
     def backward(self):         self.move(-DRIVE_DUTY, -DRIVE_DUTY)
     def tank_turn_left(self):   self.move( TURN_DUTY, -TURN_DUTY)
     def tank_turn_right(self):  self.move(-TURN_DUTY,  TURN_DUTY)
-    def forward_left(self):     self.move( INNER_DUTY,  OUTER_DUTY)
-    def forward_right(self):    self.move( OUTER_DUTY,  INNER_DUTY)
-    def backward_left(self):    self.move(-INNER_DUTY, -OUTER_DUTY)
-    def backward_right(self):   self.move(-OUTER_DUTY, -INNER_DUTY)
     def stop(self):             self.move(0, 0)
 
 
@@ -88,6 +87,31 @@ class PID:
         self.kd = kd
         self.setpoint = setpoint
 
+        self.integral = 0.0
+        self.previous_error = 0.0
+        self.last_time = time.ticks_us()
+
+    def calculate(self, setpoint, current_value):
+        current_time = time.ticks_us()
+        dt = time.ticks_diff(current_time, self.last_time) / 1000000 # Convert ms to seconds
+
+        if dt <= 0.0:
+            dt = 0.01
+        
+        error = setpoint - current_value
+        self.integral += error * dt
+        self.integral = max(-10.0, min(10.0, self.integral))
+        
+        p_term = self.kp * error
+        i_term = self.ki * self.integral
+        d_term = self.kd * ((error - self.previous_error) / dt) 
+        
+        self.previous_error = error
+        self.last_time = current_time
+
+        output = p_term + i_term + d_term
+        return output
+        
 
 
 # START OF CODE
@@ -95,14 +119,38 @@ USRM_TL = Ultrasonic("TL", "ON", 6, 7)
 USRM_TR = Ultrasonic("TR", "ON", 10, 11)
 USRM_BL = Ultrasonic("BL", "ON", 12, 13)
 USRM_BR = Ultrasonic("BR", "ON", 14, 15)
-MOTOR = Motor(l_in1=0, l_in2=1, l_en=8, r_in1=2, r_in2=3, r_en=9)
-
+MOTOR = Motor("LEFT_RIGHT_MOTORS","ON", l_in1=0, l_in2=1, l_en=8, r_in1=2, r_in2=3, r_en=9)
+USRM_TL.ShowStatus()
+USRM_TR.ShowStatus()
+USRM_BL.ShowStatus()
+USRM_BR.ShowStatus()
+MOTOR.ShowStatus()
 
 while True:
-    data = input().strip()          # receives "0.85 -0.85"
+    data = input().strip()         # receives "(0.85, 0.75)" ---> "(left_motor_pwm, right_motor_pwm)"
     try:
-        left, right = map(float, data.split())
+        left, right = map(float, data.strip("()").split(","))
         MOTOR.move(left, right)
-        print("OK")
+        print(f"Changed pwm for motors to {left} and {right} respectively")
     except:
-        print("ERROR")
+        print("ERROR: Change of speed.")
+
+    dist = []
+    dist.append(USRM_TL.distance())
+    dist.append(USRM_TR.distance())
+    dist.append(USRM_BL.distance())
+    dist.append(USRM_BR.distance())
+
+    for element in dist:
+        if isinstance(element, (int, float)):
+            if element < 3:
+                MOTOR.stop()
+                break
+    
+    
+        
+    
+
+
+
+
