@@ -1,5 +1,6 @@
 from machine import Pin, PWM # type: ignore
 import time # type: ignore
+import machine # type: ignore
 
 DRIVE_DUTY  = 0.85
 TURN_DUTY   = 0.80
@@ -16,6 +17,40 @@ class Electronics:
 
     def CheckStatus(self):
         print(f"{self.name} disconnected.")
+
+class Encoder(Electronics):
+    # NOTE: AB Dual-Phase Incremental Magnetic Hall Encoder
+    
+    _PPR = 11 # Pulses per revolution
+    
+    def __init__(self,name, status, _pin_a, _pin_b, _reduction_ratio=1):   # TO CHANGE REDUCTION_RATIO
+        super().__init__(name, status)
+        # Pull up holds the pins at HIGH when no signal is present
+        self._pin_a = Pin(_pin_a, PIN.IN, Pin.PULL_UP) # type:ignore
+        self._pin_b = Pin(_pin_b, PIN.IN, Pin.PULL_UP) # type:ignore
+        self._reduction_ratio = _reduction_ratio
+        self._cpr_motor = 4 * self._PPR                # counts per revolution (4 edges of A and B), raw motor shaft resolution
+        self._cpr_output = self._cpr_motor * _reduction_ratio  # counts per rev for output after gearbox (reduction_ratio)
+        # this is how many counts equal one full wheel turn
+
+        self._counts = 0
+        self._last_counts = 0
+        self._last_time = time.ticks_us()
+
+        # Attach IRQs to both edges of both channels A and B --> IRQ (Interrupt Request) will make CPU suspend its current task to handle to request
+        self._pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._callback_a)
+        self._pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.callback_b)
+
+    # ----------------------------------------- #
+    # IRQ Callbacks (called at interrupt level)
+    # ----------------------------------------- #
+
+    def _callback_a(self, pin):
+        a = self.pin_a.value()
+        b = self.pin_b.value()
+        self.counts += 1 if (a==b) else -1
+
+
 
 
 class Ultrasonic(Electronics):
