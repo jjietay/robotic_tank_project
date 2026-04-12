@@ -45,12 +45,15 @@ class Encoder(Electronics):
     # IRQ Callbacks (called at interrupt level)
     # ----------------------------------------- #
 
-    def _callback_a(self, pin):
-        a = self.pin_a.value()
-        b = self.pin_b.value()
+    def _callback_a(self):
+        a = self._pin_a.value()
+        b = self._pin_b.value()
         self.counts += 1 if (a==b) else -1
 
-
+    def _callback_b(self):
+        a = self._pin_a.value()
+        b =self._pin_b.value()
+        self._counts += 1 if (a!=b) else -1
 
 
 class Ultrasonic(Electronics):
