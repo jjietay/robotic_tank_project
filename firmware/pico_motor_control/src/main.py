@@ -175,7 +175,7 @@ class PID:
         
 
 
-# INITIALISING COMPONENTS
+# INITIALIZING COMPONENTS
 USRM_TL = Ultrasonic("TL", "ON", 6, 7)
 USRM_TR = Ultrasonic("TR", "ON", 10, 11)
 USRM_BL = Ultrasonic("BL", "ON", 12, 13)
