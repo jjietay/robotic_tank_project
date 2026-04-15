@@ -1,11 +1,9 @@
-from machine import Pin, PWM # type: ignore
-import time # type: ignore
-import machine # type: ignore
+from machine import Pin, PWM 
+import time 
+import machine 
 
 DRIVE_DUTY  = 0.85
 TURN_DUTY   = 0.80
-INNER_DUTY  = 0.55
-OUTER_DUTY  = 0.90
 
 class Electronics:
     def __init__(self, name, status):
@@ -18,42 +16,67 @@ class Electronics:
     def CheckStatus(self):
         print(f"{self.name} disconnected.")
 
-class Encoder(Electronics):
-    # NOTE: AB Dual-Phase Incremental Magnetic Hall Encoder
-    
-    _PPR = 11 # Pulses per revolution
-    
-    def __init__(self,name, status, _pin_a, _pin_b, _reduction_ratio=1):   # TO CHANGE REDUCTION_RATIO
-        super().__init__(name, status)
-        # Pull up holds the pins at HIGH when no signal is present
-        self._pin_a = Pin(_pin_a, PIN.IN, Pin.PULL_UP) # type:ignore
-        self._pin_b = Pin(_pin_b, PIN.IN, Pin.PULL_UP) # type:ignore
-        self._reduction_ratio = _reduction_ratio
-        self._cpr_motor = 4 * self._PPR                # counts per revolution (4 edges of A and B), raw motor shaft resolution
-        self._cpr_output = self._cpr_motor * _reduction_ratio  # counts per rev for output after gearbox (reduction_ratio)
-        # this is how many counts equal one full wheel turn
 
-        self._counts = 0
-        self._last_counts = 0
+# NOTE: Quadrature Incremental Magnetic Encoder
+class Encoder(Electronics):
+    _PPR = 11   # Pulses per revolution - the number of possible highs and lows per rev PER PIN !!
+
+    def __init__(self, name, status, _pin_a, _pin_b, _reduction_ratio = 1, _diameter=4.7):
+        super().__init__(name, status)
+        # Pull up holds the pins at HIGH when no signal is present, this is to prevent floating inputs
+        self._pin_a = Pin(_pin_a, Pin.IN, Pin.PULL_UP)
+        self._pin_b = Pin(_pin_b, Pin.IN, Pin.PULL_UP)
+
+        self._reduction_ratio = _reduction_ratio
+        self._diameter = _diameter # 4.7cm
+        self._circumference = 2 * 3.141592653589793 * (_diameter/2)
+        self._cpr_motor = 4 * self._PPR     # Counts per revolution OF SHAFT measures the highs and lows on both A and B (QUADRATURE)
+        self._cpr_output = self._cpr_motor * self._reduction_ratio # Counts per revolution OF WHEEL measured with the highs and lows of both A and B
+
+        # State variables
+        self.count = 0
+        self._last_count = 0
         self._last_time = time.ticks_us()
 
-        # Attach IRQs to both edges of both channels A and B --> IRQ (Interrupt Request) will make CPU suspend its current task to handle to request
-        self._pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._callback_a)
-        self._pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.callback_b)
+        self._pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._callback_a)     # Whenever pin rising or falling, stop all tasks first and run _callback_a function 
+        self._pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._callback_b)      # Whenever pin rising or falling, stop all tasks first and run _callback_b function 
 
-    # ----------------------------------------- #
-    # IRQ Callbacks (called at interrupt level)
-    # ----------------------------------------- #
-
-    def _callback_a(self):
-        a = self._pin_a.value()
+    def _callback_a(self, _pin_a):         
+        a = _pin_a.value()
         b = self._pin_b.value()
-        self.counts += 1 if (a==b) else -1
+        if a == b:
+            self.count -= 1         
+        else:
+            self.count += 1        
 
-    def _callback_b(self):
+    def _callback_b(self, _pin_b):         
         a = self._pin_a.value()
-        b =self._pin_b.value()
-        self._counts += 1 if (a!=b) else -1
+        b = _pin_b.value()
+        if a == b:
+            self.count += 1         
+        else:
+            self.count -= 1        
+
+    def get_count(self):
+        return self.count
+    
+    def get_vel(self):
+        _now_time = time.ticks_us()
+        time_diff = time.ticks_diff(_now_time, self._last_time)
+        if time_diff <= 0:
+            return 0.0
+        
+        time_diff = time_diff * 1e-6                                # convert from micro seconds to seconds    
+        vel = self._get_distance_delta() / time_diff
+        self._last_time = _now_time                                 # reset
+        self._last_count = self.count
+        return vel                                                  # in cm/s
+    
+    "Helper Method (Private Method) to calculate distance change since last velocity check."
+    def _get_distance_delta(self):
+        count_diff = self.count - self._last_count
+        distance_diff = (count_diff / self._cpr_output) * self._circumference
+        return distance_diff
 
 
 class Ultrasonic(Electronics):
@@ -152,18 +175,22 @@ class PID:
         
 
 
-# START OF CODE
+# INITIALISING COMPONENTS
 USRM_TL = Ultrasonic("TL", "ON", 6, 7)
 USRM_TR = Ultrasonic("TR", "ON", 10, 11)
 USRM_BL = Ultrasonic("BL", "ON", 12, 13)
 USRM_BR = Ultrasonic("BR", "ON", 14, 15)
 MOTOR = Motor("LEFT_RIGHT_MOTORS","ON", l_in1=0, l_in2=1, l_en=8, r_in1=2, r_in2=3, r_en=9)
+ENCODER = Encoder("ENC", "ON", 999, 999)
+PID = PID(999, 999, 999)
 USRM_TL.ShowStatus()
 USRM_TR.ShowStatus()
 USRM_BL.ShowStatus()
 USRM_BR.ShowStatus()
 MOTOR.ShowStatus()
+ENCODER.ShowStatus()
 
+# MAIN LOOP
 while True:
     data = input().strip()         # receives "(0.85, 0.75)" ---> "(left_motor_pwm, right_motor_pwm)"
     try:
