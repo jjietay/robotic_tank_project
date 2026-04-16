@@ -222,8 +222,8 @@ USRM_BR = Ultrasonic("BR", "ON", trigger_pin=14, echo_pin=15)
 MOTOR = Motor("LEFT_RIGHT_MOTORS","ON", l_dir=0, l_pwm=8, r_dir=2, r_pwm=9)
 LEFT_ENCODER = Encoder("L_ENC", "ON", _pin_a=16, _pin_b=17)
 RIGHT_ENCODER = Encoder("R_ENC", "ON", _pin_a=18, _pin_b=19)
-LEFT_PID = PID(kp=1, ki=0, kd=0)
-RIGHT_PID = PID(kp=1, ki=0, kd=0)
+LEFT_PID = PID(kp=0.8, ki=0, kd=0)
+RIGHT_PID = PID(kp=0.8, ki=0, kd=0)
 
 USRM_TL.ShowStatus()
 USRM_TR.ShowStatus()
@@ -245,7 +245,7 @@ while True:
     if poller.poll(0):  # 0 ---> do not wait
         data = sys.stdin.readline().strip()
         if data:
-            # receives "(0.85, 0.75)" ---> "(left_motor_pwm, right_motor_pwm)"
+            # receives "(20.0, 20.0)" ---> "(left_motor_speed, right_motor_speed)"
             try:
                 target_vel_l, target_vel_r = map(float, data.strip("()").split(","))
                 print(f"New targets: {target_vel_l}, {target_vel_r}")
@@ -268,13 +268,10 @@ while True:
     current_velocity_r = RIGHT_ENCODER.get_vel()
     
     # PID to get new velocities
-    pwm_l = LEFT_PID.calculate(target_vel_l, current_velocity_l)
-    pwm_r = RIGHT_PID.calculate(target_vel_r, current_velocity_r)
+    vel_l = LEFT_PID.calculate(target_vel_l, current_velocity_l)
+    vel_r = RIGHT_PID.calculate(target_vel_r, current_velocity_r)
 
     # SET new velocities
-    MOTOR.move(pwm_l, pwm_r)
+    MOTOR.move(vel_l, vel_r)
 
     time.sleep(0.01)
-
-
-
