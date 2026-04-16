@@ -241,35 +241,40 @@ target_vel_r = 0.0
 
 # MAIN LOOP
 while True:
+    # Check for immediate serial commands
     if poller.poll(0):  # 0 ---> do not wait
-        data = sys.stdin.readLine().strip()
-        try:
-            target
+        data = sys.stdin.readline().strip()
+        if data:
             # receives "(0.85, 0.75)" ---> "(left_motor_pwm, right_motor_pwm)"
-    try:
-        left, right = map(float, data.strip("()").split(","))
-        MOTOR.move(left, right)
-        print(f"Changed pwm for motors to {left} and {right} respectively")
-    except:
-        print("ERROR: Change of speed.")
-
-
+            try:
+                target_vel_l, target_vel_r = map(float, data.strip("()").split(","))
+                print(f"New targets: {target_vel_l}, {target_vel_r}")
+            except:
+                print("ERROR: Invalid serial data.")
+    
     # CHECK USRM SENSOR
-    dist = []
-    dist.append(USRM_TL.distance())
-    dist.append(USRM_TR.distance())
-    dist.append(USRM_BL.distance())
-    dist.append(USRM_BR.distance())
+    dist = [
+        USRM_TL.distance(), USRM_TR.distance(),
+        USRM_BL.distance(), USRM_BR.distance()
+    ]
     for element in dist:
-        if isinstance(element, (int, float)):
-            if element < 3:
-                MOTOR.stop()
-                break
-    
-    
-        
-    
+        if isinstance(element, (int, float)) and element < 3:     # if distance from crash is 3cm away, STOP the vehicle
+            target_vel_l = 0.0
+            target_vel_r = 0.0
+            break
 
+    # Get current velocities
+    current_velocity_l = LEFT_ENCODER.get_vel()
+    current_velocity_r = RIGHT_ENCODER.get_vel()
+    
+    # PID to get new velocities
+    pwm_l = LEFT_PID.calculate(target_vel_l, current_velocity_l)
+    pwm_r = RIGHT_PID.calculate(target_vel_r, current_velocity_r)
+
+    # SET new velocities
+    MOTOR.move(pwm_l, pwm_r)
+
+    time.sleep(0.01)
 
 
 
