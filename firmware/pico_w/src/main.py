@@ -109,9 +109,10 @@ class Ultrasonic(Electronics):
         else:
             dist = (diff * 1e-6 * self.sound_vel / 2) * 100
             return dist     # in cm
-        
 
-class Motor(Electronics):     # NOTE: TAKES IN (0.2, 0.4) from RPI4
+
+""" ----------- THIS IS FOR L289N -----------------
+class Motor(Electronics):     # TAKES IN (0.2, 0.4) from RPI4
     def __init__(self, name, status, l_in1, l_in2, l_en, r_in1, r_in2, r_en, freq=1907):
         super().__init__(name, status)
         self.l_in1 = Pin(l_in1, Pin.OUT)
@@ -139,7 +140,44 @@ class Motor(Electronics):     # NOTE: TAKES IN (0.2, 0.4) from RPI4
     def tank_turn_left(self):   self.move( TURN_DUTY, -TURN_DUTY)
     def tank_turn_right(self):  self.move(-TURN_DUTY,  TURN_DUTY)
     def stop(self):             self.move(0, 0)
+"""
 
+
+"This is for Cytron MDD10A ---> which only requires direction pin and pwm pin per motor"
+class Motor(Electronics):     
+    def __init__(self, name, status, l_dir, l_pwm, r_dir, r_pwm, freq=1907):
+        super().__init__(name, status)
+        self.l_dir = Pin(l_dir, Pin.OUT)
+        self.l_pwm = PWM(Pin(l_pwm))
+        self.l_pwm.freq(freq)
+
+        self.r_dir = Pin(r_dir, Pin.OUT)
+        self.r_pwm = PWM(Pin(r_pwm))
+        self.r_pwm.freq(freq)
+
+    def _set(self, dir_pin, pwm_pin, speed):            
+        speed = max(-1.0, min(1.0, speed))              # Clamp speed within -1 to 1
+        
+        if speed > 0:   
+            dir_pin.value(1)                            # Set direction (Forward)
+        elif speed < 0: 
+            dir_pin.value(0)                            # Set direction (Reverse)
+        else:           
+            dir_pin.value(0)                            # Direction doesn't matter if speed is 0
+            
+        pwm_pin.duty_u16(int(abs(speed) * 65535))       # 0 - 65535 (DUTY CYCLE)
+
+    # Simply combines both left and right together for teleop control
+    def move(self, left, right):
+        self._set(self.l_dir, self.l_pwm, left)
+        self._set(self.r_dir, self.r_pwm, right)
+
+    # THIS IS FOR FIXED MOVEMENTS
+    def forward(self):          self.move( DRIVE_DUTY,  DRIVE_DUTY)
+    def backward(self):         self.move(-DRIVE_DUTY, -DRIVE_DUTY)
+    def tank_turn_left(self):   self.move( TURN_DUTY, -TURN_DUTY)
+    def tank_turn_right(self):  self.move(-TURN_DUTY,  TURN_DUTY)
+    def stop(self):             self.move(0, 0)
 
 class PID:
     def __init__(self, kp, ki, kd, setpoint=0.0):
@@ -179,7 +217,7 @@ USRM_TL = Ultrasonic("TL", "ON", 6, 7)
 USRM_TR = Ultrasonic("TR", "ON", 10, 11) 
 USRM_BL = Ultrasonic("BL", "ON", 12, 13)
 USRM_BR = Ultrasonic("BR", "ON", 14, 15)
-MOTOR = Motor("LEFT_RIGHT_MOTORS","ON", l_in1=0, l_in2=1, l_en=8, r_in1=2, r_in2=3, r_en=9)
+MOTOR = Motor("LEFT_RIGHT_MOTORS","ON", l_dir=0, l_pwm=8, r_dir=2, r_pwm=9)
 ENCODER = Encoder("ENC", "ON", 999, 999)
 PID = PID(999, 999, 999)
 USRM_TL.ShowStatus()
