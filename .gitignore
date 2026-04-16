@@ -1,4 +1,4 @@
-firmware/pico_w/build/
+firmware/pico_w/micro_ros_ws/build/
 software/ros2_ws/build/
 software/ros2_ws/install/
 software/ros2_ws/log/

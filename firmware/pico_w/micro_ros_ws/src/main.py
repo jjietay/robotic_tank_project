@@ -1,6 +1,8 @@
 from machine import Pin, PWM 
 import time 
-import machine 
+import machine
+import sys
+import select
 
 DRIVE_DUTY  = 0.85
 TURN_DUTY   = 0.80
@@ -220,7 +222,9 @@ USRM_BR = Ultrasonic("BR", "ON", trigger_pin=14, echo_pin=15)
 MOTOR = Motor("LEFT_RIGHT_MOTORS","ON", l_dir=0, l_pwm=8, r_dir=2, r_pwm=9)
 LEFT_ENCODER = Encoder("L_ENC", "ON", _pin_a=16, _pin_b=17)
 RIGHT_ENCODER = Encoder("R_ENC", "ON", _pin_a=18, _pin_b=19)
-PID = PID(999, 999, 999)
+LEFT_PID = PID(kp=1, ki=0, kd=0)
+RIGHT_PID = PID(kp=1, ki=0, kd=0)
+
 USRM_TL.ShowStatus()
 USRM_TR.ShowStatus()
 USRM_BL.ShowStatus()
@@ -229,9 +233,19 @@ MOTOR.ShowStatus()
 LEFT_ENCODER.ShowStatus()
 RIGHT_ENCODER.ShowStatus()
 
+poller = select.poll()
+poller.register(sys.stdin, select.POLLIN)
+
+target_vel_l = 0.0
+target_vel_r = 0.0
+
 # MAIN LOOP
 while True:
-    data = input().strip()         # receives "(0.85, 0.75)" ---> "(left_motor_pwm, right_motor_pwm)"
+    if poller.poll(0):  # 0 ---> do not wait
+        data = sys.stdin.readLine().strip()
+        try:
+            target
+            # receives "(0.85, 0.75)" ---> "(left_motor_pwm, right_motor_pwm)"
     try:
         left, right = map(float, data.strip("()").split(","))
         MOTOR.move(left, right)
@@ -239,12 +253,13 @@ while True:
     except:
         print("ERROR: Change of speed.")
 
+
+    # CHECK USRM SENSOR
     dist = []
     dist.append(USRM_TL.distance())
     dist.append(USRM_TR.distance())
     dist.append(USRM_BL.distance())
     dist.append(USRM_BR.distance())
-
     for element in dist:
         if isinstance(element, (int, float)):
             if element < 3:
