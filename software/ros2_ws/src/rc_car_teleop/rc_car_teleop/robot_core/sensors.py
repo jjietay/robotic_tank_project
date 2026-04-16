@@ -1,4 +1,16 @@
-class Camera(Sensor):
+class Electronics:
+    def __init__(self, name, status):
+        self.name = name
+        self.status = status
+
+    def ShowStatus(self):
+        print(f"{self.name} initialized.")
+
+    def CheckStatus(self):
+        print(f"{self.name} disconnected.")
+
+
+class Camera(Electronics):
     def __init__(self, name, status, current=55e-3, voltage=1.8, height=720, width=1280, array_size=921600, fps=30, output_format="10-bit_RAW_RGB"):
         super().__init__(name, status, current, voltage)
         self.current = current              # 0.055A
@@ -9,4 +21,4 @@ class Camera(Sensor):
         self.fps = fps                      # 60 fps
         self.output_format = output_format  # 10-bit RAW RGB ---> (1280, 720, 3)
     
-    def GetFrames(self, array_size):
+    # def GetFrames(self, array_size):
