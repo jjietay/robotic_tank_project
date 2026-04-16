@@ -213,19 +213,21 @@ class PID:
 
 
 # INITIALIZING COMPONENTS
-USRM_TL = Ultrasonic("TL", "ON", 6, 7)
-USRM_TR = Ultrasonic("TR", "ON", 10, 11) 
-USRM_BL = Ultrasonic("BL", "ON", 12, 13)
-USRM_BR = Ultrasonic("BR", "ON", 14, 15)
+USRM_TL = Ultrasonic("TL", "ON", trigger_pin=6, echo_pin=7)
+USRM_TR = Ultrasonic("TR", "ON", trigger_pin=10, echo_pin=11) 
+USRM_BL = Ultrasonic("BL", "ON", trigger_pin=12, echo_pin=13)
+USRM_BR = Ultrasonic("BR", "ON", trigger_pin=14, echo_pin=15)
 MOTOR = Motor("LEFT_RIGHT_MOTORS","ON", l_dir=0, l_pwm=8, r_dir=2, r_pwm=9)
-ENCODER = Encoder("ENC", "ON", 999, 999)
+LEFT_ENCODER = Encoder("L_ENC", "ON", _pin_a=16, _pin_b=17)
+RIGHT_ENCODER = Encoder("R_ENC", "ON", _pin_a=18, _pin_b=19)
 PID = PID(999, 999, 999)
 USRM_TL.ShowStatus()
 USRM_TR.ShowStatus()
 USRM_BL.ShowStatus()
 USRM_BR.ShowStatus()
 MOTOR.ShowStatus()
-ENCODER.ShowStatus()
+LEFT_ENCODER.ShowStatus()
+RIGHT_ENCODER.ShowStatus()
 
 # MAIN LOOP
 while True:
