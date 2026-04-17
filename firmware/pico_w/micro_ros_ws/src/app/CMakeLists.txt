@@ -8,11 +8,17 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
+# microros library folder (same as before)
 link_directories(libmicroros)
+
+# --------------------------
+# Executable: use .cpp file
+# --------------------------
 add_executable(pico_micro_ros_example
-    pico_micro_ros_example.c
+    pico_micro_ros_example.cpp
     pico_uart_transport.c
 )
+
 target_link_libraries(pico_micro_ros_example
     pico_stdlib
     microros
@@ -22,10 +28,11 @@ target_include_directories(pico_micro_ros_example PUBLIC
     libmicroros/include
 )
 
-SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections")
+# Optional flags (same as before)
+set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections")
 
-# Configure Pico
+# Configure Pico IO
 pico_enable_stdio_usb(pico_micro_ros_example 1)
 pico_enable_stdio_uart(pico_micro_ros_example 0)
 add_compile_definitions(PICO_UART_ENABLE_CRLF_SUPPORT=0)
