@@ -3,10 +3,7 @@ firmware/pico_w/micro_ros_ws/src/.github
 firmware/pico_w/micro_ros_ws/src/.images
 firmware/pico_w/micro_ros_ws/src/libmicroros
 firmware/pico_w/micro_ros_ws/src/microros_static_library
-firmware/pico_w/micro_ros_ws/src/CMakeLists.txt
-firmware/pico_w/micro_ros_ws/src/pico_sdk_import.cmake
-firmware/pico_w/micro_ros_ws/src/pico_uart_transport.c
-firmware/pico_w/micro_ros_ws/src/pico_uart_transports.h
+
 software/ros2_ws/build/
 software/ros2_ws/install/
 software/ros2_ws/log/
