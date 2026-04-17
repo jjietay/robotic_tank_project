@@ -2,42 +2,39 @@ cmake_minimum_required(VERSION 3.12)
 
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
-project(pico_micro_ros_example C CXX ASM)
+project(pico_micro_ros C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-# microros library folder (same as before)
-link_directories(libmicroros)
+# micro-ROS static library directory
+link_directories(${CMAKE_CURRENT_LIST_DIR}/../../libmicroros)
 
-# --------------------------
-# Executable: use .cpp file
-# --------------------------
-add_executable(pico_micro_ros_example
-    pico_micro_ros_example.cpp
-    pico_uart_transport.c
+# Executable: main.cpp + pico_uart_transport.c (one directory up)
+add_executable(pico_micro_ros
+    main.cpp
+    ../pico_uart_transport.c
 )
 
-target_link_libraries(pico_micro_ros_example
+# Link against Pico stdlib, hardware libs, and micro-ROS
+target_link_libraries(pico_micro_ros
     pico_stdlib
+    hardware_pwm
+    hardware_gpio
+    hardware_sync
     microros
 )
 
-target_include_directories(pico_micro_ros_example PUBLIC
-    libmicroros/include
+# micro-ROS headers
+target_include_directories(pico_micro_ros PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/../../libmicroros/include
 )
 
-# Optional flags (same as before)
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections")
 
-# Configure Pico IO
-pico_enable_stdio_usb(pico_micro_ros_example 1)
-pico_enable_stdio_uart(pico_micro_ros_example 0)
-add_compile_definitions(PICO_UART_ENABLE_CRLF_SUPPORT=0)
-add_compile_definitions(PICO_STDIO_ENABLE_CRLF_SUPPORT=0)
-add_compile_definitions(PICO_STDIO_DEFAULT_CRLF=0)
+pico_enable_stdio_usb(pico_micro_ros 1)
+pico_enable_stdio_uart(pico_micro_ros 0)
 
-# Generate UF2
-pico_add_extra_outputs(pico_micro_ros_example)
+pico_add_extra_outputs(pico_micro_ros)
