@@ -14,7 +14,7 @@
 #include <rclc/executor.h>
 #include <geometry_msgs/msg/twist.h>
 
-// ─── Constants ───────────────────────────────────────────────
+// Constants
 constexpr float DRIVE_DUTY = 0.85f;
 constexpr float TURN_DUTY  = 0.80f;
 constexpr uint  PWM_TOP    = 65535;
@@ -28,7 +28,10 @@ constexpr uint USRM_B_TRIG = 10, USRM_B_ECHO = 11;
 constexpr uint USRM_R_TRIG = 12, USRM_R_ECHO = 13;
 constexpr uint USRM_L_TRIG = 14, USRM_L_ECHO = 15;
 
-// ─── Base Class ──────────────────────────────────────────────
+
+// ---------------------------------------------------------
+//                      Base Class
+// ---------------------------------------------------------
 class Electronics
 {
 protected:
@@ -42,7 +45,10 @@ public:
     void CheckStatus() { printf("%s disconnected.\n", name.c_str()); }
 };
 
-// ─── Ultrasonic ──────────────────────────────────────────────
+
+// ---------------------------------------------------------
+//                       Ultrasonic
+// ---------------------------------------------------------
 class Ultrasonic : public Electronics
 {
 private:
@@ -84,7 +90,10 @@ public:
     }
 };
 
-// ─── Motor (Cytron MDD10A) ────────────────────────────────────
+
+// ---------------------------------------------------------
+//                 Motor (Cytron MDD10A) 
+// ---------------------------------------------------------
 class Motor : public Electronics
 {
 private:
@@ -132,7 +141,10 @@ public:
     void stop()            { move(0.0f, 0.0f);               }
 };
 
-// ─── Encoder ─────────────────────────────────────────────────
+
+// ---------------------------------------------------------
+//                         Encoder 
+// ---------------------------------------------------------
 // 2 main things:
 //  (1) IRQ/callback immediately when either pin A or B goes from 0 to 1 or vice versa
 //  (2) get_vel purely gets the velocity
@@ -145,7 +157,7 @@ private:
     uint  pin_a, pin_b;
     float reduction_ratio, diameter, circumference, cpr_output;
 
-    volatile int count = 0;     // because its modified inside an interrupt and read in main
+    volatile int count = 0;         // because its modified inside an interrupt and read in main
     int last_count = 0;
     uint64_t last_time = 0;
 
@@ -231,7 +243,10 @@ private:
 Encoder* Encoder::instances[2]  = {nullptr, nullptr}; // set instances[0] and instances[1] = nullptr
 int      Encoder::instance_count = 0;
 
-// ─── PID ─────────────────────────────────────────────────────
+
+// ---------------------------------------------------------
+//                           PID
+// ---------------------------------------------------------
 class PID
 {
 private:
@@ -265,9 +280,9 @@ public:
 };
 
 
-// ════════════════════════════════════════════════════════════
-//  micro-ROS globals
-// ════════════════════════════════════════════════════════════
+// ---------------------------------------------------------
+//                   Micro-ROS Globals 
+// ---------------------------------------------------------
 rcl_subscription_t cmd_vel_sub;         // Subscription Handle
 geometry_msgs__msg__Twist cmd_vel_msg;  // Message Buffer
 rclc_executor_t executor;               // Event loop manager
@@ -282,7 +297,6 @@ float target_vel_r = 0.0f;
 // Make it global for access to E stop
 Ultrasonic* g_usrm[4];
 
-// ─── /cmd_vel callback ───────────────────────────────────────
 // Called automatically by micro-ROS when RPi4 publishes to /cmd_vel
 // linear.x  = forward/backward speed  (-1.0 to 1.0)
 // angular.z = turning speed           (-1.0 to 1.0)
@@ -311,7 +325,10 @@ void cmd_vel_callback(const void* msg_in) {
     }
 }
 
-// ─── Main ─────────────────────────────────────────────────────
+
+// ---------------------------------------------------------
+//                          MAIN 
+// ---------------------------------------------------------
 int main() {
     stdio_init_all();
 
@@ -334,7 +351,7 @@ int main() {
     MOTOR.ShowStatus();
     LEFT_ENCODER.ShowStatus(); RIGHT_ENCODER.ShowStatus();
 
-    // ── micro-ROS init ──────────────────────────────────────
+    // micro-ROS init
     allocator = rcl_get_default_allocator();
     rclc_support_init(&support, 0, NULL, &allocator);
     rclc_node_init_default(&node, "pico_node", "", &support);
@@ -345,7 +362,7 @@ int main() {
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "/cmd_vel");
 
-    // Executor — 1 handle = 1 subscriber
+    // Executor ---> 1 handle = 1 subscriber
     rclc_executor_init(&executor, &support.context, 1, &allocator);
     rclc_executor_add_subscription(
         &executor, &cmd_vel_sub, &cmd_vel_msg,
@@ -353,7 +370,7 @@ int main() {
 
     printf("micro-ROS ready, listening on /cmd_vel\n");
 
-    // ── Main loop ───────────────────────────────────────────
+    // Main loop
     while (true) {
         // Spin micro-ROS — fires cmd_vel_callback if new message arrived
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
