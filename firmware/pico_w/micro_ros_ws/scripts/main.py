@@ -80,9 +80,8 @@ class Encoder(Electronics):
         distance_diff = (count_diff / self._cpr_output) * self._circumference
         return distance_diff
 
-
 class Ultrasonic(Electronics):
-    def __init__(self, name, status, trigger_pin, echo_pin, current=15e-3, voltage=5, sound_vel=340):
+    def __init__(self, name, status, trigger_pin, echo_pin, sound_vel=340):
         super().__init__(name, status)
         self.trigger_pin = Pin(trigger_pin, Pin.OUT)
         self.echo_pin = Pin(echo_pin, Pin.IN)
@@ -104,6 +103,7 @@ class Ultrasonic(Electronics):
         while self.echo_pin.value():
             if time.ticks_diff(time.ticks_us(), timeout) > 38000:
                 return "out of range"
+            
         time2 = time.ticks_us()             # Stop Stopwatch
         diff = time.ticks_diff(time2, time1)
         if diff > 38000:                    # If out of range
@@ -113,7 +113,10 @@ class Ultrasonic(Electronics):
             return dist     # in cm
 
 
-""" ----------- THIS IS FOR L289N -----------------
+"This is for Cytron MDD10A ---> which only requires direction pin and pwm pin per motor"
+class Motor(Electronics):     
+    
+    """ ----------- THIS IS FOR L289N -----------------
 class Motor(Electronics):     # TAKES IN (0.2, 0.4) from RPI4
     def __init__(self, name, status, l_in1, l_in2, l_en, r_in1, r_in2, r_en, freq=1907):
         super().__init__(name, status)
@@ -144,9 +147,6 @@ class Motor(Electronics):     # TAKES IN (0.2, 0.4) from RPI4
     def stop(self):             self.move(0, 0)
 """
 
-
-"This is for Cytron MDD10A ---> which only requires direction pin and pwm pin per motor"
-class Motor(Electronics):     
     def __init__(self, name, status, l_dir, l_pwm, r_dir, r_pwm, freq=1907):
         super().__init__(name, status)
         self.l_dir = Pin(l_dir, Pin.OUT)
@@ -215,20 +215,20 @@ class PID:
 
 
 # INITIALIZING COMPONENTS
-USRM_TL = Ultrasonic("TL", "ON", trigger_pin=6, echo_pin=7)
-USRM_TR = Ultrasonic("TR", "ON", trigger_pin=10, echo_pin=11) 
-USRM_BL = Ultrasonic("BL", "ON", trigger_pin=12, echo_pin=13)
-USRM_BR = Ultrasonic("BR", "ON", trigger_pin=14, echo_pin=15)
+USRM_T = Ultrasonic("TL", "ON", trigger_pin=6, echo_pin=7)
+USRM_B = Ultrasonic("TR", "ON", trigger_pin=10, echo_pin=11) 
+USRM_R = Ultrasonic("BL", "ON", trigger_pin=12, echo_pin=13)
+USRM_L = Ultrasonic("BR", "ON", trigger_pin=14, echo_pin=15)
 MOTOR = Motor("LEFT_RIGHT_MOTORS","ON", l_dir=0, l_pwm=8, r_dir=2, r_pwm=9)
 LEFT_ENCODER = Encoder("L_ENC", "ON", _pin_a=16, _pin_b=17)
 RIGHT_ENCODER = Encoder("R_ENC", "ON", _pin_a=18, _pin_b=19)
 LEFT_PID = PID(kp=0.8, ki=0, kd=0)
 RIGHT_PID = PID(kp=0.8, ki=0, kd=0)
 
-USRM_TL.ShowStatus()
-USRM_TR.ShowStatus()
-USRM_BL.ShowStatus()
-USRM_BR.ShowStatus()
+USRM_T.ShowStatus()
+USRM_B.ShowStatus()
+USRM_R.ShowStatus()
+USRM_L.ShowStatus()
 MOTOR.ShowStatus()
 LEFT_ENCODER.ShowStatus()
 RIGHT_ENCODER.ShowStatus()
@@ -254,8 +254,8 @@ while True:
     
     # CHECK USRM SENSOR
     dist = [
-        USRM_TL.distance(), USRM_TR.distance(),
-        USRM_BL.distance(), USRM_BR.distance()
+        USRM_T.distance(), USRM_L.distance(),
+        USRM_B.distance(), USRM_R.distance()
     ]
     for element in dist:
         if isinstance(element, (int, float)) and element < 3:     # if distance from crash is 3cm away, STOP the vehicle
