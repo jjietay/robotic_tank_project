@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/jj/Documents/robotic_tank_project/firmware/pico_w/micro_ros_ws/src/app",
+      "program": "/Users/jj/Documents/robotic_tank_project/firmware/pico_w/micro_ros_ws/src/app/build/Debug/outDebug"
+    }
+  ]
+}
