@@ -8,16 +8,17 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-# micro-ROS static library directory
-link_directories(${CMAKE_CURRENT_LIST_DIR}/../../libmicroros)
+# micro-ROS static library + includes
+set(MICROROS_LIB_DIR     ${CMAKE_CURRENT_LIST_DIR}/../libmicroros)
+set(MICROROS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../libmicroros/include)
 
-# Executable: main.cpp + pico_uart_transport.c (one directory up)
+link_directories(${MICROROS_LIB_DIR})
+
 add_executable(pico_micro_ros
     main.cpp
     ../pico_uart_transport.c
 )
 
-# Link against Pico stdlib, hardware libs, and micro-ROS
 target_link_libraries(pico_micro_ros
     pico_stdlib
     hardware_pwm
@@ -26,9 +27,8 @@ target_link_libraries(pico_micro_ros
     microros
 )
 
-# micro-ROS headers
 target_include_directories(pico_micro_ros PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/../../libmicroros/include
+    ${MICROROS_INCLUDE_DIR}
 )
 
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
