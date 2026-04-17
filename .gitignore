@@ -12,3 +12,5 @@ software/ros2_ws/install/
 software/ros2_ws/log/
 .DS_Store
 DEV_CHEATSHEET.txt
+.vscode
+
