@@ -1,6 +1,6 @@
 Project: Robotic Tank (Pico W + Pi 4 + YD Lidar + USB Camera + ROS 2)
 
-1. Repository layout
+Repository layout
 --------------------
 
 - docs/
@@ -107,49 +107,8 @@ Project: Robotic Tank (Pico W + Pi 4 + YD Lidar + USB Camera + ROS 2)
       - Useful for debugging build issues.
       - Ignored by Git.
 
-2. What to edit (typical tasks)
--------------------------------
 
-- Change teleop behavior (e.g. key bindings, speed scaling, protocol):
-  - Edit: software/ros2_ws/src/rc_car_teleop/rc_car_teleop/teleop_node.py
-
-- Change serial port or baud rate:
-  - Edit: constants in teleop_node.py (e.g. SERIAL_PORT, BAUD_RATE).
-
-- Add a new runtime dependency (e.g. new ROS message type or Python library):
-  - Edit:
-    - software/ros2_ws/src/rc_car_teleop/package.xml (add <exec_depend>).
-    - software/ros2_ws/src/rc_car_teleop/setup.py (install_requires if needed).
-
-- Change how the node is invoked via “ros2 run”:
-  - Edit: entry_points in software/ros2_ws/src/rc_car_teleop/setup.py.
-
-- Modify firmware behavior on the Pico:
-  - Edit source files under firmware/pico_motor_control/ outside the build/
-    directory (e.g. src/main.cpp, configuration headers, etc.).
-  - Rebuild firmware with your usual CMake/Pico SDK flow.
-
-3. What is ignored by Git
--------------------------
-
-.gitignore contains:
-
-  firmware/pico_motor_control/build/
-  software/ros2_ws/build/
-  software/ros2_ws/install/
-  software/ros2_ws/log/
-  .DS_Store
-
-That means:
-
-- All build artifacts, installed files, and logs are local only and not committed.
-- Only your actual source/config files (firmware + ROS 2) and docs are
-  version‑controlled.
-- After cloning or pulling on a new machine, you must rebuild:
-  - Firmware (to regenerate firmware/pico_motor_control/build/).
-  - ROS 2 workspace (colcon build) to regenerate build/, install/, and log/.
-
-4. Typical workflow
+Typical workflow
 -------------------
 
 On Mac:
