@@ -9,12 +9,12 @@
     - each node is written in its own file such as python and cpp
     - can be written in almost any programming language
 
-3) Messages
+2) Messages
     - communication "language" between nodes
     - contain 1 or more fields with strongly-typed data such as string int floating point arrays etc
     - each Message must be defined by an interface
 
-4) Interface
+3) Interface
     - format of messsage
     - descrption of what kind of data the message should contain
     - programming api which defines what kind of data should be recieved or sent by a node either in a topic or a service
@@ -22,9 +22,7 @@
     - nodes can instantiate 1 or more of these messaging types (interfaces)
     - nodes can have more that 1 publishers, subscribers, clients and servers
 
-
-
-2) Method of Communication between nodes:
+4) Method of Communication between nodes:
     (a) Topics
     - named communication channel for publish-subscribe model
     - nodes can subscribe to 1 or more topics and when a message is published to that topic, all subscribing nodes will recieve it
@@ -33,3 +31,7 @@
     - Client will send a request to a server
     - Server is expected to reply with a response
     - Requests-Response are specific type of messages
+
+5) Package
+    - basic unit of organization in ROS
+    - minimum amount of code with all the supporting files needed to make something run in ROS
