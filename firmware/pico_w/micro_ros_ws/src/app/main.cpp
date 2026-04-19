@@ -13,6 +13,7 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 #include <geometry_msgs/msg/twist.h>
+#include <sensor_msgs/msg/range.h>
 
 // Constants
 constexpr float DRIVE_DUTY = 0.85f;
@@ -27,7 +28,6 @@ constexpr uint USRM_T_TRIG = 6,  USRM_T_ECHO = 7;
 constexpr uint USRM_B_TRIG = 10, USRM_B_ECHO = 11;
 constexpr uint USRM_R_TRIG = 12, USRM_R_ECHO = 13;
 constexpr uint USRM_L_TRIG = 14, USRM_L_ECHO = 15;
-
 
 // ---------------------------------------------------------
 //                      Base Class
@@ -284,7 +284,9 @@ public:
 //                   Micro-ROS Globals 
 // ---------------------------------------------------------
 rcl_subscription_t cmd_vel_sub;         // Subscription Handle
+rcl_publisher_t usrm_pub;               // Publish Message
 geometry_msgs__msg__Twist cmd_vel_msg;  // Message Buffer
+sensor_msgs__msg__Range usrm_msg;       // Message Buffer
 rclc_executor_t executor;               // Event loop manager
 rclc_support_t support;                 // Support context
 rcl_allocator_t allocator;              // Allows for custom heap management
@@ -356,11 +358,18 @@ int main() {
     rclc_support_init(&support, 0, NULL, &allocator);
     rclc_node_init_default(&node, "pico_node", "", &support);
 
-    // Subscribe to /cmd_vel
+    // Init /cmd_vel subscriber
     rclc_subscription_init_default(
         &cmd_vel_sub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "/cmd_vel");
+
+    // Init /usrm_front publisher
+    rclc_publisher_init_default(
+        &usrm_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),   // publisher with type sensor_msgs/msg/Range
+        "/usrm_front");                                         // publisher on topic /usrm_front 
 
     // Executor ---> 1 handle = 1 subscriber
     rclc_executor_init(&executor, &support.context, 1, &allocator);
@@ -382,6 +391,11 @@ int main() {
         float vel_r = RIGHT_PID.calculate(target_vel_r, current_vel_r);
 
         MOTOR.move(vel_l, vel_r);
+
+        float d_front = USRM_T.distance();          // in cm, from your class
+        usrm_msg.range = d_front / 100.0f;          // convert cm → meters for sensor_msgs/Range
+        rcl_publish(&usrm_pub, &usrm_msg, NULL);    // Publish
+    
         sleep_ms(10);
     }
 

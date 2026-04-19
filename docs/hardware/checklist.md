@@ -76,4 +76,3 @@
 - [ ] Sensor VCC rail confirmed = 3.3V (measure with multimeter)
 - [ ] No exposed wire shorts on breadboard
 - [ ] Breadboard power rail mid-break bridged (if applicable)
-- [ ] PID values (currently 999, 999, 999) are placeholders — do NOT run PID control until tuned
