@@ -74,43 +74,23 @@ class TeleopNode(Node):
                 self.last_key_time = time.time()
 
                 if key in ('w', 'W'):
-                    cmd = b'W'            # FIX 2, 4: correct Pico cmd + forward = +1.0
+                    cmd = b'W'            
                     twist = Twist()
                     twist.linear.x = 1.0
                 elif key in ('s', 'S'):
-                    cmd = b'S'            # FIX 2, 4: correct Pico cmd + backward = -1.0
+                    cmd = b'S'            
                     twist = Twist()
                     twist.linear.x = -1.0
                 elif key in ('a', 'A'):
-                    cmd = b'A'            # FIX 2: correct Pico cmd
+                    cmd = b'A'            
                     twist = Twist()
-                    twist.angular.z = 1.0   # CCW = left in ROS convention
+                    twist.angular.z = 1.0   # ACW = left in ROS convention
                 elif key in ('d', 'D'):
-                    cmd = b'D'            # FIX 2: correct Pico cmd
+                    cmd = b'D'            
                     twist = Twist()
                     twist.angular.z = -1.0  # CW = right in ROS convention
-                elif key in ('u', 'U'):   # FIX 5: diagonal support
-                    cmd = b'U'
-                    twist = Twist()
-                    twist.linear.x = 1.0
-                    twist.angular.z = 1.0
-                elif key in ('i', 'I'):   # FIX 5
-                    cmd = b'I'
-                    twist = Twist()
-                    twist.linear.x = 1.0
-                    twist.angular.z = -1.0
-                elif key in ('o', 'O'):   # FIX 5
-                    cmd = b'O'
-                    twist = Twist()
-                    twist.linear.x = -1.0
-                    twist.angular.z = 1.0
-                elif key in ('p', 'P'):   # FIX 5
-                    cmd = b'P'
-                    twist = Twist()
-                    twist.linear.x = -1.0
-                    twist.angular.z = -1.0
                 elif key == ' ':
-                    cmd = b'X'            # FIX 3: stop = 'X'
+                    cmd = b'X'            
                     twist = Twist()
                 elif key in ('q', 'Q'):
                     try:
