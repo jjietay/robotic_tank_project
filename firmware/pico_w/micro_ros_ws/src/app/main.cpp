@@ -284,9 +284,17 @@ public:
 //                   Micro-ROS Globals 
 // ---------------------------------------------------------
 rcl_subscription_t cmd_vel_sub;         // Subscription Handle
-rcl_publisher_t usrm_pub;               // Publish Message
+rcl_publisher_t usrm_front_pub;         // Publish Message (front)
+rcl_publisher_t usrm_back_pub;          // Publish Message (back)
+rcl_publisher_t usrm_left_pub;          // Publish Message (left)
+rcl_publisher_t usrm_right_pub;         // Publish Message (right)
+
 geometry_msgs__msg__Twist cmd_vel_msg;  // Message Buffer
-sensor_msgs__msg__Range usrm_msg;       // Message Buffer
+sensor_msgs__msg__Range usrm_front_msg; // Message Buffer (front sensor)
+sensor_msgs__msg__Range usrm_back_msg;  // Message Buffer (back sensor)
+sensor_msgs__msg__Range usrm_left_msg;  // Message Buffer (left sensor)
+sensor_msgs__msg__Range usrm_right_msg; // Message Buffer (right sensor)
+
 rclc_executor_t executor;               // Event loop manager
 rclc_support_t support;                 // Support context
 rcl_allocator_t allocator;              // Allows for custom heap management
@@ -315,16 +323,6 @@ void cmd_vel_callback(const void* msg_in) {
     // Safety: clamp
     target_vel_l = std::max(-1.0f, std::min(1.0f, target_vel_l));
     target_vel_r = std::max(-1.0f, std::min(1.0f, target_vel_r));
-
-    // Emergency stop if any sensor < 3cm
-    for (int i = 0; i < 4; i++) {
-        float d = g_usrm[i]->distance();
-        if (d > 0.0f && d < 3.0f) {
-            target_vel_l = 0.0f;
-            target_vel_r = 0.0f;
-            break;
-        }
-    }
 }
 
 
@@ -341,8 +339,8 @@ int main() {
     Motor      MOTOR("MOTORS", "ON", L_DIR, L_PWM, R_DIR, R_PWM);
     Encoder    LEFT_ENCODER ("L_ENC", "ON", ENC_L_A, ENC_L_B);
     Encoder    RIGHT_ENCODER("R_ENC", "ON", ENC_R_A, ENC_R_B);
-    PID        LEFT_PID (0.8f, 0.0f, 0.0f);
-    PID        RIGHT_PID(0.8f, 0.0f, 0.0f);
+    PID        LEFT_PID (0.8f, 0.1f, 0.1f);
+    PID        RIGHT_PID(0.8f, 0.1f, 0.1f);
 
     // Give sensor pointers to the callback
     g_usrm[0] = &USRM_T; g_usrm[1] = &USRM_B;
@@ -364,12 +362,30 @@ int main() {
         ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
         "/cmd_vel");
 
-    // Init /usrm_front publisher
+    // Init /usrm_front_pub /usrm_back_pub /usrm_left_pub and /usrm_right_pub publisher
     rclc_publisher_init_default(
-        &usrm_pub,
+        &usrm_front_pub,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),   // publisher with type sensor_msgs/msg/Range
-        "/usrm_front");                                         // publisher on topic /usrm_front 
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
+        "/usrm_front");
+
+    rclc_publisher_init_default(
+        &usrm_back_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
+        "/usrm_back");
+
+    rclc_publisher_init_default(
+        &usrm_left_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
+        "/usrm_left");
+
+    rclc_publisher_init_default(
+        &usrm_right_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
+        "/usrm_right");     
 
     // Executor ---> 1 handle = 1 subscriber
     rclc_executor_init(&executor, &support.context, 1, &allocator);
@@ -379,23 +395,56 @@ int main() {
 
     printf("micro-ROS ready, listening on /cmd_vel\n");
 
-    // Main loop
     while (true) {
-        // Spin micro-ROS — fires cmd_vel_callback if new message arrived
+        // 1. Handle incoming ROS messages
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
 
-        // PID velocity control
+        // 2. Read sensors FIRST
+        float d_front = USRM_T.distance();
+        float d_back  = USRM_B.distance();
+        float d_left  = USRM_L.distance();
+        float d_right = USRM_R.distance();
+
+        // 3. PID velocity control
         float current_vel_l = LEFT_ENCODER.get_vel();
         float current_vel_r = RIGHT_ENCODER.get_vel();
-        float vel_l = LEFT_PID .calculate(target_vel_l, current_vel_l);
+        float vel_l = LEFT_PID.calculate(target_vel_l, current_vel_l);
         float vel_r = RIGHT_PID.calculate(target_vel_r, current_vel_r);
 
+        // 4. Decide desired direction based on target velocities
+        bool want_forward  = (target_vel_l > 0.0f && target_vel_r > 0.0f);
+        bool want_backward = (target_vel_l < 0.0f && target_vel_r < 0.0f);
+
+        // 5. Directional safety
+        const float FRONT_STOP_DIST = 3.0f;  // cm
+        const float BACK_STOP_DIST  = 3.0f;  // cm
+
+        if (want_forward && d_front > 0.0f && d_front < FRONT_STOP_DIST) {
+            vel_l = 0.0f;
+            vel_r = 0.0f;
+        }
+
+        if (want_backward && d_back > 0.0f && d_back < BACK_STOP_DIST) {
+            vel_l = 0.0f;
+            vel_r = 0.0f;
+        }
+
+        // 6. Apply to motors
         MOTOR.move(vel_l, vel_r);
 
-        float d_front = USRM_T.distance();          // in cm, from your class
-        usrm_msg.range = d_front / 100.0f;          // convert cm → meters for sensor_msgs/Range
-        rcl_publish(&usrm_pub, &usrm_msg, NULL);    // Publish
-    
+        // 7. Publish distances
+        usrm_front_msg.range = d_front / 100.0f;
+        rcl_publish(&usrm_front_pub, &usrm_front_msg, NULL);
+
+        usrm_back_msg.range = d_back / 100.0f;
+        rcl_publish(&usrm_back_pub, &usrm_back_msg, NULL);
+
+        usrm_left_msg.range = d_left / 100.0f;
+        rcl_publish(&usrm_left_pub, &usrm_left_msg, NULL);
+
+        usrm_right_msg.range = d_right / 100.0f;
+        rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL);
+
         sleep_ms(10);
     }
 
