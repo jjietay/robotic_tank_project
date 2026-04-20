@@ -5,9 +5,8 @@ from geometry_msgs.msg import Twist
 
 
 class CmdVelPublisher(Node): # Inherits from Node
-
     def __init__(self):
-        super().__init__('minimal_publisher')
+        super().__init__('cmd_vel_publisher')
         self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
         timer_period = 0.5  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)

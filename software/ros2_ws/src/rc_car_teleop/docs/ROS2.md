@@ -85,13 +85,13 @@ class CmdVelPublisher(Node):
 
 ```python
 def __init__(self):
-    super().__init__('minimal_publisher')
+    super().__init__('cmd_vel_publisher')
     self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
     timer_period = 0.5  # seconds
     self.timer = self.create_timer(timer_period, self.timer_callback)
     self.i = 0
 ```
-- `super().__init__('cmd_vel_publisher_node')` just creates a node titled: cmd_vel_publisher_node, this is what actually registers the node with the ROS graph, without this, its just a python object not a ROS node
+- `super().__init__('cmd_vel_publisher')` just creates a node titled: cmd_vel_publisher_node, this is what actually registers the node with the ROS graph, without this, its just a python object not a ROS node
 - `self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)` creates a *publisher* and stores it in self.publisher_
 - Twist is the message type, every message published through this publisher will be a  `Twist`
 - `/cmd_vel` = the topic name
