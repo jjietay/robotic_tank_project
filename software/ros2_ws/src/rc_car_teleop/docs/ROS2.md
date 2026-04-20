@@ -1,6 +1,6 @@
 # ROS 2 Fundamentals
 ---
-## **Basic Buidling Blocks:**
+## _(A) Basic Buidling Blocks_
 ### (1) nodes
 - process that performs some task
 - implemented as subclass that inherites from ROS node class
@@ -63,9 +63,9 @@
 
 ---
 
-## **Publisher Format: (Using cmd_vel_publisher_node.py as example)**
+## _(B) Publisher Format: (Example: cmd_vel_publisher_node.py)_
 ### (1) Imports
-```
+```python
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
@@ -77,12 +77,14 @@ from geometry_msgs.msg import Twist
 - For differential drive/tank, we use linear.x (forward/backward) and angular.z (yaw rotation)
 
 ### (2) Create Class
-``` class CmdVelPublisher(Node): ```
+```python
+class CmdVelPublisher(Node):
+```
 - declares a python class
 - this class inherits from Node
 - Node gives this class all the built-in ROS 2 node features: logging, creating publishers/suscribers, timers, parameters, etc
 
-```
+```python
 def __init__(self):
     super().__init__('minimal_publisher')
     self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
@@ -108,7 +110,7 @@ older ones get dropped (FIFO)
 - initialize a counter, often used to count how messages have been sent
 
 
-```    
+```python    
 def timer_callback(self):
     msg = Twist()
     msg.linear.x = 0.1   # forward speed
@@ -132,14 +134,11 @@ def timer_callback(self):
 
 - `self.i += 1` increments internal counter after each publish
 
-```
+```python
 def main(args=None):
     rclpy.init(args=args)
-
     cmd_vel_publisher = CmdVelPublisher()
-
     rclpy.spin(cmd_vel_publisher)
-
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
@@ -161,3 +160,122 @@ def main(args=None):
 - `spin` blocks until you shut down (Ctrl-C)
 - `cmd_vel_publisher.destroy_node()` explicitly destroys the node instance 
 - `rclpy.shutdown()` shutdowns rclpy library 
+
+
+## _(C) Subscriber Format: (Example: cmd_vel_subscriber_node.py)_
+
+### (1) Imports
+```python
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+```
+
+- `Twist` is the same message type as the publisher.
+- The subscriber **must** use the same message type and topic name as the publisher to communicate.
+- `Node` and `rclpy` are used the same way as in the publisher: to define a ROS 2 node class and manage its lifecycle.
+
+
+### (2) Create Class
+```python
+class CmdVelSubscriber(Node):
+```
+
+- Declares a Python class named `CmdVelSubscriber`.
+- Inherits from `Node`, so it has ROS 2 features: logging, subscriptions, timers, parameters, etc.
+- Conceptually: this node **listens** to `/cmd_vel` and reacts to incoming `Twist` messages.
+
+
+### (3) Constructor
+```python
+    def __init__(self):
+        super().__init__('cmd_vel_subscriber')
+        self.subscription = self.create_subscription(
+            Twist,
+            '/cmd_vel',
+            self.cmd_vel_callback,
+            10)
+        self.subscription  # prevent unused variable warning
+```
+
+- `def __init__(self):`  
+  Constructor; runs once when you create a `CmdVelSubscriber()` instance.
+
+- `super().__init__('cmd_vel_subscriber')`  
+  - Creates a ROS 2 node titled `cmd_vel_subscriber`.  
+  - Registers the node with the ROS graph so it appears in `ros2 node list` and can connect to topics.
+
+- `self.subscription = self.create_subscription(...)` creates a **subscription** and stores it in `self.subscription`:
+
+  - `Twist`: message type this subscription expects (must match the publisher on `/cmd_vel`).
+  - `'/cmd_vel'`: topic name to listen on (must match the publisher exactly).
+  - `self.cmd_vel_callback`: callback function that will be called whenever a `Twist` arrives.
+  - `10`: queue size (buffer up to 10 incoming messages if the callback is a bit slow).
+
+- `self.subscription` keeps a reference so the subscription object isn’t garbage-collected.
+
+
+### (4) Callback
+```python
+    def cmd_vel_callback(self, msg: Twist):
+        linear_x = msg.linear.x
+        angular_z = msg.angular.z
+        self.get_logger().info(
+            f"Received cmd_vel: linear.x={linear_x}, angular.z={angular_z}"
+        )
+```
+
+- `def cmd_vel_callback(self, msg: Twist):`  
+  Defines the **subscription callback**.  
+  - `msg` is the `Twist` message received from the publisher, filled in by ROS when a message arrives.
+
+- `linear_x = msg.linear.x` reads the forward/backward velocity from the message.
+
+- `angular_z = msg.angular.z` reads the yaw rotation (turning rate) from the message.
+
+- `self.get_logger().info(...)`  
+  Logs the received values so you can see what is coming in on `/cmd_vel`.  
+  In a real robot, this is where you could convert the velocities to wheel commands and send them to motors.
+
+
+### (5) `main()` and Program Entry
+```python
+def main(args=None):
+    rclpy.init(args=args)
+
+    cmd_vel_subscriber = CmdVelSubscriber()
+
+    rclpy.spin(cmd_vel_subscriber)
+
+    cmd_vel_subscriber.destroy_node()
+    rclpy.shutdown()
+```
+
+- `def main(args=None):`  
+  Entry point; runs when the script is executed.
+
+- `rclpy.init(args=args)`  
+  Initializes the ROS 2 client library; must be called before any nodes are created.
+
+- `cmd_vel_subscriber = CmdVelSubscriber()`  
+  Creates an instance of the subscriber node class and runs its `__init__`, which creates the subscription.
+
+- `rclpy.spin(cmd_vel_subscriber)`  
+  Enters the ROS 2 event loop.  
+  While spinning:
+  - The node stays alive.
+  - Whenever a `Twist` message arrives on `/cmd_vel`, ROS calls `cmd_vel_callback`.
+
+- `cmd_vel_subscriber.destroy_node()`  
+  Explicitly destroys the node instance and unregisters it from the ROS graph.
+
+- `rclpy.shutdown()`  
+  Shuts down the ROS 2 client library when you’re done.
+
+
+```python
+if __name__ == '__main__':
+    main()
+```
+
+- Standard Python boilerplate to call `main()` when the file is run as a script.
