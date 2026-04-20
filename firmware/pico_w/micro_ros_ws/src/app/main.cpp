@@ -215,8 +215,8 @@ public:
 
     int get_count()
     {
-    return count;
-    }  
+        return count;
+    }
 
     float get_vel()
     {

@@ -1,6 +1,6 @@
-# ROS 2 Fundamentals
----
-## _(A) Basic Buidling Blocks_
+# <center>__ROS 2 Fundamentals__<center>
+
+## <center>_(A) Basic Buidling Blocks_<center>
 ### (1) nodes
 - process that performs some task
 - implemented as subclass that inherites from ROS node class
@@ -62,8 +62,7 @@
 - Each node has its own parameters set
 
 ---
-
-## _(B) Publisher Format: (Example: cmd_vel_publisher_node.py)_
+## <center>_(B) Publisher Format: (Example: cmd_vel_publisher_node.py)_<center>
 ### (1) Imports
 ```python
 import rclpy
@@ -161,8 +160,8 @@ def main(args=None):
 - `cmd_vel_publisher.destroy_node()` explicitly destroys the node instance 
 - `rclpy.shutdown()` shutdowns rclpy library 
 
-
-## _(C) Subscriber Format: (Example: cmd_vel_subscriber_node.py)_
+---
+## <center>_(C) Subscriber Format: (Example: cmd_vel_subscriber_node.py)_<center>
 
 ### (1) Imports
 ```python
