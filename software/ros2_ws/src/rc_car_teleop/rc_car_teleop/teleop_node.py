@@ -37,7 +37,7 @@ def read_key(fd, timeout_ms):
 
 class TeleopNode(Node):
     def __init__(self):
-        super().__init__('teleop_node')
+        super().__init__('teleop')
 
         self.get_logger().info(f'Opening serial port {SERIAL_PORT} @ {BAUD_RATE}')
         self.ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=0.1)

@@ -7,7 +7,7 @@ from sensor_msgs.msg import Image
 
 class ImagePublisher(Node):
     def __init__(self):
-        super().__init__("image_publisher")
+        super().__init__("camera")
 
         # OpenCV camera config
         self.cap = cv2.VideoCapture(0)
@@ -19,7 +19,7 @@ class ImagePublisher(Node):
 
         # ROS publisher + bridge
         self.bridge = CvBridge()
-        self.publisher_ = self.create_publisher(Image, 'camera/image_raw', 10)
+        self.publisher_ = self.create_publisher(Image, '/camera/image_raw', 10)
         timer_period = 1/30     # 30 fps
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.i = 0

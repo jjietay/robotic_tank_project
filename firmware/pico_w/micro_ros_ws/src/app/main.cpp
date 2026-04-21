@@ -354,7 +354,7 @@ int main() {
     // micro-ROS init
     allocator = rcl_get_default_allocator();
     rclc_support_init(&support, 0, NULL, &allocator);
-    rclc_node_init_default(&node, "pico_node", "", &support);
+    rclc_node_init_default(&node, "pico", "", &support);   // "pico" is the name of the node that ROS2 can see
 
     // Init /cmd_vel subscriber
     rclc_subscription_init_default(
@@ -367,25 +367,25 @@ int main() {
         &usrm_front_pub,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
-        "/usrm_front");
+        "/sensors/ultrasonic/usrm_front");
 
     rclc_publisher_init_default(
         &usrm_back_pub,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
-        "/usrm_back");
+        "/sensors/ultrasonic/usrm_back");
 
     rclc_publisher_init_default(
         &usrm_left_pub,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
-        "/usrm_left");
+        "/sensors/ultrasonic/usrm_left");
 
     rclc_publisher_init_default(
         &usrm_right_pub,
         &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
-        "/usrm_right");     
+        "/sensors/ultrasonic/usrm_right");     
 
     // Executor ---> 1 handle = 1 subscriber
     rclc_executor_init(&executor, &support.context, 1, &allocator);
