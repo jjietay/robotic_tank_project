@@ -8,6 +8,12 @@ from sensor_msgs.msg import Image
 class ImagePublisher(Node):
     def __init__(self):
         super().__init__("camera")
+        self.declare_parameter('fps', 30)
+        fps = self.get_parameter('fps').get_parameter_value().double_value
+        if fps <= 0.0:
+            self.get_logger().warn(f'Invalid fps={fps}, defaulting to 30.0')
+            fps = 30.0
+        timer_period = 1.0/fps
 
         # OpenCV camera config
         self.cap = cv2.VideoCapture(0)
@@ -15,12 +21,11 @@ class ImagePublisher(Node):
         self.cap.set(cv2.CAP_PROP_FOURCC, fourcc)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        self.cap.set(cv2.CAP_PROP_FPS, 30)
+        self.cap.set(cv2.CAP_PROP_FPS, fps)
 
         # ROS publisher + bridge
         self.bridge = CvBridge()
         self.publisher_ = self.create_publisher(Image, '/camera/image_raw', 10)
-        timer_period = 1/30     # 30 fps
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.i = 0
 
