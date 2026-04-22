@@ -9,7 +9,7 @@ class ImagePublisher(Node):
     def __init__(self):
         super().__init__("camera")
         self.declare_parameter('fps', 30)
-        fps = self.get_parameter('fps').get_parameter_value().double_value
+        self.fps = self.get_parameter('fps').get_parameter_value().double_value
         if fps <= 0.0:
             self.get_logger().warn(f'Invalid fps={fps}, defaulting to 30.0')
             fps = 30.0
