@@ -22,11 +22,9 @@ class YoloDetectorNode(Node):
         self.bridge = CvBridge()
         self.model = YOLO(model_path)
         self.get_logger().info(f'Loaded model: {model_path} on {self.device}')
-
-        self.sub = self.create_subscription(Image, 'camera/image_raw', self.image_callback, 10)
-
-        self.pub_detections = self.publisher_(String, 'yolo/detections', 10)
-        self.pub_viz = self.create_publisher(Image, 'yolo/image_annotated', 10)
+        self.sub = self.create_subscription(Image, '/camera/image_raw', self.image_callback, 10)
+        self.pub_detections = self.publisher_(String, '/yolo/detections', 10)
+        self.pub_viz = self.create_publisher(Image, '/yolo/image_annotated', 10)
 
     def image_callback(self, msg: Image):   # : just means msg should be an Image object
         try:
