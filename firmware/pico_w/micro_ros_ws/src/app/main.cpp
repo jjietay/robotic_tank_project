@@ -2,6 +2,7 @@
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 #include "pico/time.h"
+#include <std_msgs/msg/int32.h>
 #include <stdio.h>
 #include <string>
 #include <cmath>
@@ -193,7 +194,7 @@ private:
 public:
     Encoder(std::string name, std::string status,
             uint _pin_a, uint _pin_b,
-            float _reduction_ratio = 1.0f, float _diameter = 4.7f)
+            float _reduction_ratio = 100.0f, float _diameter = 4.7f)    // Diameter of wheel (TO CHANGE)
         : Electronics(name, status),
         pin_a(_pin_a), pin_b(_pin_b),
         reduction_ratio(_reduction_ratio), diameter(_diameter)
@@ -220,7 +221,7 @@ public:
 
     float get_vel()
     {
-        uint64_t now       = time_us_64();
+        uint64_t now = time_us_64();
         int64_t  time_diff = (int64_t)(now - last_time);
         if (time_diff <= 0) return 0.0f;   
 
@@ -283,17 +284,21 @@ public:
 // ---------------------------------------------------------
 //                   Micro-ROS Globals 
 // ---------------------------------------------------------
-rcl_subscription_t cmd_vel_sub;         // Subscription Handle
-rcl_publisher_t usrm_front_pub;         // Publish Message (front)
-rcl_publisher_t usrm_back_pub;          // Publish Message (back)
-rcl_publisher_t usrm_left_pub;          // Publish Message (left)
-rcl_publisher_t usrm_right_pub;         // Publish Message (right)
+rcl_subscription_t cmd_vel_sub;             // Subscription Handle
+rcl_publisher_t usrm_front_pub;             // Publish Message (front)
+rcl_publisher_t usrm_back_pub;              // Publish Message (back)
+rcl_publisher_t usrm_left_pub;              // Publish Message (left)
+rcl_publisher_t usrm_right_pub;             // Publish Message (right)
+rcl_publisher_t enc_left_pub;               // Publish Message (encoder left)
+rcl_publisher_t enc_right_pub;              // Publish Message (encoder right)
 
-geometry_msgs__msg__Twist cmd_vel_msg;  // Message Buffer
-sensor_msgs__msg__Range usrm_front_msg; // Message Buffer (front sensor)
-sensor_msgs__msg__Range usrm_back_msg;  // Message Buffer (back sensor)
-sensor_msgs__msg__Range usrm_left_msg;  // Message Buffer (left sensor)
-sensor_msgs__msg__Range usrm_right_msg; // Message Buffer (right sensor)
+geometry_msgs__msg__Twist cmd_vel_msg;      // Message Buffer
+sensor_msgs__msg__Range usrm_front_msg;     // Message Buffer (front sensor)
+sensor_msgs__msg__Range usrm_back_msg;      // Message Buffer (back sensor)
+sensor_msgs__msg__Range usrm_left_msg;      // Message Buffer (left sensor)
+sensor_msgs__msg__Range usrm_right_msg;     // Message Buffer (right sensor)
+std_msgs__msg__Int32 enc_left_msg;          // Message Buffer (left encoder)
+std_msgs__msg__Int32 enc_right_msg;         // Message Buffer (right encoder)
 
 rclc_executor_t executor;               // Event loop manager
 rclc_support_t support;                 // Support context
@@ -387,6 +392,18 @@ int main() {
         ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
         "/sensors/ultrasonic/usrm_right");     
 
+    rclc_publisher_init_default(
+        &enc_left_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+        "/sensors/encoders/left_ticks"); 
+
+    rclc_publisher_init_default(
+        &enc_right_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+        "/sensors/encoders/right_ticks");
+
     // Executor ---> 1 handle = 1 subscriber
     rclc_executor_init(&executor, &support.context, 1, &allocator);
     rclc_executor_add_subscription(
@@ -444,6 +461,11 @@ int main() {
 
         usrm_right_msg.range = d_right / 100.0f;
         rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL);
+
+        enc_left_msg.data = LEFT_ENCODER.get_count();
+        enc_right_msg.data = RIGHT_ENCODER.get_count();
+        rcl_publish(&enc_left_pub, &enc_left_msg, NULL);
+        rcl_publish(&enc_right_pub, &enc_right_msg, NULL);
 
         sleep_ms(10);
     }

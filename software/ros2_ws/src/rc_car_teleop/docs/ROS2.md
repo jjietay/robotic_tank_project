@@ -61,8 +61,48 @@
 - You can set them via command line, YAML, or launch files
 - Each node has its own parameters set
 
+### (10) Link
+- a named rigid body part of your robot (chassis, wheel, sensor mount)
+- each link has its own coordinate system (has its own frame)
+- they have their own (0,0,0) starting position
+- each link has its own (x,y,z) pointing in its own direction
+- TF bridges these coordinate system together
+- it tracks the relationship between coordinate systems and translate measurements between them on demand
+
+### (11) Frame
+- a coordinate system attached to each link
+- but not every frame has a physical link — odom and map are abstract frames with no hardware attached
+- below is a `TF Tree`
+```
+odom (fixed)
+└── base_link (moving)
+    ├── lidar_link
+    ├── camera_link
+    ├── wheel_left_link
+    └── wheel_right_link
+```
+
+### (13) Understanding TF2 (IMPORTANT)
+- `odom` is the **base frame** as shown above
+- it is parent frame that is anchored at the start before the robot starts moving
+- `base_link` is the child frame
+- it moves as the robot's body moves
+- links such as `lidar_link` & `camera_link` are child frames of `base_link`
+- this is because it is a physical component on the base robot, particular distance away from origin
+- these links have their own frames (own coordinate system)
+- TF2 helps to merge these different coordinate system together into 1 universal coordinate system - currently `odom` but when SLAM is running, its `map`
+- in otherwords, TF2 allows any measurement in any frame to be re-expressed in any other frame by chaining transforms along the tree (means if its a child of a child then there are 2 offsets/transforms to account for)
+- the "universal" reference frame depends on context — currently odom, but map once SLAM is running
+- it takes any measurement expressed in any frame, and re-express it in any other frame
+- it does this by chaining the known offsets between frames along the tree
+- for my system, `odom` (node in python file --> class OdometryNode) broadcasts the relativity (offset or transform, i.e. includes both position (x,y) and angle theta) between `base_link (current position)` and `odom (starting position)`
+- Unified Robot Description Format (URDF) is an XML file that defines the transforms between frames (the offsets)
+- URDF tells robot_state_publisher "lidar_link is 10cm forward of base_link" — that's the offset. The frame lidar_link comes into existence in TF when that transform is first broadcast
+
+
 ---
 ## <center>_(B) Standard ROS 2 Interfaces Reference_<center>
+    - in the form of PackageName/subfolder_type/specific_msg
 
 ### `std_msgs` — Primitives & Basic Types
 
