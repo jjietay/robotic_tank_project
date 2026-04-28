@@ -74,7 +74,7 @@
 - but not every frame has a physical link — odom and map are abstract frames with no hardware attached
 - below is a `TF Tree`
 ```
-odom (fixed)
+odom (fixed) --> coordinate frame that is fixed to the world (when u initially turn on the robot)
 └── base_link (moving)
     ├── lidar_link
     ├── camera_link
@@ -99,6 +99,16 @@ odom (fixed)
 - Unified Robot Description Format (URDF) is an XML file that defines the transforms between frames (the offsets)
 - URDF tells robot_state_publisher "lidar_link is 10cm forward of base_link" — that's the offset. The frame lidar_link comes into existence in TF when that transform is first broadcast
 
+### (14) I FINALLY UNDERSTAND ODOM NODE, ODOM FRAME AND BASE FRAME RELATIONSHIP:
+- basically odom node in my odometry.py file is a broadcaster
+- it broadcasts to the generic TF2 system, not any particular node
+- any node can just look it up from TF2's internal buffer
+- odom node just publishes the TRANSFORM between odom frame AND base frame --> x=1.2, y=0.5, rotation=30
+- since odom frame stays constant, 
+- we can therefore say that odom node's message is essentially the position and orientation of base frame
+
+### (15) Where does robot_state_publisher come in?
+- 
 
 ---
 ## <center>_(B) Standard ROS 2 Interfaces Reference_<center>
