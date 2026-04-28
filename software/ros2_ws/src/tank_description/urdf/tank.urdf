@@ -247,7 +247,7 @@
     <link name="platform">
         <visual>
         <geometry>
-            <box size="0.26 0.145 0.004"/>
+            <box size="0.257 0.152 0.002"/>
         </geometry>
         <material name="black">
             <color rgba="0.1 0.1 0.1 1.0"/>
@@ -273,7 +273,7 @@
     <joint name="lidar_standoff_fl_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_standoff_fl"/>
-        <origin xyz="0.042 0.032 0.015"/>
+        <origin xyz="0.034 0.032 0.015"/>
     </joint>
 
     <link name="lidar_standoff_fr">
@@ -285,7 +285,7 @@
     <joint name="lidar_standoff_fr_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_standoff_fr"/>
-        <origin xyz="0.042 -0.032 0.015"/>
+        <origin xyz="0.034 -0.032 0.015"/>
     </joint>
 
     <link name="lidar_standoff_rl">
@@ -297,7 +297,7 @@
     <joint name="lidar_standoff_rl_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_standoff_rl"/>
-        <origin xyz="-0.015 0.025 0.015"/>
+        <origin xyz="-0.023 0.025 0.015"/>
     </joint>
 
     <link name="lidar_standoff_rr">
@@ -309,7 +309,7 @@
     <joint name="lidar_standoff_rr_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_standoff_rr"/>
-        <origin xyz="-0.015 -0.025 0.015"/>
+        <origin xyz="-0.023 -0.025 0.015"/>
     </joint>
 
 
@@ -318,7 +318,7 @@
     <!-- ================================================ -->
     <link name="lidar_link">
         <visual>
-        <origin xyz="0.02 0 0" rpy="0 0 3.1416"/>
+        <origin xyz="0.01176 0 0" rpy="0 0 3.1416"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/ydlidar_x3pro.stl"
                 scale="0.001 0.001 0.001"/>

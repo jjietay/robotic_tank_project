@@ -88,8 +88,8 @@ class OdometryNode(Node):
         self.Publish(now)
         self._publish_tf(now) 
     
-    def Publish(self, stamp):   # to /odom --> even tho its publish node and still needs frame ids, its because
-                                # Nav2'2 EKF requires it
+    # publishes to /odom --> publishes to /odom (for Nav2's EKF / robot_localization)
+    def Publish(self, stamp):
         msg = Odometry()
         msg.header.stamp = stamp.to_msg()
         msg.header.frame_id = 'odom'            # fixed world frame
@@ -109,7 +109,8 @@ class OdometryNode(Node):
         self.get_logger().info(f"Current Position --> x: {self.x}, y: {self.y}, theta: {self.theta}")
         self.pub.publish(msg)
 
-    def _publish_tf(self, stamp):   # to /tf
+    # For TF Tree
+    def _publish_tf(self, stamp):
         t = TransformStamped()
         t.header.stamp = stamp.to_msg()
         t.header.frame_id = 'odom'
