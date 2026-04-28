@@ -99,16 +99,34 @@ odom (fixed) --> coordinate frame that is fixed to the world (when u initially t
 - Unified Robot Description Format (URDF) is an XML file that defines the transforms between frames (the offsets)
 - URDF tells robot_state_publisher "lidar_link is 10cm forward of base_link" — that's the offset. The frame lidar_link comes into existence in TF when that transform is first broadcast
 
-### (14) I FINALLY UNDERSTAND ODOM NODE, ODOM FRAME AND BASE FRAME RELATIONSHIP:
+### (14) TF2 Buffer
+- TF2 is a library
+- TF2 just contains a broadcaster (just publishes to /tf and /tf_static), a buffer and a listener
+- The buffer and listener just subscribes to both /tf and /tf_static topics (will be explained below)
+
+### (15) I FINALLY UNDERSTAND ODOM NODE, ODOM FRAME AND BASE FRAME RELATIONSHIP:
 - basically odom node in my odometry.py file is a broadcaster
-- it broadcasts to the generic TF2 system, not any particular node
+- it broadcasts to the generic TF2 system, not any particular node --> it is a publisher that publishes to /tf topic
 - any node can just look it up from TF2's internal buffer
 - odom node just publishes the TRANSFORM between odom frame AND base frame --> x=1.2, y=0.5, rotation=30
 - since odom frame stays constant, 
 - we can therefore say that odom node's message is essentially the position and orientation of base frame
 
-### (15) Where does robot_state_publisher come in?
-- 
+### (16) Where does robot_state_publisher come in?
+- it publishes to /tf_static topic (once, per startup)
+- it is an optimization
+- since base_link & lidar_link never changes, /tf_static just contains all the fixed offsets
+- we don't use /tf since we don't have publish every 0.1 seconds
+
+### (17) Package
+- a package just contains package.xml, CMakeLists.txt and file name
+- colcon build finds package.xml, which is like a requirements.txt that contains all the ways to build, how to build...
+
+### (18) twist_mux
+- something that subscribes to 2 or more things, and outputs the particular values based on priority
+- it is not hardcoded into a python file
+- it is in a yaml (to be confirmed)
+
 
 ---
 ## <center>_(B) Standard ROS 2 Interfaces Reference_<center>
