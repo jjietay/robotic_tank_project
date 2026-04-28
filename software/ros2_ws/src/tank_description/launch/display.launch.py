@@ -21,7 +21,7 @@ def generate_launch_description():
     rviz_args = ['-d', rviz_config] if os.path.exists(rviz_config) else []
 
     return LaunchDescription([
-
+        
         DeclareLaunchArgument(
             'use_rviz',
             default_value='true',
@@ -54,5 +54,4 @@ def generate_launch_description():
             arguments=rviz_args,
             condition=IfCondition(LaunchConfiguration('use_rviz'))
         ),
-
     ])
