@@ -4,6 +4,7 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float32
 
 class LidarProcessorNode(Node):
+
     def __init__(self):
         super().__init__("lidar_processor")
         self.sub = self.create_subscription(LaserScan, '/scan', self.scan_callback, 10)

@@ -1,0 +1,13 @@
+twist_mux:
+  ros__parameters:
+    topics:
+
+      - name: teleop               # human-readable label, for debugging only
+        topic: /teleop/cmd_vel     # your teleop node publishes here
+        timeout: 0.5               # if no message for 0.5s, this input goes inactive
+        priority: 100              # highest priority — human overrides everything
+
+      - name: autonomous           # your brain node
+        topic: /brain/cmd_vel      # your brain node publishes here
+        timeout: 0.5               # go inactive if brain stops publishing
+        priority: 10               # lowest priority — human always wins

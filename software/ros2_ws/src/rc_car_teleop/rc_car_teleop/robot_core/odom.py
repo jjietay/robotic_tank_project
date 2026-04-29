@@ -1,3 +1,12 @@
+"""
+ROS 2 Odometry Node for a differential drive robotoic tank.
+
+This node subscribes to the left and right encoder tick topics ()
+"""
+
+
+
+
 import rclpy
 import math
 import tf2_ros
