@@ -336,6 +336,17 @@ void cmd_vel_callback(const void* msg_in) {
     target_vel_r = std::max(-1.0f, std::min(1.0f, target_vel_r));
 }
 
+// Helper Function
+float apply_deadband(float u, float deadband = 0.15f)
+{
+    if (u == 0.0f) return 0.0f;
+    float sign = (u > 0.0f) ? 1.0f : -1.0f;
+    float mag  = std::fabs(u);
+    if (mag < deadband) mag = deadband;
+    if (mag > 1.0f) mag = 1.0f;
+    return sign * mag;
+}
+
 
 // ---------------------------------------------------------
 //                          MAIN 
@@ -354,36 +365,6 @@ int main() {
     PID        LEFT_PID (0.5f, 0.0f, 0.0f);
     PID        RIGHT_PID(0.5f, 0.0f, 0.0f);
 
-    // ---------------- FORWARD DUTY SWEEP TEST ----------------
-    // Put robot on the ground if you want to test real starting motion.
-    // It will move forward, stop, then try the next lower duty.
-
-    const float test_duties[] = {
-        0.95f, 0.90f, 0.85f, 0.80f, 0.75f,
-        0.70f, 0.65f, 0.60f, 0.55f, 0.50f,
-        0.45f, 0.40f, 0.35f, 0.30f, 0.25f,
-        0.20f, 0.15f, 0.10f
-    };
-
-    const int num_tests = sizeof(test_duties) / sizeof(test_duties[0]);
-
-    for (int i = 0; i < num_tests; i++) {
-        float d = test_duties[i];
-
-        printf("FORWARD TEST duty = %.2f\n", d);
-
-        // Left motor is reversed physically, so forward = negative on left, positive on right
-        MOTOR.move(-d, d);
-
-        sleep_ms(2000);   // move for 2 seconds
-
-        MOTOR.stop();
-        printf("REST\n");
-        sleep_ms(1500);   // rest for 1.5 seconds
-    }
-
-    printf("FORWARD DUTY SWEEP COMPLETE\n");
-    // --------------------------------------------------------
 
     // Give sensor pointers to the callback
     g_usrm[0] = &USRM_T; g_usrm[1] = &USRM_B;
@@ -393,8 +374,6 @@ int main() {
     USRM_R.ShowStatus(); USRM_L.ShowStatus();
     MOTOR.ShowStatus();
     LEFT_ENCODER.ShowStatus(); RIGHT_ENCODER.ShowStatus();
-
-
 
 
     // micro-ROS init
@@ -485,13 +464,13 @@ int main() {
         float cmd_l = LEFT_PID.calculate(desired_vel_l, current_vel_l);
         float cmd_r = RIGHT_PID.calculate(desired_vel_r, current_vel_r);
 
-        // Clamp commands to [-1, 1] to protect motor driver
+        // Clamp to [-1, 1]
         cmd_l = std::max(-1.0f, std::min(1.0f, cmd_l));
         cmd_r = std::max(-1.0f, std::min(1.0f, cmd_r));
 
-        // Start with P-only control: set ki, kd to 0 in PID ctor if needed
-        float vel_l = cmd_l;
-        float vel_r = cmd_r;
+        // Apply deadband so any non-zero command is at least ±0.15
+        float vel_l = apply_deadband(cmd_l, 0.15f);
+        float vel_r = apply_deadband(cmd_r, 0.15f);
 
         // 4. Decide desired direction based on target velocities
         bool want_forward  = (target_vel_l > 0.0f && target_vel_r > 0.0f);
