@@ -34,6 +34,12 @@ target_include_directories(pico_micro_ros PUBLIC
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections")
 
+target_compile_definitions(pico_micro_ros PRIVATE
+    PICO_UART_ENABLE_CRLF_SUPPORT=0
+    PICO_STDIO_ENABLE_CRLF_SUPPORT=0
+    PICO_STDIO_DEFAULT_CRLF=0
+)
+
 pico_enable_stdio_usb(pico_micro_ros 1)
 pico_enable_stdio_uart(pico_micro_ros 0)
 

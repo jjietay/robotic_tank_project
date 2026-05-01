@@ -336,6 +336,7 @@ void cmd_vel_callback(const void* msg_in) {
 // ---------------------------------------------------------
 int main() {
     stdio_init_all();
+    sleep_ms(2000);
 
     Ultrasonic USRM_T("TL", "ON", USRM_T_TRIG, USRM_T_ECHO);
     Ultrasonic USRM_B("TR", "ON", USRM_B_TRIG, USRM_B_ECHO);
