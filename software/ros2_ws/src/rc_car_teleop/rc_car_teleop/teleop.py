@@ -4,15 +4,11 @@ import termios
 import tty
 import select
 import time
-import serial
 
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
-
-SERIAL_PORT = "/dev/ttyACM0"
-BAUD_RATE = 115200
 HOLD_TIMEOUT_MS = 200.0
 
 
@@ -39,12 +35,9 @@ class TeleopNode(Node):
     def __init__(self):
         super().__init__('teleop')
 
-        self.get_logger().info(f'Opening serial port {SERIAL_PORT} @ {BAUD_RATE}')
-        self.ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=0.1)
-
         self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
 
-        self.last_cmd = b'X'  # FIX 6: Pico stop = 'X', not 'S'
+        self.last_cmd = 'X'  
         self.last_key_time = time.time()
 
         self.fd, self.original = configure_terminal()
@@ -57,9 +50,8 @@ class TeleopNode(Node):
 
     def send_cmd_and_twist(self, cmd, twist):
         if cmd is not None and cmd != self.last_cmd:
-            self.ser.write(cmd)
             self.last_cmd = cmd
-            sys.stdout.write(f'\rCMD: {cmd.decode("ascii")}   ')
+            sys.stdout.write(f'\rCMD: {cmd}   ')
             sys.stdout.flush()
         if twist is not None:
             self.cmd_pub.publish(twist)
@@ -74,27 +66,27 @@ class TeleopNode(Node):
                 self.last_key_time = time.time()
 
                 if key in ('w', 'W'):
-                    cmd = b'W'            
+                    cmd = 'W'            
                     twist = Twist()
                     twist.linear.x = 1.0
                 elif key in ('s', 'S'):
-                    cmd = b'S'            
+                    cmd = 'S'            
                     twist = Twist()
                     twist.linear.x = -1.0
                 elif key in ('a', 'A'):
-                    cmd = b'A'            
+                    cmd = 'A'            
                     twist = Twist()
                     twist.angular.z = 1.0   # ACW = left in ROS convention
                 elif key in ('d', 'D'):
-                    cmd = b'D'            
+                    cmd = 'D'            
                     twist = Twist()
                     twist.angular.z = -1.0  # CW = right in ROS convention
                 elif key == ' ':
-                    cmd = b'X'            
+                    cmd = 'X'            
                     twist = Twist()
                 elif key in ('q', 'Q'):
                     try:
-                        self.ser.write(b'X')  # FIX 3
+                        self.ser.write('X')  # FIX 3
                         sys.stdout.write('\rCMD: Stop   ')
                         sys.stdout.flush()
                     except Exception:
@@ -116,8 +108,8 @@ class TeleopNode(Node):
             else:
                 now = time.time()
                 if (now - self.last_key_time) * 1000.0 >= HOLD_TIMEOUT_MS:
-                    if self.last_cmd != b'X':   # FIX 3, 6: sentinel is 'X'
-                        cmd = b'X'
+                    if self.last_cmd != 'X':   # FIX 3, 6: sentinel is 'X'
+                        cmd = 'X'
                         twist = Twist()
                         self.send_cmd_and_twist(cmd, twist)
 
@@ -136,11 +128,6 @@ class TeleopNode(Node):
     def destroy_node(self):
         try:
             restore_terminal(self.original)
-        except Exception:
-            pass
-        try:
-            self.ser.write(b'X')  # FIX 3: stop = 'X'
-            self.ser.close()
         except Exception:
             pass
         super().destroy_node()

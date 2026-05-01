@@ -21,8 +21,8 @@ extern "C" {
 }
 
 // Constants
-constexpr float DRIVE_DUTY = 0.95f;
-constexpr float TURN_DUTY  = 0.95f;
+constexpr float DRIVE_DUTY = 0.85f;
+constexpr float TURN_DUTY  = 0.80f;
 constexpr uint  PWM_TOP    = 65535;
 
 constexpr uint ENC_L_A = 16, ENC_L_B = 17;
@@ -352,35 +352,6 @@ int main() {
     PID        LEFT_PID (0.8f, 0.1f, 0.1f);
     PID        RIGHT_PID(0.8f, 0.1f, 0.1f);
 
-    // ---------------- MOTOR CHANNEL TEST ----------------
-    // Lift robot so tracks are off the ground before flashing this.
-
-    printf("TEST 1: left channel +0.5\n");
-    MOTOR.move(0.5f, 0.0f);
-    sleep_ms(2000);
-    MOTOR.stop();
-    sleep_ms(1500);
-
-    printf("TEST 2: right channel +0.5\n");
-    MOTOR.move(0.0f, 0.5f);
-    sleep_ms(2000);
-    MOTOR.stop();
-    sleep_ms(1500);
-
-    printf("TEST 3: left channel -0.5\n");
-    MOTOR.move(-0.5f, 0.0f);
-    sleep_ms(2000);
-    MOTOR.stop();
-    sleep_ms(1500);
-
-    printf("TEST 4: right channel -0.5\n");
-    MOTOR.move(0.0f, -0.5f);
-    sleep_ms(2000);
-    MOTOR.stop();
-    sleep_ms(1500);
-    // ----------------------------------------------------
-
-
     // Give sensor pointers to the callback
     g_usrm[0] = &USRM_T; g_usrm[1] = &USRM_B;
     g_usrm[2] = &USRM_R; g_usrm[3] = &USRM_L;
@@ -495,7 +466,7 @@ int main() {
         }
 
         // 6. Apply to motors
-        MOTOR.move(vel_l, vel_r);
+        MOTOR.move(-vel_l, vel_r);
 
         // 7. Publish distances
         usrm_front_msg.range = d_front / 100.0f;
