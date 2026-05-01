@@ -65,20 +65,20 @@ class TeleopNode(Node):
             if key is not None:
                 self.last_key_time = time.time()
 
-                if key in ('w', 'W'):
-                    cmd = 'W'            
-                    twist = Twist()
-                    twist.linear.x = 1.0
-                elif key in ('s', 'S'):
-                    cmd = 'S'            
-                    twist = Twist()
-                    twist.linear.x = -1.0
-                elif key in ('a', 'A'):
+                if key in ('a', 'A'):
                     cmd = 'A'            
                     twist = Twist()
-                    twist.angular.z = 1.0   # ACW = left in ROS convention
+                    twist.linear.x = 1.0
                 elif key in ('d', 'D'):
                     cmd = 'D'            
+                    twist = Twist()
+                    twist.linear.x = -1.0
+                elif key in ('w', 'W'):
+                    cmd = 'W'            
+                    twist = Twist()
+                    twist.angular.z = 1.0   # ACW = left in ROS convention
+                elif key in ('s', 'S'):
+                    cmd = 'S'            
                     twist = Twist()
                     twist.angular.z = -1.0  # CW = right in ROS convention
                 elif key == ' ':
