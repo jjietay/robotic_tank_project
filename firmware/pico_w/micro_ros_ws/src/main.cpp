@@ -34,6 +34,8 @@ constexpr uint USRM_B_TRIG = 10, USRM_B_ECHO = 11;
 constexpr uint USRM_R_TRIG = 12, USRM_R_ECHO = 13;
 constexpr uint USRM_L_TRIG = 14, USRM_L_ECHO = 15;
 
+constexpr float V_MAX = 0.35f;
+
 // ---------------------------------------------------------
 //                      Base Class
 // ---------------------------------------------------------
@@ -349,37 +351,39 @@ int main() {
     Motor      MOTOR("MOTORS", "ON", L_DIR, L_PWM, R_DIR, R_PWM);
     Encoder    LEFT_ENCODER ("L_ENC", "ON", ENC_L_A, ENC_L_B);
     Encoder    RIGHT_ENCODER("R_ENC", "ON", ENC_R_A, ENC_R_B);
-    PID        LEFT_PID (0.8f, 0.1f, 0.1f);
-    PID        RIGHT_PID(0.8f, 0.1f, 0.1f);
+    PID        LEFT_PID (0.5f, 0.0f, 0.0f);
+    PID        RIGHT_PID(0.5f, 0.0f, 0.0f);
 
-    // ---------------- MOTOR CHANNEL TEST ----------------
-    // Lift robot so tracks are off the ground before flashing this.
+    // ---------------- FORWARD DUTY SWEEP TEST ----------------
+    // Put robot on the ground if you want to test real starting motion.
+    // It will move forward, stop, then try the next lower duty.
 
-    printf("TEST 1: left channel +0.5\n");
-    MOTOR.move(0.5f, 0.0f);
-    sleep_ms(2000);
-    MOTOR.stop();
-    sleep_ms(1500);
+    const float test_duties[] = {
+        0.95f, 0.90f, 0.85f, 0.80f, 0.75f,
+        0.70f, 0.65f, 0.60f, 0.55f, 0.50f,
+        0.45f, 0.40f, 0.35f, 0.30f, 0.25f,
+        0.20f, 0.15f, 0.10f
+    };
 
-    printf("TEST 2: right channel +0.5\n");
-    MOTOR.move(0.0f, 0.5f);
-    sleep_ms(2000);
-    MOTOR.stop();
-    sleep_ms(1500);
+    const int num_tests = sizeof(test_duties) / sizeof(test_duties[0]);
 
-    printf("TEST 3: left channel -0.5\n");
-    MOTOR.move(-0.5f, 0.0f);
-    sleep_ms(2000);
-    MOTOR.stop();
-    sleep_ms(1500);
+    for (int i = 0; i < num_tests; i++) {
+        float d = test_duties[i];
 
-    printf("TEST 4: right channel -0.5\n");
-    MOTOR.move(0.0f, -0.5f);
-    sleep_ms(2000);
-    MOTOR.stop();
-    sleep_ms(1500);
-    // ----------------------------------------------------
+        printf("FORWARD TEST duty = %.2f\n", d);
 
+        // Left motor is reversed physically, so forward = negative on left, positive on right
+        MOTOR.move(-d, d);
+
+        sleep_ms(2000);   // move for 2 seconds
+
+        MOTOR.stop();
+        printf("REST\n");
+        sleep_ms(1500);   // rest for 1.5 seconds
+    }
+
+    printf("FORWARD DUTY SWEEP COMPLETE\n");
+    // --------------------------------------------------------
 
     // Give sensor pointers to the callback
     g_usrm[0] = &USRM_T; g_usrm[1] = &USRM_B;
@@ -468,13 +472,26 @@ int main() {
         float d_right = USRM_R.distance();
 
         // 3. PID velocity control
-        // float current_vel_l = LEFT_ENCODER.get_vel();
-        // float current_vel_r = RIGHT_ENCODER.get_vel();
-        // float vel_l = LEFT_PID.calculate(target_vel_l, current_vel_l);
-       //  float vel_r = RIGHT_PID.calculate(target_vel_r, current_vel_r);
 
-        float vel_l = target_vel_l;
-        float vel_r = target_vel_r;
+        // Measured wheel velocities. Flip left sign so forward = positive on both.
+        float current_vel_l = -LEFT_ENCODER.get_vel();
+        float current_vel_r =  RIGHT_ENCODER.get_vel();
+
+        // Desired physical velocities based on normalized target [-1, 1]
+        float desired_vel_l = target_vel_l * V_MAX;
+        float desired_vel_r = target_vel_r * V_MAX;
+
+        // PID output is our PWM command (before clamping)
+        float cmd_l = LEFT_PID.calculate(desired_vel_l, current_vel_l);
+        float cmd_r = RIGHT_PID.calculate(desired_vel_r, current_vel_r);
+
+        // Clamp commands to [-1, 1] to protect motor driver
+        cmd_l = std::max(-1.0f, std::min(1.0f, cmd_l));
+        cmd_r = std::max(-1.0f, std::min(1.0f, cmd_r));
+
+        // Start with P-only control: set ki, kd to 0 in PID ctor if needed
+        float vel_l = cmd_l;
+        float vel_r = cmd_r;
 
         // 4. Decide desired direction based on target velocities
         bool want_forward  = (target_vel_l > 0.0f && target_vel_r > 0.0f);
@@ -495,7 +512,7 @@ int main() {
         }
 
         // 6. Apply to motors
-        MOTOR.move(vel_l, vel_r);
+        MOTOR.move(-vel_l, vel_r);
 
         // 7. Publish distances
         usrm_front_msg.range = d_front / 100.0f;
@@ -510,7 +527,7 @@ int main() {
         usrm_right_msg.range = d_right / 100.0f;
         rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL);
 
-        enc_left_msg.data = LEFT_ENCODER.get_count();
+        enc_left_msg.data = -LEFT_ENCODER.get_count();
         enc_right_msg.data = RIGHT_ENCODER.get_count();
         rcl_publish(&enc_left_pub, &enc_left_msg, NULL);
         rcl_publish(&enc_right_pub, &enc_right_msg, NULL);
