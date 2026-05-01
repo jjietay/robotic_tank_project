@@ -16,7 +16,7 @@ link_directories(${MICROROS_LIB_DIR})
 
 add_executable(pico_micro_ros
     main.cpp
-    ../pico_uart_transport.c
+    pico_uart_transport.c
 )
 
 target_link_libraries(pico_micro_ros
