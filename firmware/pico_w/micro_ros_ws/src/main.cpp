@@ -365,6 +365,53 @@ int main() {
     PID        LEFT_PID (0.5f, 0.0f, 0.0f);
     PID        RIGHT_PID(0.5f, 0.0f, 0.0f);
 
+    // ---------------- FIXED DISTANCE TEST (open-loop) ----------------
+    // Robot on ground, clear space in front. It will drive forward once,
+    // then stop and print encoder deltas.
+
+    // 1. Zero encoder counts
+    int left_start  = LEFT_ENCODER.get_count();
+    int right_start = RIGHT_ENCODER.get_count();
+
+    // 2. Choose a test duty and duration
+    float test_duty = 0.40f;          // between 0.15 and 0.60 based on your sweep
+    int   duration_ms = 2000;         // 2 seconds
+
+    printf("DIST TEST: forward at duty=%.2f for %d ms\n", test_duty, duration_ms);
+
+    // Forward for your wiring: left negative, right positive
+    MOTOR.move(-test_duty, test_duty);
+    sleep_ms(duration_ms);
+    MOTOR.stop();
+
+    // 3. Read encoder counts again
+    int left_end  = LEFT_ENCODER.get_count();
+    int right_end = RIGHT_ENCODER.get_count();
+
+    // Normalize so forward = positive on both
+    int left_delta  = -(left_end - left_start);
+    int right_delta =  (right_end - right_start);
+
+    printf("DIST TEST result: left_delta=%d, right_delta=%d\n",
+            left_delta, right_delta);
+
+    // Optional: convert ticks to distance using known constants
+    // Note: reuse the same PPR, reduction ratio, diameter as in Encoder
+    float diameter      = 4.7f;                // cm (your constructor default)
+    float circumference = 3.14159265f * diameter;
+    float cpr_output    = (4 * 11) * 100.0f;   // 4x, PPR=11, reduction=100.0
+
+    float left_dist_cm  = (left_delta  / cpr_output) * circumference;
+    float right_dist_cm = (right_delta / cpr_output) * circumference;
+
+    printf("DIST TEST distance: left=%.2f cm, right=%.2f cm\n",
+            left_dist_cm, right_dist_cm);
+
+    // Halt here so micro-ROS loop doesn't start. Remove this when done testing.
+    while (true) {
+        tight_loop_contents(); // or sleep_ms(100);
+    }
+    // -----------------------------------------------------------------
 
     // Give sensor pointers to the callback
     g_usrm[0] = &USRM_T; g_usrm[1] = &USRM_B;
