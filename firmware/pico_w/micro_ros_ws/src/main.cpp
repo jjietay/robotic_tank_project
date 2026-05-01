@@ -15,6 +15,10 @@
 #include <rclc/executor.h>
 #include <geometry_msgs/msg/twist.h>
 #include <sensor_msgs/msg/range.h>
+#include <rmw_microros/rmw_microros.h>
+extern "C" {
+#include "pico_uart_transports.h"
+}
 
 // Constants
 constexpr float DRIVE_DUTY = 0.85f;
@@ -357,7 +361,18 @@ int main() {
     MOTOR.ShowStatus();
     LEFT_ENCODER.ShowStatus(); RIGHT_ENCODER.ShowStatus();
 
+
+
+
     // micro-ROS init
+    rmw_uros_set_custom_transport(
+        true,
+        NULL,
+        pico_serial_transport_open,
+        pico_serial_transport_close,
+        pico_serial_transport_write,
+        pico_serial_transport_read
+    );
     allocator = rcl_get_default_allocator();
     rclc_support_init(&support, 0, NULL, &allocator);
     rclc_node_init_default(&node, "pico", "", &support);   // "pico" is the name of the node that ROS2 can see
