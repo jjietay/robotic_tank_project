@@ -9,8 +9,8 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 # micro-ROS static library + includes
-set(MICROROS_LIB_DIR     ${CMAKE_CURRENT_LIST_DIR}/../libmicroros)
-set(MICROROS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../libmicroros/include)
+set(MICROROS_LIB_DIR     ${CMAKE_CURRENT_LIST_DIR}/libmicroros)
+set(MICROROS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/libmicroros/include)
 
 link_directories(${MICROROS_LIB_DIR})
 
