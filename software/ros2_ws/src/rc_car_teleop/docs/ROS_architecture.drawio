@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="g2G-zV-ZtBjgGkt8N3bn" name="Page-1">
-        <mxGraphModel dx="934" dy="2694" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="724" dy="2563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -16,7 +16,7 @@
                 <mxCell id="82" value="" style="rounded=0;whiteSpace=wrap;html=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
                     <mxGeometry x="300" y="-988" width="250" height="413" as="geometry"/>
                 </mxCell>
-                <mxCell id="205" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="3" target="202">
+                <mxCell id="205" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;" parent="1" source="3" target="202" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="610" y="-400"/>
@@ -24,7 +24,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="206" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="3" target="203">
+                <mxCell id="206" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;" parent="1" source="3" target="203" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="610" y="-400"/>
@@ -53,13 +53,13 @@
                 <mxCell id="22" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;&lt;b style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-size: 14px; white-space: pre;&quot;&gt;ultrasonic/&lt;/b&gt;&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;usrm_right&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;&lt;b style=&quot;color: rgb(63, 63, 63); font-size: 14px; white-space: pre; font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; background-color: transparent;&quot;&gt;&quot;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="935.5999999999999" y="-638.69" width="234.5" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="235" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="36" target="233">
+                <mxCell id="235" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="36" target="233" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="36" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/teleop/cmd_vel&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="1730" y="-272.5" width="150" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="240" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="49" target="36">
+                <mxCell id="240" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="49" target="36" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="49" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;teleop&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
@@ -104,7 +104,7 @@
                 <mxCell id="86" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1920" y="-270" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="217" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="87" target="89">
+                <mxCell id="217" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="87" target="89" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="87" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;camera&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
@@ -177,7 +177,7 @@
                 <mxCell id="128" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&lt;b&gt;&lt;u&gt;Thinking&lt;/u&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=0;fillColor=none;fontSize=16;" parent="1" vertex="1">
                     <mxGeometry x="1728.5" y="-1445" width="74" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="231" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="130" target="230">
+                <mxCell id="231" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="130" target="230" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="130" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;brain&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
@@ -242,64 +242,64 @@
                 <mxCell id="190" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="850" y="-420" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="208" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="202" target="207">
+                <mxCell id="208" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="202" target="207" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="202" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/encoders/right_ticks&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                <mxCell id="202" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/encoders/right_ticks&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="935.5999999999999" y="-964.19" width="234.5" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="209" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="203" target="207">
+                <mxCell id="209" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" parent="1" source="203" target="207" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="203" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;&lt;b style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-size: 14px; white-space: pre;&quot;&gt;encoders/left_ticks&lt;/b&gt;&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                <mxCell id="203" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;&lt;b style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-size: 14px; white-space: pre;&quot;&gt;encoders/left_ticks&lt;/b&gt;&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="935.5999999999999" y="-904.44" width="234.5" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="204" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Int32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="204" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Int32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="710.75" y="-964.19" width="180" height="102.85" as="geometry"/>
                 </mxCell>
-                <mxCell id="213" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="207" target="212">
+                <mxCell id="213" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="207" target="212" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="207" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;odometry&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" vertex="1" parent="1">
+                <mxCell id="207" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;odometry&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="1440" y="-1075" width="79" height="55" as="geometry"/>
                 </mxCell>
-                <mxCell id="210" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Int32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="210" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Int32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1220" y="-1020" width="180" height="102.85" as="geometry"/>
                 </mxCell>
-                <mxCell id="216" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="212" target="130">
+                <mxCell id="216" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" parent="1" source="212" target="130" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="212" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/yolo/detections&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                <mxCell id="212" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/odom&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="1400" y="-904.5" width="160" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="214" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;std_msgs/msg/Odometry&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="214" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;nav_msgs/msg/Odometry&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1410" y="-980.5600000000001" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="215" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;std_msgs/msg/Odometry&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="215" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;nav_msgs/msg/Odometry&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1440" y="-835" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="221" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="218" target="219">
+                <mxCell id="221" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="218" target="219" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="218" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;ydlidar_ros2_driver_node&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" vertex="1" parent="1">
+                <mxCell id="218" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;ydlidar_ros2_driver_node&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="620" y="-1320" width="240" height="55" as="geometry"/>
                 </mxCell>
-                <mxCell id="228" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="219" target="222">
+                <mxCell id="228" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="219" target="222" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="219" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/lidar&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                <mxCell id="219" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/lidar&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="1100" y="-1310.56" width="110" height="35.56" as="geometry"/>
                 </mxCell>
-                <mxCell id="220" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/LaserScan&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="220" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/LaserScan&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="880" y="-1310" width="189.25" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="225" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="222" target="223">
+                <mxCell id="225" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="222" target="223" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="222" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;lidar_processor&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" vertex="1" parent="1">
+                <mxCell id="222" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;lidar_processor&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="1446" y="-1365.56" width="169" height="55" as="geometry"/>
                 </mxCell>
-                <mxCell id="226" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="223" target="130">
+                <mxCell id="226" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=1;" parent="1" source="223" target="130" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="2110" y="-1320"/>
@@ -307,40 +307,40 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="223" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/lidar/closest_point&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                <mxCell id="223" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/lidar/closest_point&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="1900" y="-1355.56" width="230" height="35.56" as="geometry"/>
                 </mxCell>
-                <mxCell id="224" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Float32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="224" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Float32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1659" y="-1355.56" width="189.25" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="227" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Float32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="227" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Float32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1992.5" y="-1045" width="189.25" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="229" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/LaserScan&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="229" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/LaserScan&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1230" y="-1330" width="189.25" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="234" style="edgeStyle=none;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="230" target="233">
+                <mxCell id="234" style="edgeStyle=none;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" parent="1" source="230" target="233" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="230" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/brain/cmd_vel&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                <mxCell id="230" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/brain/cmd_vel&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="1574.5" y="-550" width="150" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="232" value="visualizer" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="232" value="visualizer" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="1771" y="-856" width="129" height="87" as="geometry"/>
                 </mxCell>
-                <mxCell id="238" style="edgeStyle=none;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="233" target="186">
+                <mxCell id="238" style="edgeStyle=none;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="233" target="186" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="233" value="twist_mux" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                <mxCell id="233" value="twist_mux" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="1370" y="-296" width="129" height="87" as="geometry"/>
                 </mxCell>
-                <mxCell id="239" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="239" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1238.25" y="-360.00000000000006" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="241" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="241" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1440" y="-432.50000000000006" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="242" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                <mxCell id="242" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1530" y="-270.00000000000006" width="181" height="35" as="geometry"/>
                 </mxCell>
             </root>

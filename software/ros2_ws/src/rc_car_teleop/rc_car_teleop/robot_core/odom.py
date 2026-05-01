@@ -1,11 +1,11 @@
 """
 ROS 2 Odometry Node for a differential drive robotoic tank.
 
-This node subscribes to the left and right encoder tick topics ()
+This node subscribes to the left and right encoder tick topics (sensors/encoders/right_ticks & sensors/encoders/left_ticks). It recieves raw int32 which is the raw tick counts,
+and computes wheel displacement + angle of rotation (pose) in the form of quaternions (x,y,z,rotation_angle) and velocity.
+
+It publishes to /odom (for Nav2's EKF/localization) and /tf (to TF tree, representing transforms of base_link)
 """
-
-
-
 
 import rclpy
 import math
@@ -18,7 +18,36 @@ from geometry_msgs.msg import TransformStamped
 
 
 class OdometryNode(Node):
+    """
+    Computes and publishes wheel encoder-based calculated odometry.
+
+    Subscriptions:
+        /sensors/encoders/left_ticks (sensor_msgs.msg.Int32)  : Left encoder ticks
+        /sensors/encoders/right_ticks (sensor_msgs.msg.Int32) : Right encoder ticks
+
+    Publishers:
+        /odom (std_msgs.msg.Odometry) : Estimated robot's pose and velocity
+    
+    Broadcaster to TF:
+        Broadcast the transform of base_link with respect to odom frame or /odom
+
+    Notes:
+        This implementation assumes a differential drive robot. 
+        Wheel circumference, wheel base, and encoder ticks per rev are used to estimate motion.
+    """
+
     def __init__(self):
+        """
+        Initialize:
+            odometry        : Name of the node
+
+        Local variable:
+            left_sub        : Subscriber to left ticks of left motor's encoder
+            right_sub       : Subscriber to right ticks of right motor's encoder
+            pub             : Publisher of robot's pose and velocity
+            tf_broadcaster  : Broadcaster of transforms between /odom frame and base_link's frame
+        """
+
         super().__init__("odometry")
         self.left_sub = self.create_subscription(Int32, '/sensors/encoders/left_ticks', self.tick_callback_left, 10)
         self.right_sub = self.create_subscription(Int32, '/sensors/encoders/right_ticks', self.tick_callback_right, 10)
@@ -43,12 +72,34 @@ class OdometryNode(Node):
         self.create_timer(0.1, self.UpdateOdometry)
 
     def tick_callback_left(self, msg: Int32):
+        """
+        Get the total number of left ticks and stores it in 'left_ticks', that is available throughout entire class. msg: Int32 just tells us that we should expect Int32 type for the msg.
+        Does not change how the code is run, purely for documentation.
+        """
         self.left_ticks = msg.data
 
     def tick_callback_right(self, msg: Int32):
+        """
+        Get the total number of right ticks and stores it in 'right_ticks', that is available throughout entire class. msg: Int32 just tells us that we should expect Int32 type for the msg.
+        Does not change how the code is run, purely for documentation.
+        """
         self.right_ticks = msg.data
 
     def UpdateOdometry(self):
+        """
+        First we check presence of left_ticks and right_ticks. If none we get out of this function. If present, we store it as last_X_ticks.
+        Next, we check if there is data in last_left_ticks. If none, we store last_left_ticks using current left_ticks value, vice versa, and start timer as prev_time
+        We then start a timer using get_clock (used for velocity calculation).
+        
+        Helper calculations:
+            dt:             represents change in time --> velocity calculation
+            delta_X:        schange in ticks from then and now
+            INT32_RANGE:    represents the full range of Int32 values (-2,147,483,648 to 2,147,483,647)
+            wraparound:     this helps to wrap around so we don't get negative tick values
+            4400:           encoder ticks per rev == encoder_pulses_per_rev (PPR -> 11) * gear_ratio (100:1) * quadrature
+            now:            this represents current time that is passed to functions Publish and _publish_tf as timestamps
+        """
+
         if self.left_ticks is None or self.right_ticks is None:
             return                                  # wait until both have arrived
         if self.last_left_ticks is None:
@@ -99,6 +150,10 @@ class OdometryNode(Node):
     
     # publishes to /odom --> publishes to /odom (for Nav2's EKF / robot_localization)
     def Publish(self, stamp):
+        """
+        Publishes the 
+        """
+
         msg = Odometry()
         msg.header.stamp = stamp.to_msg()
         msg.header.frame_id = 'odom'            # fixed world frame
