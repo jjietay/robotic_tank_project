@@ -1,0 +1,136 @@
+1) Change teleop behavior (keys, speeds, mapping)
+-------------------------------------------------
+
+Edit:
+  software/ros2_ws/src/rc_car_teleop/rc_car_teleop/teleop_node.py
+
+Then on rpi4:
+  cd ~/robotic_tank_project/software/ros2_ws
+  source /opt/ros/humble/setup.bash
+  colcon build --packages-select rc_car_teleop
+  source install/setup.bash
+  ros2 run rc_car_teleop teleop_node
+
+
+2) Change serial port or baud rate
+----------------------------------
+
+Edit (constants near top of file):
+  software/ros2_ws/src/rc_car_teleop/rc_car_teleop/teleop_node.py
+    SERIAL_PORT = "/dev/ttyACM0"   (or /dev/ttyUSB0, or /dev/serial/by-id/...)
+    BAUD_RATE   = 115200
+
+Then on rpi4:
+  cd ~/robotic_tank_project/software/ros2_ws
+  source /opt/ros/humble/setup.bash
+  colcon build --packages-select rc_car_teleop
+  source install/setup.bash
+  ros2 run rc_car_teleop teleop_node
+
+
+3) Add a new ROS dependency (extra messages, etc.)
+--------------------------------------------------
+
+Edit:
+  software/ros2_ws/src/rc_car_teleop/package.xml
+    - Add <exec_depend>pkg_name</exec_depend>
+
+If it is a Python library from pip (not a ROS package), also edit:
+  software/ros2_ws/src/rc_car_teleop/setup.py
+    install_requires=[ "setuptools", "your-lib-name", ... ]
+
+Then on rpi4:
+  cd ~/robotic_tank_project/software/ros2_ws
+  source /opt/ros/humble/setup.bash
+  colcon build --packages-select rc_car_teleop
+  source install/setup.bash
+
+
+4) Change the command name used with `ros2 run`
+-----------------------------------------------
+
+Current pattern:
+
+  In setup.py:
+    entry_points={
+      "console_scripts": [
+        "teleop_node = rc_car_teleop.teleop_node:main",
+      ],
+    }
+
+To change the command name, edit the left side:
+
+  "my_teleop = rc_car_teleop.teleop_node:main",
+
+Then on rpi4 rebuild as usual and run:
+
+  ros2 run rc_car_teleop my_teleop
+
+
+5) Where to put new ROS nodes (Python)
+--------------------------------------
+
+To add another node in the same package:
+
+  1) Create a new file:
+       software/ros2_ws/src/rc_car_teleop/rc_car_teleop/<new_node>.py
+
+  2) Implement:
+       def main(args=None):
+           # create rclpy node and spin
+
+  3) Register in setup.py:
+       entry_points={
+         "console_scripts": [
+           "teleop_node = rc_car_teleop.teleop_node:main",
+           "new_node = rc_car_teleop.new_node:main",
+         ],
+       }
+
+  4) Rebuild on rpi4 and run:
+       ros2 run rc_car_teleop new_node
+
+
+6) Firmware changes on the Pico
+-------------------------------
+
+Edit (typical):
+  firmware/pico_motor_control/CMakeLists.txt
+  firmware/pico_motor_control/src/*.c / *.cpp
+  firmware/pico_motor_control/include/*.h
+
+Do NOT edit:
+  firmware/pico_motor_control/build/   (generated, ignored)
+
+Rebuild firmware with your normal Pico SDK / CMake commands
+(from inside firmware/pico_motor_control/, using your existing flow).
+
+
+7) Full Git workflow (Mac -> rpi4)
+----------------------------------
+
+On Mac (in repo root):
+  git status
+  git add <files you changed>
+  git commit -m "message"
+  git push
+
+On rpi4:
+  cd ~/robotic_tank_project
+  git pull
+  cd software/ros2_ws
+  source /opt/ros/humble/setup.bash
+  colcon build --packages-select rc_car_teleop
+  source install/setup.bash
+  ros2 run rc_car_teleop teleop_node
+
+
+8) Clean rebuild ROS workspace (if things get weird)
+----------------------------------------------------
+
+On rpi4:
+  cd ~/robotic_tank_project/software/ros2_ws
+  rm -rf build/ install/ log/
+  source /opt/ros/humble/setup.bash
+  colcon build
+  source install/setup.bash

@@ -1,16 +1,24 @@
-firmware/pico_w/micro_ros_ws/build/
-firmware/pico_w/micro_ros_ws/src/.github
-firmware/pico_w/micro_ros_ws/src/.images
-firmware/pico_w/micro_ros_ws/src/libmicroros
-firmware/pico_w/micro_ros_ws/src/microros_static_library
-firmware/pico_w/micro_ros_ws/src/CMakeLists.txt
-firmware/pico_w/micro_ros_ws/src/pico_sdk_import.cmake
-firmware/pico_w/micro_ros_ws/src/pico_uart_transport.c
-firmware/pico_w/micro_ros_ws/src/pico_uart_transports.h
-software/ros2_ws/build/
-software/ros2_ws/install/
-software/ros2_ws/log/
-.DS_Store
-DEV_CHEATSHEET.txt
-.vscode
+# --- ROS 2 and micro-ROS build folders globally ---
+**/build/
+**/install/
+**/log/
 
+# --- micro-ROS Pico SDK generated folders ---
+**/libmicroros/
+**/microros_static_library/
+**/.images/
+**/.github/
+
+# --- CMake / compile cache ---
+CMakeCache.txt
+CMakeFiles/
+cmake-build-*/
+compile_commands.json
+
+# --- Python cache ---
+__pycache__/
+*.py[cod]
+
+# --- OS / IDE generated files ---
+.DS_Store
+.vscode/
