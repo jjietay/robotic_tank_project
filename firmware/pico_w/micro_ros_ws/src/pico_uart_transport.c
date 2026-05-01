@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "pico/stdlib.h"
+#include "pico/stdio_usb.h"
 
 #include <uxr/client/profile/transport/custom/custom_transport.h>
 
@@ -19,16 +20,24 @@ int clock_gettime(clockid_t unused, struct timespec *tp)
 
 bool pico_serial_transport_open(struct uxrCustomTransport * transport)
 {
-    // Ensure that stdio_init_all is only called once on the runtime
     static bool require_init = true;
     if(require_init)
     {
         stdio_init_all();
+        
+        // --- ADD THESE LINES ---
+        // Wait until the RPi4 actually mounts us as a USB device
+        while (!stdio_usb_connected()) {
+            sleep_us(10000); // Wait 10ms
+        }
+        // -----------------------
+        
         require_init = false;
     }
 
     return true;
 }
+
 
 bool pico_serial_transport_close(struct uxrCustomTransport * transport)
 {
