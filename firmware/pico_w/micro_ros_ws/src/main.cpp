@@ -450,19 +450,35 @@ int main() {
         float d_left  = USRM_L.distance();
         float d_right = USRM_R.distance();
 
+
         // 3. PID velocity control
 
         // Measured wheel velocities. Flip left sign so forward = positive on both.
-        float current_vel_l = -LEFT_ENCODER.get_vel();
-        float current_vel_r =  RIGHT_ENCODER.get_vel();
+        // float current_vel_l = -LEFT_ENCODER.get_vel();
+        // float current_vel_r =  RIGHT_ENCODER.get_vel();
 
         // Desired physical velocities based on normalized target [-1, 1]
-        float desired_vel_l = target_vel_l * V_MAX;
-        float desired_vel_r = target_vel_r * V_MAX;
+        // float desired_vel_l = target_vel_l * V_MAX;
+        // float desired_vel_r = target_vel_r * V_MAX;
 
         // PID output is our PWM command (before clamping)
-        float cmd_l = LEFT_PID.calculate(desired_vel_l, current_vel_l);
-        float cmd_r = RIGHT_PID.calculate(desired_vel_r, current_vel_r);
+        // float cmd_l = LEFT_PID.calculate(desired_vel_l, current_vel_l);
+        // float cmd_r = RIGHT_PID.calculate(desired_vel_r, current_vel_r);
+
+        // Clamp to [-1, 1]
+        // cmd_l = std::max(-1.0f, std::min(1.0f, cmd_l));
+        // cmd_r = std::max(-1.0f, std::min(1.0f, cmd_r));
+
+        // Apply deadband so any non-zero command is at least ±0.15
+        // float vel_l = apply_deadband(cmd_l, 0.15f);
+        // float vel_r = apply_deadband(cmd_r, 0.15f);
+
+
+        // 3. Open-loop velocity control (PID disabled)
+
+        // Directly map normalized targets [-1, 1] to motor commands
+        float cmd_l = target_vel_l;
+        float cmd_r = target_vel_r;
 
         // Clamp to [-1, 1]
         cmd_l = std::max(-1.0f, std::min(1.0f, cmd_l));
