@@ -2,6 +2,7 @@
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 #include "pico/time.h"
+#include "hardware/sync.h"
 #include <std_msgs/msg/int32.h>
 #include <stdio.h>
 #include <string>
@@ -170,7 +171,7 @@ private:
 
     static Encoder* instances[2];   // instances[2] is a static array of pointers to Encoder
     // (look from backwards) An array of size 2, of the pointer "instances", points to the "Encoder" class
-    static int instance_count;
+    static volatile int instance_count;
 
     // Main guy who changes count values (number of times it passes A and B edges)
     static void irq_handler(uint gpio, uint32_t events)
@@ -185,6 +186,7 @@ private:
 
     void handle_irq(uint gpio, uint32_t /*events*/)
     {
+        if (gpio != pin_a && gpio != pin_b) return;
         bool a = gpio_get(pin_a);
         bool b = gpio_get(pin_b);
         if (gpio == pin_a)
@@ -206,49 +208,60 @@ public:
         reduction_ratio(_reduction_ratio), diameter(_diameter)
     {
         circumference = 2.0f * PI * (_diameter / 2.0f);
-        cpr_output    = (4 * PPR) * _reduction_ratio;   // counts per rev after reduction ratio
+        cpr_output    = (4 * (float)PPR) * _reduction_ratio;   // counts per rev after reduction ratio
         last_time     = time_us_64();
 
         // Pull up holds the pins at HIGH when no signal is present, this is to prevent floating inputs
         gpio_init(pin_a); gpio_set_dir(pin_a, GPIO_IN); gpio_pull_up(pin_a);
         gpio_init(pin_b); gpio_set_dir(pin_b, GPIO_IN); gpio_pull_up(pin_b);
 
-        instances[instance_count++] = this;     // "this" points to the current object being constructed (initialized in main loop)
-        gpio_set_irq_enabled_with_callback(pin_a,
-            GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &Encoder::irq_handler); 
+        instances[instance_count] = this;
+        if (instance_count == 0) {
+            // Only the FIRST encoder registers the shared callback
+            gpio_set_irq_enabled_with_callback(pin_a,
+                GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &Encoder::irq_handler);
+        } else {
+            // Subsequent encoders just enable — callback already registered
+            gpio_set_irq_enabled(pin_a,
+                GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true);
+        }
         gpio_set_irq_enabled(pin_b,
-            GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true); // only start callback once, pin_b will follow
-    }
+            GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true);
+
+        instance_count++;  // increment AFTER gpio setup
+        }
 
     int get_count()
     {
-        return count;
+        uint32_t saved = save_and_disable_interrupts();
+        int c = count;
+        restore_interrupts(saved);
+        return c;
     }
 
     float get_vel()
     {
         uint64_t now = time_us_64();
-        int64_t  time_diff = (int64_t)(now - last_time);
-        if (time_diff <= 0) return 0.0f;   
+        int64_t time_diff = (int64_t)(now - last_time);
+        if (time_diff <= 0) return 0.0f;
 
-        float dt  = time_diff * 1e-6f;    
-        float vel = get_distance_delta() / dt;
-        last_time  = now;
-        last_count = count;
-        return vel;
-    }
+        // Atomic snapshot — prevents IRQ from changing count between reads
+        uint32_t saved = save_and_disable_interrupts();
+        int current_count = count;
+        restore_interrupts(saved);
 
-private:
-    float get_distance_delta()
-    {
-        int   count_diff    = count - last_count;
+        float dt = time_diff * 1e-6f;
+        int count_diff = current_count - last_count;
         float distance_diff = (count_diff / cpr_output) * circumference;
-        return distance_diff;
+
+        last_time = now;
+        last_count = current_count;
+        return distance_diff / dt;
     }
 };
 
 Encoder* Encoder::instances[2]  = {nullptr, nullptr}; // set instances[0] and instances[1] = nullptr
-int      Encoder::instance_count = 0;
+volatile int Encoder::instance_count = 0;
 
 
 // ---------------------------------------------------------
@@ -440,6 +453,13 @@ int main() {
     printf("micro-ROS ready, listening on /cmd_vel\n");
 
     while (true) {
+
+        // 0. Rate limiter — 10ms minimum period
+        static uint64_t loop_last = 0;
+        uint64_t now = time_us_64();
+        if (now - loop_last < 10000) continue;  // 10ms minimum period, non-blocking
+        loop_last = now;
+
         // 1. Handle incoming ROS messages
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
 
@@ -510,23 +530,21 @@ int main() {
 
         // 7. Publish distances
         usrm_front_msg.range = d_front / 100.0f;
-        rcl_publish(&usrm_front_pub, &usrm_front_msg, NULL);
+        (void)rcl_publish(&usrm_front_pub, &usrm_front_msg, NULL);
 
         usrm_back_msg.range = d_back / 100.0f;
-        rcl_publish(&usrm_back_pub, &usrm_back_msg, NULL);
+        (void)rcl_publish(&usrm_back_pub, &usrm_back_msg, NULL);
 
         usrm_left_msg.range = d_left / 100.0f;
-        rcl_publish(&usrm_left_pub, &usrm_left_msg, NULL);
+        (void)rcl_publish(&usrm_left_pub, &usrm_left_msg, NULL);
 
         usrm_right_msg.range = d_right / 100.0f;
-        rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL);
+        (void)rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL);
 
         enc_left_msg.data = -LEFT_ENCODER.get_count();
         enc_right_msg.data = RIGHT_ENCODER.get_count();
-        rcl_publish(&enc_left_pub, &enc_left_msg, NULL);
-        rcl_publish(&enc_right_pub, &enc_right_msg, NULL);
-
-        sleep_ms(10);
+        (void)rcl_publish(&enc_left_pub, &enc_left_msg, NULL);
+        (void)rcl_publish(&enc_right_pub, &enc_right_msg, NULL);
     }
 
     return 0;

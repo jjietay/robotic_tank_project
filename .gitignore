@@ -22,3 +22,5 @@ __pycache__/
 # --- OS / IDE generated files ---
 .DS_Store
 .vscode/
+
+docs/technical_analysis
