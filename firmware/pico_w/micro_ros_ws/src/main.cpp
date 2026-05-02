@@ -373,8 +373,8 @@ int main() {
     Ultrasonic USRM_R("BL", "ON", USRM_R_TRIG, USRM_R_ECHO);
     Ultrasonic USRM_L("BR", "ON", USRM_L_TRIG, USRM_L_ECHO);
     Motor      MOTOR("MOTORS", "ON", L_DIR, L_PWM, R_DIR, R_PWM);
-    Encoder    LEFT_ENCODER ("L_ENC", "ON", ENC_L_A, ENC_L_B);
-    Encoder    RIGHT_ENCODER("R_ENC", "ON", ENC_R_A, ENC_R_B);
+    Encoder    LEFT_ENCODER ("L_ENC", "ON", ENC_L_A, ENC_L_B, 169.0f, 5.465f);
+    Encoder    RIGHT_ENCODER("R_ENC", "ON", ENC_R_A, ENC_R_B, 169.0f, 5.465f);
     PID        LEFT_PID (0.5f, 0.0f, 0.0f);
     PID        RIGHT_PID(0.5f, 0.0f, 0.0f);
 
