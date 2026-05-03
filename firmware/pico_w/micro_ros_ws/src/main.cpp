@@ -21,6 +21,8 @@ extern "C" {
 #include <sensor_msgs/msg/range.h>
 #include <rmw_microros/rmw_microros.h>
 
+#define RCCHECK(fn) { rcl_ret_t rc = (fn); if (rc != RCL_RET_OK) { printf("RCL error %ld at %s:%d\n", rc, __FILE__, __LINE__); } }
+
 // Constants
 constexpr float DRIVE_DUTY = 0.95f;
 constexpr float TURN_DUTY  = 0.95f;
@@ -153,7 +155,8 @@ public:
                 gpio_put(trigger_pin, 0);
                 t_pulse_start = now;   // timeout anchor for WaitHigh
                 state = State::WaitHigh;
-            break;
+                // FALL THROUGH — check echo pin immediately this same tick
+                [[fallthrough]];
 
         case State::WaitHigh:
             // We are waiting for echo pin to go HIGH (sensor detected start of echo).
@@ -666,15 +669,15 @@ int main() {
         usrm_left_msg.range  = d_left  / 100.0f;
         usrm_right_msg.range = d_right / 100.0f;
 
-        (void)rcl_publish(&usrm_front_pub, &usrm_front_msg, NULL);
-        (void)rcl_publish(&usrm_back_pub,  &usrm_back_msg,  NULL);
-        (void)rcl_publish(&usrm_left_pub,  &usrm_left_msg,  NULL);
-        (void)rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL);
-
         enc_left_msg.data  = -LEFT_ENCODER.get_count();
         enc_right_msg.data =  RIGHT_ENCODER.get_count();
-        (void)rcl_publish(&enc_left_pub,  &enc_left_msg,  NULL);
-        (void)rcl_publish(&enc_right_pub, &enc_right_msg, NULL);
+
+        RCCHECK(rcl_publish(&usrm_front_pub, &usrm_front_msg, NULL));
+        RCCHECK(rcl_publish(&usrm_back_pub,  &usrm_back_msg,  NULL));
+        RCCHECK(rcl_publish(&usrm_left_pub,  &usrm_left_msg,  NULL));
+        RCCHECK(rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL));
+        RCCHECK(rcl_publish(&enc_left_pub,   &enc_left_msg,   NULL));
+        RCCHECK(rcl_publish(&enc_right_pub,  &enc_right_msg,  NULL));
     }
 
     return 0;
