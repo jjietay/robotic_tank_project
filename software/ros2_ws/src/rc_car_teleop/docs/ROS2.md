@@ -104,7 +104,7 @@ odom (fixed) --> coordinate frame that is fixed to the world (when u initially t
 - TF2 just contains a broadcaster (just publishes to /tf and /tf_static), a buffer and a listener
 - The buffer and listener just subscribes to both /tf and /tf_static topics (will be explained below)
 
-### (15) I FINALLY UNDERSTAND ODOM NODE, ODOM FRAME AND BASE FRAME RELATIONSHIP:
+### (15) Relationship between Odom Node, Odom Frame and Base Frame:
 - basically odom node in my odometry.py file is a broadcaster
 - it broadcasts to the generic TF2 system, not any particular node --> it is a publisher that publishes to /tf topic
 - any node can just look it up from TF2's internal buffer
