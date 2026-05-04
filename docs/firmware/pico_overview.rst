@@ -41,5 +41,4 @@ Design notes
 
 This firmware combines embedded GPIO/PWM logic with micro-ROS messaging in a
 single ``main.cpp`` file. Over time, this can be refactored into clearer
-modules, but the current structure is still good enough for learning and
-system bring-up.
+modules.
