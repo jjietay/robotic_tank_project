@@ -25,3 +25,5 @@ __pycache__/
 
 docs/technical_analysis
 software/docs/commands.md
+
+.venv

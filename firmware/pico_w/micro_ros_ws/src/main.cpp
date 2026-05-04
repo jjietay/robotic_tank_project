@@ -65,11 +65,10 @@ public:
 
 
 // ---------------------------------------------------------------------------------
-//                         Ultrasonic — VERIFICATION VERSION (blocking)
+//                                  Ultrasonic
 //
-//  Deliberately simple: fires trigger, blocks waiting for echo, computes distance.
-//  No state machine. Used to confirm sensors work before returning to async design.
-//  One sensor fires per loop tick — staggered by index to avoid crosstalk.
+//  fires trigger, blocks waiting for echo, computes distance
+//  One sensor fires per loop tick — staggered by index to avoid crosstalk
 // ---------------------------------------------------------------------------------
 
 class Ultrasonic : public Electronics
@@ -81,10 +80,10 @@ private:
 
 public:
     Ultrasonic(std::string name, std::string status,
-               uint trig, uint echo, float vel = 346.0f,
-               uint64_t /*start_delay_us*/ = 0)   // param kept for API compat
+                uint trig, uint echo, float vel = 346.0f,
+                 uint64_t /*start_delay_us*/ = 0)   // param kept for API compat
         : Electronics(name, status),
-          trigger_pin(trig), echo_pin(echo), sound_vel(vel)
+            trigger_pin(trig), echo_pin(echo), sound_vel(vel)
     {
         gpio_init(trigger_pin); gpio_set_dir(trigger_pin, GPIO_OUT);
         gpio_init(echo_pin);    gpio_set_dir(echo_pin,    GPIO_IN);

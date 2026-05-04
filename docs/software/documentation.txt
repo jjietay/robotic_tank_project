@@ -1,0 +1,4 @@
+1) Create a new .rst file in docs/
+2) Put content or an automodule block inside it
+3) Add that file name, without .rst, into a toctree in index.rst
+4) Rebuild docs
