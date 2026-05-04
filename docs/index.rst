@@ -1,4 +1,4 @@
-Robot Tank Documentation
+Documentation
 ========================
 
 This documentation covers the full robotic tank project:

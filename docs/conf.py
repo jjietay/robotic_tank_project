@@ -17,5 +17,7 @@ autodoc_mock_imports = ['rclpy',
                         'cv_bridge']
 
 html_theme = "shibuya"
-
-`
+project = 'Robotic Tank Project'
+author = 'JJ'
+release = '2026.05'
+html_title = project

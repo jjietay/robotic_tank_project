@@ -2,7 +2,7 @@ Firmware (Pico W)
 =================
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     pico_overview
     main_cpp
