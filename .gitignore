@@ -32,3 +32,5 @@ main.py
 pyproject.toml
 README.md
 uv.lock
+
+docs/terminal.md
