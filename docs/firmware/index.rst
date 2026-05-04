@@ -1,5 +1,5 @@
-Firmware
-========
+Firmware (Pico W)
+=================
 
 .. toctree::
     :maxdepth: 1
