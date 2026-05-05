@@ -1,8 +1,8 @@
-Software (ROS 2, Python)
+Software
 ========================
 
-High-level architecture, then detailed API docs for the key
-Python modules that run on the Raspberry Pi (ROS 2 nodes).
+This section captures the high-level architecture, then detailed API docs for the key
+Python modules that run ROS 2 on the Raspberry Pi 4.
 
 Overview
 --------
@@ -22,3 +22,6 @@ Python API
     brain
     camera
     lidar_processor
+    odom
+    teleop
+    yolo

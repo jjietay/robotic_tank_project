@@ -43,7 +43,7 @@ class TeleopNode(Node):
         self.fd, self.original = configure_terminal()
         self.get_logger().info(
             'Hold WASD to drive, release to stop. '
-            'U/I = fwd-left/right, O/P = bwd-left/right. Q to quit.'
+            'Q to quit.'
         )
 
         self.timer = self.create_timer(0.02, self.timer_callback)

@@ -150,9 +150,6 @@ class OdometryNode(Node):
     
     # publishes to /odom --> publishes to /odom (for Nav2's EKF / robot_localization)
     def Publish(self, stamp):
-        """
-        Publishes the 
-        """
 
         msg = Odometry()
         msg.header.stamp = stamp.to_msg()

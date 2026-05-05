@@ -10,6 +10,6 @@ and hardware design and calibration.
     :maxdepth: 2
     :caption: Sections:
 
+    learning/index
     software/index
     firmware/index
-    hardware/index
