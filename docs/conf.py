@@ -21,3 +21,8 @@ project = 'Robotic Tank Project'
 author = 'JJ'
 release = '2026.05'
 html_title = project
+html_theme_options = {
+  "accent_color": "pink",
+}
+templates_path = ["_templates"]
+

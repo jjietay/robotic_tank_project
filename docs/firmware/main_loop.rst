@@ -93,8 +93,7 @@ The loop uses a simple time-based check to limit how fast it runs:
 
 - Stores the last loop timestamp in ``loop_last``.
 - Reads the current time via ``time_us_64()``.
-- If less than 10 000 µs (10 ms) have passed, it ``continue``s without
-  executing the body.
+- If less than 10 000 µs (10 ms) have passed, it ``continues`` without executing the body.
 - Otherwise, it updates ``loop_last`` and proceeds.
 
 This enforces an approximate **100 Hz** loop rate and prevents the firmware

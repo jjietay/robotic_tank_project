@@ -15,7 +15,7 @@ Functions
 ---------
 
 (a) apply_deadband(u, deadband=0.15f)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: cpp
 
@@ -43,7 +43,7 @@ Functions
 
 
 (b) init_range_msg(...)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: cpp
 
@@ -73,7 +73,7 @@ By centralising this initialisation, all range topics share identical metadata
 and only differ in their frame IDs and measured values.
 
 (c) set_msg_stamp(...)
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: cpp
 
