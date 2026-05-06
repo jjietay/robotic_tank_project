@@ -1,0 +1,588 @@
+#include "pico/stdlib.h"
+#include "hardware/gpio.h"
+#include "hardware/pwm.h"
+#include "pico/time.h"
+#include "hardware/sync.h"
+#include <std_msgs/msg/int32.h>
+#include <rosidl_runtime_c/string_functions.h>
+extern "C" {
+#include "pico_uart_transports.h"
+}
+#include <stdio.h>
+#include <string>
+#include <cmath>
+#include <algorithm>
+
+// micro-ROS headers
+#include <rcl/rcl.h>
+#include <rcl/error_handling.h>
+#include <rclc/rclc.h>
+#include <rclc/executor.h>
+#include <geometry_msgs/msg/twist.h>
+#include <sensor_msgs/msg/range.h>
+#include <rmw_microros/rmw_microros.h>
+
+#define RCCHECK(fn) { rcl_ret_t rc = (fn); if (rc != RCL_RET_OK) { printf("RCL error %ld at %s:%d\n", rc, __FILE__, __LINE__); } }
+
+// Constants
+constexpr float DRIVE_DUTY = 0.95f;
+constexpr float TURN_DUTY  = 0.95f;
+constexpr uint  PWM_TOP    = 65535;
+
+constexpr uint ENC_L_A = 16, ENC_L_B = 17;
+constexpr uint ENC_R_A = 18, ENC_R_B = 19;
+constexpr uint L_DIR = 0,  L_PWM = 8;
+constexpr uint R_DIR = 2,  R_PWM = 9;
+constexpr uint USRM_FRONT_TRIG = 10, USRM_FRONT_ECHO = 11;
+constexpr uint USRM_BACK_TRIG  = 14, USRM_BACK_ECHO  = 15;
+constexpr uint USRM_RIGHT_TRIG = 12, USRM_RIGHT_ECHO = 13;
+constexpr uint USRM_LEFT_TRIG  = 6,  USRM_LEFT_ECHO  = 7;
+constexpr uint64_t USRM_MEASURE_INTERVAL_US = 60000ULL;  // 60 ms between pings
+
+constexpr float FRONT_STOP_DIST = 15.0f;   // cm — stop if obstacle within 15 cm
+constexpr float BACK_STOP_DIST  = 15.0f;   // cm — tighter rear clearance
+
+constexpr float V_MAX = 0.14f;
+
+
+
+// ---------------------------------------------------------------------------------
+//                                 Electronics
+// ---------------------------------------------------------------------------------
+
+class Electronics
+{
+protected:
+    std::string name;
+    std::string status;
+public:
+    Electronics(std::string device_name, std::string device_status)
+        : name(device_name), status(device_status) {}
+
+    void ShowStatus()  { printf("%s initialised.\n",  name.c_str()); }
+    void CheckStatus() { printf("%s disconnected.\n", name.c_str()); }
+};
+
+
+// ---------------------------------------------------------------------------------
+//                         Ultrasonic — VERIFICATION VERSION (blocking)
+//
+//  Deliberately simple: fires trigger, blocks waiting for echo, computes distance.
+//  No state machine. Used to confirm sensors work before returning to async design.
+//  One sensor fires per loop tick — staggered by index to avoid crosstalk.
+// ---------------------------------------------------------------------------------
+
+class Ultrasonic : public Electronics
+{
+private:
+    uint  trigger_pin, echo_pin;
+    float sound_vel;
+    float last_distance = -1.0f;
+
+public:
+    Ultrasonic(std::string name, std::string status,
+               uint trig, uint echo, float vel = 346.0f,
+               uint64_t /*start_delay_us*/ = 0)   // param kept for API compat
+        : Electronics(name, status),
+          trigger_pin(trig), echo_pin(echo), sound_vel(vel)
+    {
+        gpio_init(trigger_pin); gpio_set_dir(trigger_pin, GPIO_OUT);
+        gpio_init(echo_pin);    gpio_set_dir(echo_pin,    GPIO_IN);
+        gpio_put(trigger_pin, 0);
+    }
+
+    // Fires trigger, waits for echo, returns distance in cm.
+    // Blocks for at most ~38ms (no-object timeout). Returns -1.0 on timeout.
+    float update()
+    {
+        // Fire trigger pulse
+        gpio_put(trigger_pin, 0); busy_wait_us(5);
+        gpio_put(trigger_pin, 1); busy_wait_us(15);
+        gpio_put(trigger_pin, 0);
+
+        // Wait for echo HIGH (start of echo pulse)
+        uint64_t t0 = time_us_64();
+        while (!gpio_get(echo_pin)) {
+            if (time_us_64() - t0 > 38000ULL) {
+                last_distance = -1.0f;
+                return last_distance;
+            }
+        }
+
+        // Wait for echo LOW (end of echo pulse)
+        uint64_t rise = time_us_64();
+        while (gpio_get(echo_pin)) {
+            if (time_us_64() - rise > 38000ULL) {
+                last_distance = -2.0f;
+                return last_distance;
+            }
+        }
+        uint64_t fall = time_us_64();
+
+        float dt = (float)(fall - rise) * 1e-6f;
+        last_distance = (dt * sound_vel / 2.0f) * 100.0f;
+        return last_distance;
+    }
+
+    float get_distance() const { return last_distance; }
+};
+
+
+// ---------------------------------------------------------------------------------
+//                         Motor Driver (Cytron MDD10A) 
+// ---------------------------------------------------------------------------------
+
+class Motor : public Electronics
+{
+private:
+    uint l_dir_pin, l_pwm_pin;
+    uint r_dir_pin, r_pwm_pin;
+
+    void setup_pwm(uint pin)
+    {          
+        gpio_set_function(pin, GPIO_FUNC_PWM);
+        uint slice = pwm_gpio_to_slice_num(pin);
+        pwm_set_wrap(slice, PWM_TOP);
+        pwm_set_chan_level(slice, pwm_gpio_to_channel(pin), 0);
+        pwm_set_enabled(slice, true);
+    }
+
+    void _set(uint dir_pin, uint pwm_pin, float speed)
+    {
+        speed = std::max(-1.0f, std::min(1.0f, speed)); 
+        gpio_put(dir_pin, speed > 0 ? 1 : 0);
+        pwm_set_gpio_level(pwm_pin, (uint16_t)(fabsf(speed) * PWM_TOP));
+    }
+
+public:
+    Motor(std::string name, std::string status, uint l_dir, uint l_pwm, uint r_dir, uint r_pwm)
+        : Electronics(name, status),
+        l_dir_pin(l_dir), l_pwm_pin(l_pwm),    
+        r_dir_pin(r_dir), r_pwm_pin(r_pwm)    
+    {
+        gpio_init(l_dir_pin); gpio_set_dir(l_dir_pin, GPIO_OUT);
+        gpio_init(r_dir_pin); gpio_set_dir(r_dir_pin, GPIO_OUT);
+        setup_pwm(l_pwm_pin);
+        setup_pwm(r_pwm_pin);
+    }
+
+    void move(float left, float right)
+    {
+        _set(l_dir_pin, l_pwm_pin, left);
+        _set(r_dir_pin, r_pwm_pin, right);
+    }
+
+    void forward()         { move( DRIVE_DUTY,  DRIVE_DUTY); }
+    void backward()        { move(-DRIVE_DUTY, -DRIVE_DUTY); }
+    void tank_turn_left()  { move( TURN_DUTY,  -TURN_DUTY);  }
+    void tank_turn_right() { move(-TURN_DUTY,   TURN_DUTY);  }
+    void stop()            { move(0.0f, 0.0f);               }
+};
+
+
+
+// ---------------------------------------------------------------------------------
+//                                  Wheel Encoder
+// ---------------------------------------------------------------------------------
+// 2 main things:
+//  (1) IRQ/callback immediately when either pin A or B goes from 0 to 1 or vice versa
+//  (2) get_vel purely gets the velocity
+
+class Encoder : public Electronics
+{
+private:
+    static constexpr int PPR = 11;
+    static constexpr float PI = 3.141592653589793f;
+
+    uint  pin_a, pin_b;
+    float reduction_ratio, diameter, circumference, cpr_output;
+
+    volatile int count = 0;         // because its modified inside an interrupt and read in main
+    int last_count = 0;
+    uint64_t last_time = 0;
+
+    static Encoder* instances[2];   // instances[2] is a static array of pointers to Encoder
+    // (look from backwards) An array of size 2, of the pointer "instances", points to the "Encoder" class
+    static volatile int instance_count;
+
+    // Main guy who changes count values (number of times it passes A and B edges)
+    static void irq_handler(uint gpio, uint32_t events)
+    {
+        for (int i = 0; i < instance_count; i++) {
+            if (instances[i]) instances[i]->handle_irq(gpio, events);  
+            // (instances[i]) is True if it has a value, else false
+            //the pointer "instances[i]"" is calling the method "handle_irq"
+            // that is the class method of the "Encoder" class (pointed at)
+        }
+    }
+
+    void handle_irq(uint gpio, uint32_t /*events*/)
+    {
+        if (gpio != pin_a && gpio != pin_b) return;
+        bool a = gpio_get(pin_a);
+        bool b = gpio_get(pin_b);
+        if (gpio == pin_a)
+        {
+            if (a == b) count--; else count++;
+        }
+        else
+        {
+            if (a == b) count++; else count--;
+        }
+    }
+
+public:
+    Encoder(std::string name, std::string status,
+            uint _pin_a, uint _pin_b,
+            float _reduction_ratio = 100.0f, float _diameter = 4.7f)    // Diameter of wheel (TO CHANGE)
+        : Electronics(name, status),
+        pin_a(_pin_a), pin_b(_pin_b),
+        reduction_ratio(_reduction_ratio), diameter(_diameter)
+    {
+        circumference = 2.0f * PI * (_diameter / 2.0f);
+        cpr_output    = (4 * (float)PPR) * _reduction_ratio;   // counts per rev after reduction ratio
+        last_time     = time_us_64();
+
+        // Pull up holds the pins at HIGH when no signal is present, this is to prevent floating inputs
+        gpio_init(pin_a); gpio_set_dir(pin_a, GPIO_IN); gpio_pull_up(pin_a);
+        gpio_init(pin_b); gpio_set_dir(pin_b, GPIO_IN); gpio_pull_up(pin_b);
+
+        instances[instance_count] = this;
+        if (instance_count == 0) {
+            // Only the FIRST encoder registers the shared callback
+            gpio_set_irq_enabled_with_callback(pin_a,
+                GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true, &Encoder::irq_handler);
+        } else {
+            // Subsequent encoders just enable — callback already registered
+            gpio_set_irq_enabled(pin_a,
+                GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true);
+        }
+        gpio_set_irq_enabled(pin_b,
+            GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true);
+
+        instance_count++;  // increment AFTER gpio setup
+        }
+
+    int get_count()
+    {
+        uint32_t saved = save_and_disable_interrupts();
+        int c = count;
+        restore_interrupts(saved);
+        return c;
+    }
+
+    float get_vel()
+    {
+        uint64_t now = time_us_64();
+        int64_t time_diff = (int64_t)(now - last_time);
+        if (time_diff <= 0) return 0.0f;
+
+        // Atomic snapshot — prevents IRQ from changing count between reads
+        uint32_t saved = save_and_disable_interrupts();
+        int current_count = count;
+        restore_interrupts(saved);
+
+        float dt = time_diff * 1e-6f;
+        int count_diff = current_count - last_count;
+        float distance_diff = (count_diff / cpr_output) * circumference;
+
+        last_time = now;
+        last_count = current_count;
+        return distance_diff / dt;
+    }
+};
+
+Encoder* Encoder::instances[2]  = {nullptr, nullptr}; // set instances[0] and instances[1] = nullptr
+volatile int Encoder::instance_count = 0;
+
+
+
+// ---------------------------------------------------------------------------------
+//                               PID Controller
+// ---------------------------------------------------------------------------------
+
+class PID
+{
+private:
+    float    kp, ki, kd;
+    float    integral = 0.0f;
+    float    previous_error = 0.0f;
+    uint64_t last_time;
+
+public:
+    PID(float kp, float ki, float kd)
+        : kp(kp), ki(ki), kd(kd), last_time(time_us_64()) {} 
+
+    float calculate(float setpoint, float current_value)
+    {
+        uint64_t current_time = time_us_64();
+        float dt = (float)(current_time - last_time) * 1e-6f;
+        if (dt <= 0.0f) dt = 0.01f;
+
+        float error = setpoint - current_value;
+        
+        integral += error * dt;
+        integral = std::max(-10.0f, std::min(10.0f, integral));
+
+        float p_term = kp * error;
+        float i_term = ki * integral;
+        float d_term = kd * ((error - previous_error) / dt);
+
+        previous_error = error;
+        last_time = current_time;
+        return p_term + i_term + d_term;
+    }
+};
+
+
+// ---------------------------------------------------------------------------------
+//                              Micro-ROS Globals 
+// ---------------------------------------------------------------------------------
+
+rcl_subscription_t cmd_vel_sub;             // Subscription Handle
+rcl_publisher_t usrm_front_pub;             // Publish Message (front)
+rcl_publisher_t usrm_back_pub;              // Publish Message (back)
+rcl_publisher_t usrm_left_pub;              // Publish Message (left)
+rcl_publisher_t usrm_right_pub;             // Publish Message (right)
+rcl_publisher_t enc_left_pub;               // Publish Message (encoder left)
+rcl_publisher_t enc_right_pub;              // Publish Message (encoder right)
+
+geometry_msgs__msg__Twist cmd_vel_msg;      // Message Buffer
+sensor_msgs__msg__Range usrm_front_msg;     // Message Buffer (front sensor)
+sensor_msgs__msg__Range usrm_back_msg;      // Message Buffer (back sensor)
+sensor_msgs__msg__Range usrm_left_msg;      // Message Buffer (left sensor)
+sensor_msgs__msg__Range usrm_right_msg;     // Message Buffer (right sensor)
+std_msgs__msg__Int32 enc_left_msg;          // Message Buffer (left encoder)
+std_msgs__msg__Int32 enc_right_msg;         // Message Buffer (right encoder)
+
+rclc_executor_t executor;               // Event loop manager
+rclc_support_t support;                 // Support context
+rcl_allocator_t allocator;              // Allows for custom heap management
+rcl_node_t node;                        // Pico_node
+
+// These are written by the ROS callback, read by the main loop
+float target_vel_l = 0.0f;
+float target_vel_r = 0.0f;
+
+// Called automatically by micro-ROS when RPi4 publishes to /cmd_vel
+// linear.x  = forward/backward speed  (-1.0 to 1.0)
+// angular.z = turning speed           (-1.0 to 1.0)
+void cmd_vel_callback(const void* msg_in) {
+    const geometry_msgs__msg__Twist* msg = (const geometry_msgs__msg__Twist*)msg_in;
+
+    float linear  = (float)msg->linear.x;
+    float angular = (float)msg->angular.z;
+
+    // Mix linear + angular → left/right wheel speeds (same as differential drive)
+    target_vel_l = linear - angular;
+    target_vel_r = linear + angular;
+
+    // Safety: clamp
+    target_vel_l = std::max(-1.0f, std::min(1.0f, target_vel_l));
+    target_vel_r = std::max(-1.0f, std::min(1.0f, target_vel_r));
+}
+
+// ---------------------------------------------------------------------------------
+//                               Helper Functions 
+// ---------------------------------------------------------------------------------
+
+float apply_deadband(float u, float deadband = 0.15f)
+{
+    if (u == 0.0f) return 0.0f;
+    float sign = (u > 0.0f) ? 1.0f : -1.0f;
+    float mag  = std::fabs(u);
+    if (mag < deadband) mag = deadband;
+    if (mag > 1.0f) mag = 1.0f;
+    return sign * mag;
+}
+
+void init_range_msg(sensor_msgs__msg__Range* msg, uint8_t rad_type,
+                    float fov, float min_r, float max_r)
+{
+    msg->radiation_type = rad_type;
+    msg->field_of_view  = fov;
+    msg->min_range      = min_r;
+    msg->max_range      = max_r;
+    msg->range          = 0.0f;
+}
+
+void set_msg_stamp(std_msgs__msg__Header* header)
+{
+    uint64_t now_us = time_us_64();
+    header->stamp.sec = now_us / 1000000ULL;
+    header->stamp.nanosec = (now_us % 1000000ULL) * 1000ULL;
+}
+
+// ---------------------------------------------------------------------------------
+//                                      Main
+// ---------------------------------------------------------------------------------
+
+int main() {
+    stdio_init_all();
+    sleep_ms(2000);
+
+    Ultrasonic USRM_FRONT("Front", "ON", USRM_FRONT_TRIG, USRM_FRONT_ECHO, 346.0f, 0);
+    Ultrasonic USRM_BACK ("Back",  "ON", USRM_BACK_TRIG,  USRM_BACK_ECHO,  346.0f, 15000);
+    Ultrasonic USRM_RIGHT("Right", "ON", USRM_RIGHT_TRIG, USRM_RIGHT_ECHO, 346.0f, 30000);
+    Ultrasonic USRM_LEFT ("Left",  "ON", USRM_LEFT_TRIG,  USRM_LEFT_ECHO,  346.0f, 45000);
+    Motor      MOTOR("MOTORS", "ON", L_DIR, L_PWM, R_DIR, R_PWM);
+    Encoder    LEFT_ENCODER ("L_ENC", "ON", ENC_L_A, ENC_L_B, 169.0f, 5.465f);
+    Encoder    RIGHT_ENCODER("R_ENC", "ON", ENC_R_A, ENC_R_B, 169.0f, 5.465f);
+    PID        LEFT_PID (0.5f, 0.0f, 0.0f);
+    PID        RIGHT_PID(0.5f, 0.0f, 0.0f);
+
+    USRM_FRONT.ShowStatus(); USRM_BACK.ShowStatus();
+    USRM_RIGHT.ShowStatus(); USRM_LEFT.ShowStatus();
+    MOTOR.ShowStatus();
+    LEFT_ENCODER.ShowStatus(); RIGHT_ENCODER.ShowStatus();
+
+
+    // micro-ROS init
+    rmw_uros_set_custom_transport(
+        true,
+        NULL,
+        pico_serial_transport_open,
+        pico_serial_transport_close,
+        pico_serial_transport_write,
+        pico_serial_transport_read
+    );
+    allocator = rcl_get_default_allocator();
+    rclc_support_init(&support, 0, NULL, &allocator);
+    rclc_node_init_default(&node, "pico", "", &support);   // "pico" is the name of the node that ROS2 can see
+
+    // Init /cmd_vel subscriber
+    rclc_subscription_init_default(
+        &cmd_vel_sub, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+        "/cmd_vel");
+
+    // Init /usrm_front_pub /usrm_back_pub /usrm_left_pub and /usrm_right_pub publisher
+    rclc_publisher_init_default(
+        &usrm_front_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
+        "/sensors/ultrasonic/usrm_front");
+
+    rclc_publisher_init_default(
+        &usrm_back_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
+        "/sensors/ultrasonic/usrm_back");
+
+    rclc_publisher_init_default(
+        &usrm_left_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
+        "/sensors/ultrasonic/usrm_left");
+
+    rclc_publisher_init_default(
+        &usrm_right_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Range),
+        "/sensors/ultrasonic/usrm_right");     
+
+    rclc_publisher_init_default(
+        &enc_left_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+        "/sensors/encoders/left_ticks"); 
+
+    rclc_publisher_init_default(
+        &enc_right_pub,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+        "/sensors/encoders/right_ticks");
+
+    // radiation_type 0 = ULTRASOUND, FOV ~15 deg (0.26 rad), range 0.02–4.00 m
+    init_range_msg(&usrm_front_msg, 0, 0.26f, 0.02f, 4.00f);
+    init_range_msg(&usrm_back_msg,  0, 0.26f, 0.02f, 4.00f);
+    init_range_msg(&usrm_left_msg,  0, 0.26f, 0.02f, 4.00f);
+    init_range_msg(&usrm_right_msg, 0, 0.26f, 0.02f, 4.00f);
+
+    rosidl_runtime_c__String__assign(&usrm_front_msg.header.frame_id, "ultrasonic_front_link");
+    rosidl_runtime_c__String__assign(&usrm_back_msg.header.frame_id,  "ultrasonic_back_link");
+    rosidl_runtime_c__String__assign(&usrm_left_msg.header.frame_id,  "ultrasonic_left_link");
+    rosidl_runtime_c__String__assign(&usrm_right_msg.header.frame_id, "ultrasonic_right_link");
+
+    // Executor ---> 1 handle = 1 subscriber
+    rclc_executor_init(&executor, &support.context, 1, &allocator);
+    rclc_executor_add_subscription(
+        &executor, &cmd_vel_sub, &cmd_vel_msg,
+        &cmd_vel_callback, ON_NEW_DATA);
+
+    printf("micro-ROS ready, listening on /cmd_vel\n");
+
+
+    // ---------------------------------------------------------------------------------
+    //                                  Main Loop
+    // ---------------------------------------------------------------------------------
+
+    while (true)
+    {
+        // 0. Rate limiter
+        static uint64_t loop_last = 0;
+        uint64_t now = time_us_64();
+        if (now - loop_last < 10000ULL) continue;
+        loop_last = now;
+
+        // 1. Handle incoming ROS messages
+        rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));
+
+        // 2. Fire one ultrasonic sensor per tick (staggered to avoid crosstalk)
+        static uint8_t usrm_index = 0;
+        switch (usrm_index) {
+            case 0:
+                usrm_front_msg.range = USRM_FRONT.update() / 100.0f;
+                set_msg_stamp(&usrm_front_msg.header);
+                RCCHECK(rcl_publish(&usrm_front_pub, &usrm_front_msg, NULL));
+                break;
+            case 1:
+                usrm_back_msg.range = USRM_BACK.update() / 100.0f;
+                set_msg_stamp(&usrm_back_msg.header);
+                RCCHECK(rcl_publish(&usrm_back_pub, &usrm_back_msg, NULL));
+                break;
+            case 2:
+                usrm_right_msg.range = USRM_RIGHT.update() / 100.0f;
+                set_msg_stamp(&usrm_right_msg.header);
+                RCCHECK(rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL));
+                break;
+            case 3:
+                usrm_left_msg.range = USRM_LEFT.update() / 100.0f;
+                set_msg_stamp(&usrm_left_msg.header);
+                RCCHECK(rcl_publish(&usrm_left_pub, &usrm_left_msg, NULL));
+                break;
+        }
+        usrm_index = (usrm_index + 1) % 4;
+
+        // 3. Open-loop velocity control
+        float cmd_l = std::max(-1.0f, std::min(1.0f, target_vel_l));
+        float cmd_r = std::max(-1.0f, std::min(1.0f, target_vel_r));
+        float vel_l = apply_deadband(cmd_l, 0.15f);
+        float vel_r = apply_deadband(cmd_r, 0.15f);
+
+        // 4. Directional intent
+        bool want_forward  = (target_vel_l > 0.0f && target_vel_r > 0.0f);
+        bool want_backward = (target_vel_l < 0.0f && target_vel_r < 0.0f);
+
+        // 5. Directional safety E-stop
+        //    range is in metres, FRONT/BACK_STOP_DIST is in cm — convert for comparison
+        float d_front = usrm_front_msg.range * 100.0f;
+        float d_back  = usrm_back_msg.range  * 100.0f;
+        if (want_forward  && d_front > 0.0f && d_front < FRONT_STOP_DIST) {
+            vel_l = 0.0f; vel_r = 0.0f;
+        }
+        if (want_backward && d_back  > 0.0f && d_back  < BACK_STOP_DIST) {
+            vel_l = 0.0f; vel_r = 0.0f;
+        }
+
+        // 6. Drive motors
+        MOTOR.move(-vel_l, vel_r);
+
+        enc_left_msg.data  = -LEFT_ENCODER.get_count();
+        enc_right_msg.data =  RIGHT_ENCODER.get_count();
+        RCCHECK(rcl_publish(&enc_left_pub,  &enc_left_msg,  NULL));
+        RCCHECK(rcl_publish(&enc_right_pub, &enc_right_msg, NULL));
+    }
+
+    return 0;
+}

@@ -16,6 +16,10 @@ link_directories(${MICROROS_LIB_DIR})
 
 add_executable(pico_micro_ros
     main.cpp
+    ultrasonic.cpp
+    motor.cpp
+    encoder.cpp
+    pid.cpp
     pico_uart_transport.c
 )
 
