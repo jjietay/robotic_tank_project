@@ -28,11 +28,16 @@ Therefore, I decided to make Self-driving Robotic Car. Since, I extended my inte
 
 **What I did**
 
-After consulting AI what I should purchase, I spend nearly a crazy $200 out of my own pocket to purchase the items, that included Rasberry Pi 4, Pico W, basic arduino car kit (included with motors), H bridge, 18560 batteries. 
+After consulting AI what I should purchase, I spend nearly a crazy $200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, basic arduino car kit (included with motors), H bridge, 18560 batteries.
 
 **Difficulty faced**
 
-Describe the problem clearly — what broke, what confused you, what didn't work.
+.. image:: ../_images/reflections_img1.png
+   :alt: A leading B
+   :width: 500px
+   :align: center
+
+When the 
 
 **My solution**
 
