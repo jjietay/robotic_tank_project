@@ -25,9 +25,9 @@ private:
 
 public:
     Motor(std::string name, std::string status,
-          uint l_dir, uint l_pwm, uint r_dir, uint r_pwm,
-          bool invert_left  = true,    // left side wired reversed by default
-          bool invert_right = false);
+        uint l_dir, uint l_pwm, uint r_dir, uint r_pwm,
+        bool invert_left  = true,    // left side wired reversed by default
+        bool invert_right = false);
 
     // duty_left, duty_right ∈ [-1, 1]  (saturated to hardware limit)
     void move(float duty_left, float duty_right);

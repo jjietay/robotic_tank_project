@@ -10,16 +10,16 @@ Encoder*     Encoder::instances[Encoder::MAX_ENCODERS] = {nullptr, nullptr};
 volatile int Encoder::instance_count                   = 0;
 
 Encoder::Encoder(std::string name_, std::string status_,
-                 uint _pin_a, uint _pin_b,
-                 float _reduction_ratio,
-                 float _diameter_m,
-                 int _ppr, bool _invert)
+                uint _pin_a, uint _pin_b,
+                float _reduction_ratio,
+                float _diameter_m,
+                int _ppr, bool _invert)
     : Electronics(std::move(name_), std::move(status_)),
-      pin_a(_pin_a), pin_b(_pin_b),
-      reduction_ratio(_reduction_ratio),
-      diameter_m(_diameter_m),
-      ppr(_ppr),
-      invert(_invert)
+    pin_a(_pin_a), pin_b(_pin_b),
+    reduction_ratio(_reduction_ratio),
+    diameter_m(_diameter_m),
+    ppr(_ppr),
+    invert(_invert)
 {
     circumference_m       = ENC_PI * diameter_m;                          // π × d (METRES)
     counts_per_output_rev = 4.0f * (float)ppr * reduction_ratio;          // 4× quadrature

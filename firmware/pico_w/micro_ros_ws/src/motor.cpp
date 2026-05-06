@@ -16,20 +16,20 @@ void Motor::setup_pwm(uint pin)
 void Motor::set_one_side(uint dir_pin, uint pwm_pin, float duty)
 {
     // Hardware saturation only — a duty cycle physically cannot exceed 100 %.
-    if (duty >  1.0f) duty =  1.0f;
-    if (duty < -1.0f) duty = -1.0f;
+    if (duty >  1.0f) duty =  1.0f; // max duty is 1.0
+    if (duty < -1.0f) duty = -1.0f; // min duty is -1.0
 
     gpio_put(dir_pin, duty >= 0.0f ? 1 : 0);
     pwm_set_gpio_level(pwm_pin, (uint16_t)(std::fabs(duty) * (float)PWM_TOP));
 }
 
 Motor::Motor(std::string name_, std::string status_,
-             uint l_dir, uint l_pwm, uint r_dir, uint r_pwm,
-             bool invert_left, bool invert_right)
+            uint l_dir, uint l_pwm, uint r_dir, uint r_pwm,
+            bool invert_left, bool invert_right)
     : Electronics(std::move(name_), std::move(status_)),
-      l_dir_pin(l_dir), l_pwm_pin(l_pwm),
-      r_dir_pin(r_dir), r_pwm_pin(r_pwm),
-      l_invert(invert_left), r_invert(invert_right)
+    l_dir_pin(l_dir), l_pwm_pin(l_pwm),
+    r_dir_pin(r_dir), r_pwm_pin(r_pwm),
+    l_invert(invert_left), r_invert(invert_right)
 {
     gpio_init(l_dir_pin); gpio_set_dir(l_dir_pin, GPIO_OUT);
     gpio_init(r_dir_pin); gpio_set_dir(r_dir_pin, GPIO_OUT);

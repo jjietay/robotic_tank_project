@@ -3,9 +3,9 @@
 #include "pico/time.h"
 
 Ultrasonic::Ultrasonic(std::string name_, std::string status_,
-                       uint trig, uint echo, float vel)
+                    uint trig, uint echo, float vel)
     : Electronics(std::move(name_), std::move(status_)),
-      trigger_pin(trig), echo_pin(echo), sound_vel(vel)
+    trigger_pin(trig), echo_pin(echo), sound_vel(vel)
 {
     gpio_init(trigger_pin); gpio_set_dir(trigger_pin, GPIO_OUT);
     gpio_init(echo_pin);    gpio_set_dir(echo_pin,    GPIO_IN);
@@ -29,9 +29,9 @@ float Ultrasonic::update()
     }
 
     // Measure how long echo stays HIGH
-    uint64_t rise = time_us_64();
+    uint64_t rise = time_us_64();   // when pin goes high
     while (gpio_get(echo_pin)) {
-        if (time_us_64() - rise > 38000ULL) {
+        if (time_us_64() - rise > 38000ULL) {   // no object just return fixed -2.0
             last_distance_m = -2.0f;
             return last_distance_m;
         }

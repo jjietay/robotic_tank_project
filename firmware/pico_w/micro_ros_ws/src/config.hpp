@@ -26,7 +26,7 @@ constexpr uint USRM_LEFT_TRIG  =  6, USRM_LEFT_ECHO  =  7;
 // ---------------------------------------------------------------------------
 //                              Hardware Limits
 // ---------------------------------------------------------------------------
-constexpr uint  PWM_TOP = 65535;          // 16-bit PWM resolution
+constexpr uint  PWM_TOP = 6249;
 
 // ---------------------------------------------------------------------------
 //                              Robot Geometry  (METRES)
@@ -34,7 +34,7 @@ constexpr uint  PWM_TOP = 65535;          // 16-bit PWM resolution
 //  Diameter is stored in METRES so encoder distance / velocity come out in
 //  metres / metres-per-second naturally — no unit conversion in the loop.
 constexpr float WHEEL_DIAMETER_M = 0.05465f;     // 5.465 cm
-constexpr float WHEEL_BASE_M     = 0.20f;        // <-- TUNE: distance between L & R wheels
+constexpr float WHEEL_BASE_M     = 0.356f;        // distance between L & R wheels
 constexpr float GEAR_REDUCTION   = 169.0f;
 constexpr int   ENCODER_PPR      = 11;           // raw pulses per motor rev (pre-gearbox)
 
@@ -51,7 +51,6 @@ constexpr float DIRECTION_DEADZONE_MPS  = 0.02f; // ignore tiny commands when
 // ---------------------------------------------------------------------------
 //  Output is duty cycle in [-1, 1].  Error is in m/s.  Units of Kp are
 //  (duty per m/s); Ki is (duty per (m/s × s)); Kd is (duty per (m/s / s)).
-//  Start small and tune up.
 constexpr float PID_KP = 6.0f;
 constexpr float PID_KI = 12.0f;
 constexpr float PID_KD = 0.0f;

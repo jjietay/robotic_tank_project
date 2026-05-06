@@ -86,8 +86,8 @@ void cmd_vel_callback(const void* msg_in)
 {
     const auto* msg = (const geometry_msgs__msg__Twist*)msg_in;
 
-    float v_mps = (float)msg->linear.x;
-    float w_rps = (float)msg->angular.z;
+    float v_mps = (float)msg->linear.x;     // in m/s
+    float w_rps = (float)msg->angular.z;    // in rad/s
 
     target_vel_l_mps     = v_mps - w_rps * (WHEEL_BASE_M * 0.5f);
     target_vel_r_mps     = v_mps + w_rps * (WHEEL_BASE_M * 0.5f);
@@ -98,7 +98,7 @@ void cmd_vel_callback(const void* msg_in)
 //                              Helpers
 // ---------------------------------------------------------------------------
 static void init_range_msg(sensor_msgs__msg__Range* msg, uint8_t rad_type,
-                           float fov, float min_r, float max_r)
+                        float fov, float min_r, float max_r)
 {
     msg->radiation_type = rad_type;
     msg->field_of_view  = fov;
@@ -129,17 +129,17 @@ int main()
     Ultrasonic USRM_LEFT ("Left",  "ON", USRM_LEFT_TRIG,  USRM_LEFT_ECHO );
 
     Motor      MOTOR("MOTORS", "ON", L_DIR, L_PWM, R_DIR, R_PWM,
-                     /*invert_left*/  true,
-                     /*invert_right*/ false);
+                    /*invert_left*/  true,
+                    /*invert_right*/ false);
 
     Encoder    LEFT_ENCODER ("L_ENC", "ON",
-                             ENC_L_A, ENC_L_B,
-                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                             /*invert*/ true);   // matches MOTOR's left inversion
+                            ENC_L_A, ENC_L_B,
+                            GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
+                            /*invert*/ true);   // matches MOTOR's left inversion
     Encoder    RIGHT_ENCODER("R_ENC", "ON",
-                             ENC_R_A, ENC_R_B,
-                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                             /*invert*/ false);
+                            ENC_R_A, ENC_R_B,
+                            GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
+                            /*invert*/ false);
 
     // PID per wheel — m/s setpoint vs m/s measured -> duty cycle [-1, 1]
     PID LEFT_PID (PID_KP, PID_KI, PID_KD, -1.0f, 1.0f, 1.0f);

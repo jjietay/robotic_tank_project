@@ -20,7 +20,7 @@ private:
 
 public:
     Ultrasonic(std::string name, std::string status,
-               uint trig, uint echo, float vel = 346.0f);
+            uint trig, uint echo, float vel = 346.0f);
 
     // Fires trigger, blocks for echo, returns distance in METRES.
     //   -1.0  → echo never went HIGH (no object / wiring fault)
