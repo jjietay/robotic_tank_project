@@ -253,6 +253,11 @@ int main()
             setpoint_r = 0.0f;
         }
 
+        if (setpoint_l >  V_MAX_MPS) setpoint_l =  V_MAX_MPS;
+        if (setpoint_l < -V_MAX_MPS) setpoint_l = -V_MAX_MPS;
+        if (setpoint_r >  V_MAX_MPS) setpoint_r =  V_MAX_MPS;
+        if (setpoint_r < -V_MAX_MPS) setpoint_r = -V_MAX_MPS;
+
         // 4. Directional safety E-stop  (METRES vs METRES, no unit hacks)
         float v_avg        = 0.5f * (setpoint_l + setpoint_r);
         bool  want_forward  = (v_avg >  DIRECTION_DEADZONE_MPS);

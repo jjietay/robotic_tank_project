@@ -37,6 +37,7 @@ constexpr float WHEEL_DIAMETER_M = 0.05465f;     // 5.465 cm
 constexpr float WHEEL_BASE_M     = 0.356f;        // distance between L & R wheels
 constexpr float GEAR_REDUCTION   = 169.0f;
 constexpr int   ENCODER_PPR      = 11;           // raw pulses per motor rev (pre-gearbox)
+constexpr float V_MAX_MPS = 0.14f;   // max wheel surface speed at full PWM
 
 // ---------------------------------------------------------------------------
 //                              Safety / E-stop  (METRES, METRES-PER-SECOND)
