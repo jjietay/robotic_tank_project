@@ -2,7 +2,6 @@ import sys, os
 sys.path.insert(0, os.path.abspath('../software/ros2_ws/src/rc_car_teleop'))
 
 extensions = [
-    'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',   # for Google-style docstrings
     'sphinxcontrib.images'
 ]
