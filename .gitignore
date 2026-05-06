@@ -35,3 +35,6 @@ uv.lock
 
 docs/terminal.md
 docs/_build
+
+build/
+picotool-src/

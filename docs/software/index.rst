@@ -22,6 +22,5 @@ Python API
     brain
     camera
     lidar_processor
-    odom
     teleop
     yolo

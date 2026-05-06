@@ -16,6 +16,10 @@ link_directories(${MICROROS_LIB_DIR})
 
 add_executable(pico_micro_ros
     main.cpp
+    ultrasonic.cpp
+    motor.cpp
+    encoder.cpp
+    pid.cpp
     pico_uart_transport.c
 )
 
@@ -24,7 +28,6 @@ target_link_libraries(pico_micro_ros
     hardware_pwm
     hardware_gpio
     hardware_sync
-    pico_time
     microros
 )
 

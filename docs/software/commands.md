@@ -9,7 +9,7 @@ source ~/microros_ws/install/local_setup.bash
 ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyACM0 -v6
 
 ros2 topic echo /sensors/encoders/right_ticks
-
+w
 
 17s - 0 to 1180044 (front)
 14.79s - 118044 to 11104 (back)

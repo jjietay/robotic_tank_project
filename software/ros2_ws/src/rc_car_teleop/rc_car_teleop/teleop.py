@@ -68,19 +68,19 @@ class TeleopNode(Node):
                 if key in ('w', 'W'):
                     cmd = 'W'            
                     twist = Twist()
-                    twist.linear.x = 0.14
+                    twist.linear.x = 1.0
                 elif key in ('s', 'S'):
                     cmd = 'S'            
                     twist = Twist()
-                    twist.linear.x = -0.14
+                    twist.linear.x = -1.0
                 elif key in ('a', 'A'):
                     cmd = 'A'            
                     twist = Twist()
-                    twist.angular.z = 0.14   # ACW = left in ROS convention
+                    twist.angular.z = 1.0   # ACW = left in ROS convention
                 elif key in ('d', 'D'):
                     cmd = 'D'            
                     twist = Twist()
-                    twist.angular.z = -0.14  # CW = right in ROS convention
+                    twist.angular.z = -1.0  # CW = right in ROS convention
                 elif key == ' ':
                     cmd = 'X'            
                     twist = Twist()

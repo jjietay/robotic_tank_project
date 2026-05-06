@@ -1,5 +1,5 @@
 Lidar Processor
-===============
+==================
 
 This node subscribes to raw LIDAR scans on ``/scan``, filters out invalid
 readings, and publishes the distance to the closest valid obstacle as a
