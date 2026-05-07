@@ -35,7 +35,7 @@ After researching and consulting AI what I should purchase, I spend nearly a cra
    :width: 500px
    :align: center
 
-When the kit came, I was eager to build it. I followed some YouTube Tutorial on it and started building. I had to learn how to compile and hello testing
+When the kit came, I was eager to build it. I followed some YouTube Tutorial on it and started building. I had to learn how to compile and
 
 .. image:: ../_images/reflections_img2.jpg
    :alt: After building
