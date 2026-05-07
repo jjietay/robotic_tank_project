@@ -28,38 +28,102 @@ Therefore, I decided to make Self-driving Robotic Car. Since, I extended my inte
 
 **What I did**
 
-After researching and consulting AI what I should purchase, I spend nearly a crazy $200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, YDLidar X3 Pro, basic arduino car kit (included with motors), H bridge, 18560 batteries.
+After researching and consulting AI what I should purchase, I spend nearly a crazy ~$200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, YDLidar X3 Pro, basic arduino car kit (included with motors), H bridge, 18560 batteries.
 
-.. image:: ../_images/reflections_img1.png
+.. figure:: ../_images/reflections_img1.png
    :alt: Before building
    :width: 500px
    :align: center
 
-When the kit came, I was eager to build it. I followed some YouTube Tutorial on it and started building. I had to learn how to write a rough simple micropython code initially to run on the 
+   Figure 1: Before building version 1
 
-.. image:: ../_images/reflections_img2.jpg
+When the kit in Figure 1 came, I was eager to build it. I followed some YouTube Tutorial on it and started building. I learnt how to write a simple micropython script and then make it such that it recieves the velocity commands over USB to my RPI4. I avoided touching ROS2 to reduce complexity and ensure hardware, wiring is also correct.
+
+.. figure:: ../_images/reflections_img2.jpg
    :alt: After building
    :width: 500px
    :align: center
 
-**Key takeaway**
+   Figure 2: After building version 1
 
-One sentence on what you'd do differently or what you now understand better.
+As shown in Figure 2 above, my current build contains RPI4, Pico W, 18650 batteries, the L298N H Bridge that is wired to my motors. The L298N required many connections. For a 4 wheel (4 motor) setup, I had to combine the motor voltage wires together for each side. Dir pins control both motors at each side.
 
-**Media**
+This "simple" setup, took me awhile because of many problems. The table below shows some problems faced and respective solutions.
 
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
 
+   *  - Problem
+      - Solution
 
-   Caption for the image.
+   *  - weak (loose) connection
+      - wiggle the wires to make sure they don't just fall out and secure them if they do fall out
+   *  - code issues
+      - make changes to the code and verify with AI (my project mentor)
+   *  - motor forward/backward direction issues
+      - switch the pins (best to switch it hardware wise than software which might confuse myself in the future when reviewing the codebase)
+   *  - cold solder joints
+      - fill edges of soldering iron's tip with solder first, repeat it multiple times, and ensure that soldering joint is hot
+
+This first success building the car made me more motivated and excited to continue on with my project. 
 
 .. raw:: html
 
-   <video width="640" height="360" controls>
-   <source src="../_static/videos/your-video.mp4" type="video/mp4">
-   Your browser does not support the video tag.
-   </video>
+   <figure style="text-align: center;">
+     <video width="640" height="360" controls style="display: block; margin: auto;">
+       <source src="/_static/reflections_vid1.mp4" type="video/mp4">
+       Your browser does not support the video tag.
+     </video>
+     <figcaption style="color: gray; margin-top: 0.8em;">Figure 3: Car moving around and spinning</figcaption>
+   </figure>
+
+Figure 3 above shows my car finally moving, controlled via my keyboard, WASD.
 
 ----
+
+12 Mar 26 — 1st Real Difficulty
+--------------------------------
+
+**What Happened**
+
+.. figure:: ../_images/reflections_img5.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 4: Poor solder joint on my motors
+
+From Figure 4, we can see that I took out the motors. This is because the motors were not reliable due to bad solder joint.
+
+.. figure:: ../_images/merged-image-2026-05-07T16-08-28.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 5: Poor soldering iron quality
+
+From Figure 5, you can tell that I was using a really cheap soldering iron and the solder connections became so unreliable, sometimes the car won't even move. This was when I knew I had to invest in a good soldering setup to ensure issues like these won't arise in the future again. 
+
+.. figure:: ../_images/merged-image-2026-05-07T16-08-28.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 5: Before building version 1
+
+I bought a new soldering iron (reddit users recommendations) and seperate quality solder with higher flux percentage as shown in Figure 6.
+
+
+
+
+
+
+
+
+
+
+
 
 
 5 May 2026 — System Identification
