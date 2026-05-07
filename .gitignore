@@ -2,6 +2,9 @@
 **/build/
 **/install/
 **/log/
+**/pico-sdk/
+**/picotool-src/
+**/freertos/
 
 # --- micro-ROS Pico SDK generated folders ---
 **/libmicroros/
@@ -11,7 +14,7 @@
 
 # --- CMake / compile cache ---
 CMakeCache.txt
-CMakeFiles/
+CMakeFiles/``
 cmake-build-*/
 compile_commands.json
 
@@ -34,7 +37,5 @@ README.md
 uv.lock
 
 docs/terminal.md
-docs/_build
-
-build/
+docs/_build/
 picotool-src/
