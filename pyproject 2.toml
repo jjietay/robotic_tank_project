@@ -1,0 +1,12 @@
+[project]
+name = "robotic-tank-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "shibuya>=2026.1.9",
+    "sphinx>=9.1.0",
+    "sphinx-autobuild>=2025.8.25",
+    "sphinxcontrib-images>=1.0.1",
+]

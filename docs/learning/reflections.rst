@@ -30,23 +30,17 @@ Therefore, I decided to make Self-driving Robotic Car. Since, I extended my inte
 
 After consulting AI what I should purchase, I spend nearly a crazy $200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, basic arduino car kit (included with motors), H bridge, 18560 batteries.
 
-**Difficulty faced**
-
 .. image:: ../_images/reflections_img1.png
-   :alt: A leading B
+   :alt: Before building
    :width: 500px
    :align: center
 
-When the 
+When the kit came, I was eager to build it. I followed some YouTube Tutorial on it and started building. 
 
-**My solution**
-
-How you solved it. Be specific — commands, code snippets, or reasoning.
-
-.. code-block:: python
-
-   # optional: paste a relevant snippet if useful
-   example_code = True
+.. image:: ../_images/reflections_img2.jpg
+   :alt: After building
+   :width: 500px
+   :align: center
 
 **Key takeaway**
 
@@ -54,23 +48,21 @@ One sentence on what you'd do differently or what you now understand better.
 
 **Media**
 
-.. figure:: /_images/reflections_img1.HEIC
-   :alt: Description of image
-   :width: 80%
+
 
    Caption for the image.
 
 .. raw:: html
 
    <video width="640" height="360" controls>
-     <source src="../_static/videos/your-video.mp4" type="video/mp4">
-     Your browser does not support the video tag.
+   <source src="../_static/videos/your-video.mp4" type="video/mp4">
+   Your browser does not support the video tag.
    </video>
 
 ----
 
 
 5 May 2026 — System Identification
---------------------------------
+-------------------------------------
 - main idea is to get max velocity during full load operation
 - run the car over fixed distance
