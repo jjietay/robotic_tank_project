@@ -1,6 +1,3 @@
-import sys, os
-sys.path.insert(0, os.path.abspath('../software/ros2_ws/src/rc_car_teleop'))
-
 extensions = [
     'sphinx.ext.napoleon',   # for Google-style docstrings
     'sphinxcontrib.images'
@@ -25,3 +22,6 @@ html_theme_options = {
 }
 templates_path = ["_templates"]
 
+language = 'en'
+locale_dirs = []
+gettext_compact = True
