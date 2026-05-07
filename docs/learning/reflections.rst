@@ -17,7 +17,7 @@ This was when I decided to take on this project. I knew I wanted to do something
 
 However, after dwelving into agentic AI quite a bit, I wanted to incorporate AI into my project. That's where Computer Vision comes in (I know agents and CV is quite different...). This project is also a very good precursor to my FYP which is incoporating (Vision Transformers + Large Language Models = Vision Language Model) + Action --->  Vision Language Action in robotic systems.
 
-I believe understanding the fundamentals of Ultrasonic Sensors, LIDARS, SLAM, ROS2, Nav2, will certainly give me an edge, especially when I would want to do something related to my FYP for my future job (AI + Robotics).
+I believe understanding the fundamentals of Ultrasonic Sensors, LIDARS, SLAM, ROS2, Nav2, will certainly give me an edge in robotics, especially when I would want to do something related to my FYP for my future job (AI + Robotics).
 
 Therefore, I decided to make Self-driving Robotic Car. Since, I extended my internship such that it ends just before Y4S1 starts, I decided that that should be my deadline. With all that yapping, lets move on with the timelines!
 
@@ -28,14 +28,14 @@ Therefore, I decided to make Self-driving Robotic Car. Since, I extended my inte
 
 **What I did**
 
-After consulting AI what I should purchase, I spend nearly a crazy $200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, basic arduino car kit (included with motors), H bridge, 18560 batteries.
+After researching and consulting AI what I should purchase, I spend nearly a crazy $200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, YDLidar X3 Pro, basic arduino car kit (included with motors), H bridge, 18560 batteries.
 
 .. image:: ../_images/reflections_img1.png
    :alt: Before building
    :width: 500px
    :align: center
 
-When the kit came, I was eager to build it. I followed some YouTube Tutorial on it and started building. 
+When the kit came, I was eager to build it. I followed some YouTube Tutorial on it and started building. I had to learn how to compile and hello testing
 
 .. image:: ../_images/reflections_img2.jpg
    :alt: After building
