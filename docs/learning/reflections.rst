@@ -28,7 +28,7 @@ Therefore, I decided to make Self-driving Robotic Car. Since, I extended my inte
 
 **What I did**
 
-After researching and consulting AI what I should purchase, I spend nearly a crazy ~$200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, YDLidar X3 Pro, basic arduino car kit (included with motors), H bridge, 18560 batteries.
+After researching and consulting AI what I should purchase, I spend nearly a crazy ~$200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, Pi Camera Module 2, YDLidar X3 Pro, basic arduino car kit (included with motors), H bridge, 18560 batteries.
 
 .. figure:: ../_images/reflections_img1.png
    :alt: Before building
@@ -71,14 +71,14 @@ This first success building the car made me more motivated and excited to contin
 .. raw:: html
 
    <figure style="text-align: center;">
-     <video width="640" height="360" controls style="display: block; margin: auto;">
-       <source src="/_static/reflections_vid1.mp4" type="video/mp4">
-       Your browser does not support the video tag.
-     </video>
-     <figcaption style="color: gray; margin-top: 0.8em;">Figure 3: Car moving around and spinning</figcaption>
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="/_static/reflections_vid1.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 1: Car moving around and spinning</figcaption>
    </figure>
 
-Figure 3 above shows my car finally moving, controlled via my keyboard, WASD.
+Video 1 above shows my car finally moving, controlled via my keyboard, WASD.
 
 ----
 
@@ -87,44 +87,54 @@ Figure 3 above shows my car finally moving, controlled via my keyboard, WASD.
 
 **What Happened**
 
+.. figure:: ../_images/reflections_img3.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 3: Poor solder joint on my motors
+
+From Figure 3, we can see that I took out the motors. This is because the motors were not reliable due to bad solder joint.
+
+.. figure:: ../_images/reflections_img4.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 4: Poor soldering iron quality
+
+From Figure 4, you can tell that I was using a really cheap soldering iron and the solder connections became so unreliable, sometimes the car won't even move. This was when I knew I had to invest in a good soldering setup to ensure issues like these won't arise in the future again. I bought a new soldering iron (reddit users recommendations) and seperate quality solder with higher flux percentage.
+
+When the new soldering iron came, I soldered on new pair of wires onto the motor flaps and everything worked. I knew the next steps were to add my LIDAR and bigger portable onto my car.
+
+26 Mar 26 — Improved Chassis, or is it?
+-----------------------------------------
+
+**What Happened**
+
+When I fitted the my bigger powerbank, everything changed. The whole system got heavier, and my cheap TT motors are struggling to move the car. When moving forward or backwards, it worked fine. But when it was tank turning left or right, it didn't budge. This is because the TT motors are not producing enough torque force to overcome the static friction.
+
+
 .. figure:: ../_images/reflections_img5.png
    :alt: Before building
    :width: 500px
    :align: center
 
-   Figure 4: Poor solder joint on my motors
+   Figure 5: New chassis & motor
 
-From Figure 4, we can see that I took out the motors. This is because the motors were not reliable due to bad solder joint.
+From Figure 5, we can see that I am using the TP-101 chassis with 2 provided 33GB-520 motors with combined rated torque of 5 kg/cm, compared to the previous 4 yellow TT motors of combined 3.2 kg/cm.
 
-.. figure:: ../_images/merged-image-2026-05-07T16-08-28.png
+.. figure:: ../_images/reflections_img6.png
    :alt: Before building
    :width: 500px
    :align: center
 
-   Figure 5: Poor soldering iron quality
-
-From Figure 5, you can tell that I was using a really cheap soldering iron and the solder connections became so unreliable, sometimes the car won't even move. This was when I knew I had to invest in a good soldering setup to ensure issues like these won't arise in the future again. 
-
-.. figure:: ../_images/merged-image-2026-05-07T16-08-28.png
-   :alt: Before building
-   :width: 500px
-   :align: center
-
-   Figure 5: Before building version 1
-
-I bought a new soldering iron (reddit users recommendations) and seperate quality solder with higher flux percentage as shown in Figure 6.
+   Figure 6: New chassis & motor
 
 
 
 
-
-
-
-
-
-
-
-
+from 33GB-520 to JBG37-520-12V-60RPM with Encoder
 
 5 May 2026 — System Identification
 -------------------------------------
