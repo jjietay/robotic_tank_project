@@ -6,8 +6,8 @@ See also: :doc:`ROS 2 Notes <ros2>`
 A personal log of difficulties faced, solutions found, and lessons learned
 while building the autonomous tank.
 
-Brutally Honest, Unflitered Background
-------------------------------------------------
+Background
+----------
 
 I started this project because I realised how cooked I was with regards to my future career.
 
@@ -25,8 +25,6 @@ Therefore, I decided to make Self-driving Robotic Car. Since, I extended my inte
 
 26 Feb 26 — Start of Project
 ------------------------------
-
-**What I did**
 
 After researching and consulting AI what I should purchase, I spend nearly a crazy ~$200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, Pi Camera Module 2, YDLidar X3 Pro, basic arduino car kit (included with motors), H bridge, 18560 batteries.
 
@@ -85,8 +83,6 @@ Video 1 above shows my car finally moving, controlled via my keyboard, WASD.
 12 Mar 26 — 1st Real Difficulty
 --------------------------------
 
-**What Happened**
-
 .. figure:: ../_images/reflections_img3.png
    :alt: Before building
    :width: 500px
@@ -110,33 +106,245 @@ When the new soldering iron came, I soldered on new pair of wires onto the motor
 26 Mar 26 — Improved Chassis, or is it?
 -----------------------------------------
 
-**What Happened**
-
 When I fitted the my bigger powerbank, everything changed. The whole system got heavier, and my cheap TT motors are struggling to move the car. When moving forward or backwards, it worked fine. But when it was tank turning left or right, it didn't budge. This is because the TT motors are not producing enough torque force to overcome the static friction.
 
 
-.. figure:: ../_images/reflections_img5.png
+.. figure:: ../_images/reflections_img5-.png
    :alt: Before building
    :width: 500px
    :align: center
 
    Figure 5: New chassis & motor
 
-From Figure 5, we can see that I am using the TP-101 chassis with 2 provided 33GB-520 motors with combined rated torque of 5 kg/cm, compared to the previous 4 yellow TT motors of combined 3.2 kg/cm.
+From Figure 5, we can see that I am using the TP-101 chassis with 2 provided 33GB-520 motors.
+
+The specifications of both are displayed in the table below.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 15 20 20
+
+   *  -
+      - Old Chassis w TT Motors
+      - New Chassis w 33GB-520 Motors
+
+   *  - Number of Motors
+      - 4 Motors
+      - 2 Motors
+
+   *  - Voltage
+      - 3-6 V
+      - 6-12 V
+
+   *  - No-load Speed
+      - 90-200 RPM
+      - 170-350 RPM
+
+   *  - Max Torque (all motors combined)
+      - 3.2 kg cm
+      - 5 kg cm
+
+   *  - Gearbox
+      - Plastic
+      - All metal
+
+   *  - Current (no-load)
+      - 170-250 mA
+      - 100 mA
+
 
 .. figure:: ../_images/reflections_img6.png
    :alt: Before building
    :width: 500px
    :align: center
 
-   Figure 6: New chassis & motor
+   Figure 6: After building
+
+Figure 6 shows the final product after building. Notice the rasberry camera module 2 installed. I tested it by streaming live feed and viewing it on my macbook via VLC player. I noticed that the camera FOV is small. This might impact the robot's ability to see things at corners of the image. Therefore, I have decided to get another camera that have a greater FOV.
+
+9 Apr 26 — Camera problems
+---------------------------
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 15 20 20
+
+   *  -
+      - RPI Camera Module 2
+      - OV5647 130 degrees
+
+   *  - Sensor
+      - Sony IMX219
+      - OmniVision OV5647
+
+   *  - Resolution
+      - 8MP
+      - 5MP
+
+   *  - Horizontal FOV
+      - 62.2 degrees
+      - 130 degrees
+
+   *  - Focal Length
+      - F2.0
+      - F2.9
+
+When I got the OV5647, I tried it and observed a larger FOV. However, when it took it and pulled the latch on the Camera Serial Interface (CSI) to unlock it (so that I can remove the ribbon attached to my OV5637, it broke.
+
+.. figure:: ../_images/reflections_img7.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 7: Broken latch
+
+Figure 7 shows my destroyed CSI. I looked up online and realised that the CSI is notorious for getting damaged. I could replace the whole CSI piece and solder on a new one, or I could get a USB camera. I didn't take the risk, and bought a USB camera with similar FOV. 
+
+9 Apr 26 — Lack of Encoder & Motor Driver Upgrade
+---------------------------------------------------
+
+I began researching more into SLAM, and realised that I need an encoder for my wheel so that I can calculate the odometry for my base_link.
+
+I had a choice of adding an encoder to my current motor, but it wasn't feasible as it might increase inaccuracies (since there are more hardware building), and I wouldn't wanna mess up the encoder accuracy since that directly affects drift.
+
+Therefore, I decided to purchase the JBG37-520-12V-60RPM with Encoder already attached to it. The table below shows the differences.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 15 20 25
+
+   *  - 
+      - 33GB-520
+      - JBG37-520-12V-60RPM with Encoder
+
+   *  - Encoder
+      - No
+      - Yes
+
+   *  - Working Voltage
+      - 6-12 V
+      - 12 V
+
+   *  - Rated Torque (per motor)
+      - 1.6 kg cm
+      - up to 30 kg cm (at 37 RPM)
+
+   *  - No-load Speed
+      - 170-350 RPM
+      - 70 RPM
+
+From the table above, we can see that JBG37-520-12V-60RPM motor gives ALOT of torque, and that is good for my application where speed is not really important, but torque and precision in movement is.
+
+JBG37-520 uses AB-phase Quadrature Hall Encoders. The encoder outputs 11 Pulses per Revolution (PPR). This means that the effective output shaft resolution is ``11 * gear_ratio``. For this 60RPM variant, it is around 1848 counts/rev which is excellent resolution.
+
+Additionally, the existing H-bridge proved to be quite inefficient, dissipating a significant amount of energy as heat — with a voltage drop of nearly 2V across it. To address this, I sourced the Cytron MDD10A Dual Channel 10A DC Motor Driver, which utilises a fully NMOS H-Bridge design to achieve significantly lower voltage drop and improved efficiency.
+
+16 Apr 26 — Motor Mismatch + LIDAR's custom fit
+-------------------------------------------------
+
+When the motor came, I eagerly tried to yoink it in place. But to my surprise, it didn't fit. I checked the shaft dimensions before purchasing, but turned out the old motor I was using had a different sizing from the spec sheet found online.
+
+.. figure:: ../_images/reflections_img8.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 8: Motor to Chassis Connection
+
+From Figure 8 above, we can see the different parts required to connect the motor shaft to the drive wheel. First, the mini motor housing extrusion of C has to fit through the hole in A. Coupler in D is then attached onto motor shaft, and attached to drive wheel as shown in B.
+
+However, my new motor's housing extrusion can't fit through the hole in A, and the coupler couldn't attach to the motor shaft.
+
+To fix this, I have decided to customize my chassis,by:
+1) 3D print my own custom chassis with custom coupler
+2) Mount my LIDAR on custom acrylic
+
+27 Apr 26 — Acrylic
+-----------------------
+
+For acrlyic, my main goal is just to drill holes so that I can fit my LIDAR. 
+
+.. figure:: ../_images/reflections_img9-.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 9: 3D model of chassis
+
+Figure 9 shows how it looked like.
+
+20 Apr 26 — 3D Prints
+-----------------------
+
+As for the 3D printing, I saw this as an opportunity for me to learn 3D design, and I downloaded Autodesk Fusion. I spent the first few hours watching youtube tutorials and then I got started.
+
+.. figure:: ../_images/reflections_img10.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 10: 3D model of chassis
+
+Figure 10 shows the overall 3D view of the chassis. It features motor mounts for me to slide in the motors and secure with screws. At the top are holes for me to add standoffs to secure my components such as powerbank, motor driver, RPI4 and 18650 batteries.
+
+.. figure:: ../_images/reflections_img11.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 11: Details of Chassis & Motor Coupler
+
+Figure 11 shows the details of the designs. The motor housing is intentionally pushed slightly inwards due to its longer extrusion (at the shaft) compared to the previous motor. Moreover, there are also 5 screw holes for secure fit. As for the coupler, it is a simple design where the shaft slides into the bottom and the drive wheel slides in at the top.
+
+Some issues faced with this design was that the shaft turned while the coupler stayed in place. This made me learn about tolerances and how we have to account for that. Also, the length of coupler was not accurate. This meant that my drive wheel and supporting wheel were not aligned with respect to the track. Therefore, I had to re-measure and print a few more with (slight) differing lengths.
+
+26 Apr 26 — How I learn coding/ROS 2
+--------------------------------------
+
+Throughout the whole process, while waiting for shipment to arrive (usually takes a week), I was learning ROS 2. I found it a very big challenge at the beginning because this is all completely new to me.
+
+What I did was to use AI to teach me, while also asking thought provoking questions (I wrote a custom instructions for the AI to talk to me in this certain manner). This way, I wasn't just passively learning, but actively thinking about what I am learning and then constantly asking more questions and making sure that I first understand at least about 80% of the theory. 
+
+I then moved on the writing the actual code. I will ask AI to generate generic ROS 2 code (those you can find on github, but simplified), and I will try to replicate it. Usually my attempts will fail, but I can rectify it with the help of AI. This way, my learning is not only limited to the basics of ROS 2 code, but what I can learn from AI's more complex generated code. 
+
+Also, I chose python for my codebase for RPI4 since its easier. When the full pipeline works, then I might explore C++, though my plans after this project would be to grind https://www.learncpp.com/ first.
+
+27 Apr 26 — Minor Upgrades: Ultrasonic Sensors and Electrical Schematics
+-------------------------------------------------------------------------
+
+I decided to get some new ultrasonic sensors and then decided to plan out the schematics and pin allocations. 
+
+.. figure:: ../_images/reflections_img12-.png
+   :alt: Before building
+   :width: 1000px
+   :align: center
+
+   Figure 12: Finished Hardware
+
+Figure 12 shows the schematics that I have created using Fritzing (an open-soruce application). It shows my main electronics used for connections. Since this is just prototyping, I am using a half sized breadboard and jumper wires for my wiring.
+
+28 Apr 26 — Finished Hardware
+-------------------------------
+
+.. figure:: ../_images/reflections_img13.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 13: Finished Hardware
+
+Figure 13 shows my completed hardware. At this point, I already have my main.cpp for my micro-ROS ready to be flashed onto my 
+
+29 Apr 26 — E-Stop Function using Ultrasonic Sensors
+-----------------------------------------------------
+
+Video 2 shows the simple E-stop function using my ultrasonic sensors. It will stop when it detects an object 15cm in front and behind it. 
 
 
+5 May 2026 — PID Controller
+-----------------------------
 
-
-from 33GB-520 to JBG37-520-12V-60RPM with Encoder
-
-5 May 2026 — System Identification
--------------------------------------
-- main idea is to get max velocity during full load operation
-- run the car over fixed distance
+This was one of the most challenging tasks. 
