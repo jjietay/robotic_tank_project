@@ -10,7 +10,9 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
 HOLD_TIMEOUT_MS = 200.0
-
+WHEEL_BASE_M = 0.356
+V_MAX_MPS    = 0.14
+MAX_ANGULAR = V_MAX_MPS / (WHEEL_BASE_M / 2) 
 
 def configure_terminal():
     fd = sys.stdin.fileno()
@@ -68,19 +70,19 @@ class TeleopNode(Node):
                 if key in ('w', 'W'):
                     cmd = 'W'            
                     twist = Twist()
-                    twist.linear.x = 1.0
+                    twist.linear.x = V_MAX_MPS
                 elif key in ('s', 'S'):
                     cmd = 'S'            
                     twist = Twist()
-                    twist.linear.x = -1.0
+                    twist.linear.x = -V_MAX_MPS
                 elif key in ('a', 'A'):
                     cmd = 'A'            
                     twist = Twist()
-                    twist.angular.z = 1.0   # ACW = left in ROS convention
+                    twist.angular.z = - MAX_ANGULAR
                 elif key in ('d', 'D'):
                     cmd = 'D'            
                     twist = Twist()
-                    twist.angular.z = -1.0  # CW = right in ROS convention
+                    twist.angular.z = MAX_ANGULAR
                 elif key == ' ':
                     cmd = 'X'            
                     twist = Twist()
