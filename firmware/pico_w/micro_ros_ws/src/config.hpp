@@ -37,7 +37,7 @@ constexpr float WHEEL_DIAMETER_M = 0.05465f;     // 5.465 cm
 constexpr float WHEEL_BASE_M     = 0.356f;        // distance between L & R wheels
 constexpr float GEAR_REDUCTION   = 169.0f;
 constexpr int   ENCODER_PPR      = 11;           // raw pulses per motor rev (pre-gearbox)
-constexpr float V_MAX_MPS = 0.14f;   // max wheel surface speed at full PWM
+constexpr float V_MAX_MPS = 0.20f;   // max wheel surface speed at full PWM
 
 // ---------------------------------------------------------------------------
 //                              Safety / E-stop  (METRES, METRES-PER-SECOND)
@@ -52,16 +52,9 @@ constexpr float DIRECTION_DEADZONE_MPS  = 0.02f; // ignore tiny commands when
 // ---------------------------------------------------------------------------
 //  Output is duty cycle in [-1, 1].  Error is in m/s.  Units of Kp are
 //  (duty per m/s); Ki is (duty per (m/s × s)); Kd is (duty per (m/s / s)).
-//  Feed-forward (duty = setpoint / V_MAX_MPS) supplies the bulk of the
-//  command, so PID only needs to trim — gains are deliberately modest.
-constexpr float PID_KP = 2.0f;
-constexpr float PID_KI = 4.0f;
+constexpr float PID_KP = 6.0f;
+constexpr float PID_KI = 10.0f;
 constexpr float PID_KD = 0.0f;
-
-// EWMA smoothing on measured wheel velocity. α∈(0,1]: higher = more
-// responsive, lower = more filtered. 0.3 trades a small lag for much
-// less tick-quantisation noise into the PID at 100 Hz.
-constexpr float VEL_FILTER_ALPHA = 0.3f;
 
 // ---------------------------------------------------------------------------
 //                              Watchdog
