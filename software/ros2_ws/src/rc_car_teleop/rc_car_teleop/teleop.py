@@ -20,7 +20,7 @@
 # ---------------------------------------------------------------------------
 
 import sys
-import termios
+import termios 
 import tty
 import select
 import time
