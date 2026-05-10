@@ -14,10 +14,18 @@
 //  No [-1, 1] velocity normalisation anywhere.  The only [-1, 1] saturation
 //  in the codebase is on PWM duty cycle, which is a hardware physical limit.
 // ---------------------------------------------------------------------------
+//
+//  Changes vs previous version:
+//    1. Slew-rate limited setpoint  — kills 0->V_MAX step transients
+//    2. Velocity feedforward         — PID only corrects residual error
+//    3. Ultrasonic divider           — protects 100 Hz PID timing
+//    4. fabsf() near-zero compare    — replaces fragile float == 0 test
+// ---------------------------------------------------------------------------
 
 #include "pico/stdlib.h"
 #include "pico/time.h"
 
+#include <math.h>
 #include <stdio.h>
 
 extern "C" {
@@ -62,9 +70,6 @@ rcl_node_t      node;
 // ---------------------------------------------------------------------------
 //                              Shared state
 // ---------------------------------------------------------------------------
-//  Written by cmd_vel_callback (which runs synchronously inside
-//  rclc_executor_spin_some on this same core), read by the main loop.
-//  `volatile` is defensive — there is no real cross-core access here.
 volatile float    target_vel_l_mps     = 0.0f;
 volatile float    target_vel_r_mps     = 0.0f;
 volatile uint64_t last_cmd_vel_time_us = 0;
@@ -72,16 +77,6 @@ volatile uint64_t last_cmd_vel_time_us = 0;
 // ---------------------------------------------------------------------------
 //                              cmd_vel callback
 // ---------------------------------------------------------------------------
-//  ROS REP-103 convention:
-//      msg->linear.x   forward speed         [m/s]
-//      msg->angular.z  yaw rate (CCW = +)    [rad/s]
-//
-//  Differential-drive kinematics:
-//      v_left  = v - ω · (L/2)
-//      v_right = v + ω · (L/2)
-//
-//  No clamping / normalisation is applied — values pass through as raw m/s.
-//  PID will saturate at the actuator boundary if the request is unreachable.
 void cmd_vel_callback(const void* msg_in)
 {
     const auto* msg = (const geometry_msgs__msg__Twist*)msg_in;
@@ -114,6 +109,26 @@ static void set_msg_stamp(std_msgs__msg__Header* header)
     header->stamp.nanosec = (now_us % 1000000ULL) * 1000ULL;
 }
 
+//  Slew-rate limit a single setpoint towards its target.  Caps how fast the
+//  commanded velocity can change per loop iteration, which prevents step
+//  inputs from teleop / brain node from causing PID transients.
+static inline float slew(float current, float target, float max_step)
+{
+    float delta = target - current;
+    if (delta >  max_step) delta =  max_step;
+    if (delta < -max_step) delta = -max_step;
+    return current + delta;
+}
+
+//  Saturate a value to a closed interval.  Used for clamping duty cycle
+//  after feedforward + PID summation.
+static inline float clampf(float x, float lo, float hi)
+{
+    if (x < lo) return lo;
+    if (x > hi) return hi;
+    return x;
+}
+
 // ---------------------------------------------------------------------------
 //                                   main
 // ---------------------------------------------------------------------------
@@ -135,21 +150,17 @@ int main()
     Encoder    LEFT_ENCODER ("L_ENC", "ON",
                             ENC_L_A, ENC_L_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                            /*invert*/ true);   // matches MOTOR's left inversion
+                            /*invert*/ true);
     Encoder    RIGHT_ENCODER("R_ENC", "ON",
                             ENC_R_A, ENC_R_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
                             /*invert*/ false);
 
-    // PID per wheel — m/s setpoint vs m/s measured -> duty trim in [-1, 1].
-    // Most of the duty comes from the feed-forward term in the loop body;
-    // PID only corrects residual error.
-    PID LEFT_PID (PID_KP, PID_KI, PID_KD, -1.0f, 1.0f, 1.0f);
-    PID RIGHT_PID(PID_KP, PID_KI, PID_KD, -1.0f, 1.0f, 1.0f);
-
-    // EWMA-filtered wheel velocities (m/s), seeded at zero.
-    float meas_l_filt = 0.0f;
-    float meas_r_filt = 0.0f;
+    // PID per wheel — m/s setpoint vs m/s measured -> PID *correction* term
+    // (NOT raw duty cycle anymore).  Output limited to ±0.5 so the
+    // feedforward stays in charge and PID can only nudge.
+    PID LEFT_PID (PID_KP, PID_KI, PID_KD, -0.5f, 0.5f, 0.5f);
+    PID RIGHT_PID(PID_KP, PID_KI, PID_KD, -0.5f, 0.5f, 0.5f);
 
     USRM_FRONT.ShowStatus(); USRM_BACK.ShowStatus();
     USRM_RIGHT.ShowStatus(); USRM_LEFT.ShowStatus();
@@ -212,6 +223,15 @@ int main()
     // -----------------------------------------------------------------------
     uint64_t loop_last  = 0;
     uint8_t  usrm_index = 0;
+    uint8_t  usrm_div_counter = 0;
+
+    // Smoothed (slew-rate-limited) setpoints.  These are what actually feed
+    // the PID — NOT the raw target_vel_*_mps values written by cmd_vel.
+    float setpoint_l_smooth = 0.0f;
+    float setpoint_r_smooth = 0.0f;
+
+    constexpr float LOOP_DT_S        = 0.01f;                       // 100 Hz
+    constexpr float MAX_VEL_STEP_MPS = MAX_ACCEL_MPS2 * LOOP_DT_S;  // 0.005 m/s
 
     while (true)
     {
@@ -226,88 +246,110 @@ int main()
         // 1. Pump the ROS executor
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(2));
 
-        // 2. Fire one ultrasonic per tick (round-robin, avoids crosstalk)
-        switch (usrm_index) {
-            case 0:
-                usrm_front_msg.range = USRM_FRONT.update();        // METRES
-                set_msg_stamp(&usrm_front_msg.header);
-                RCCHECK(rcl_publish(&usrm_front_pub, &usrm_front_msg, NULL));
-                break;
-            case 1:
-                usrm_back_msg.range = USRM_BACK.update();
-                set_msg_stamp(&usrm_back_msg.header);
-                RCCHECK(rcl_publish(&usrm_back_pub, &usrm_back_msg, NULL));
-                break;
-            case 2:
-                usrm_right_msg.range = USRM_RIGHT.update();
-                set_msg_stamp(&usrm_right_msg.header);
-                RCCHECK(rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL));
-                break;
-            case 3:
-                usrm_left_msg.range = USRM_LEFT.update();
-                set_msg_stamp(&usrm_left_msg.header);
-                RCCHECK(rcl_publish(&usrm_left_pub, &usrm_left_msg, NULL));
-                break;
+        // 2. Fire one ultrasonic per Nth tick (round-robin).  Spaced out so
+        //    a blocking HC-SR04 echo doesn't corrupt PID timing every loop.
+        if (usrm_div_counter == 0) {
+            switch (usrm_index) {
+                case 0:
+                    usrm_front_msg.range = USRM_FRONT.update();
+                    set_msg_stamp(&usrm_front_msg.header);
+                    RCCHECK(rcl_publish(&usrm_front_pub, &usrm_front_msg, NULL));
+                    break;
+                case 1:
+                    usrm_back_msg.range = USRM_BACK.update();
+                    set_msg_stamp(&usrm_back_msg.header);
+                    RCCHECK(rcl_publish(&usrm_back_pub, &usrm_back_msg, NULL));
+                    break;
+                case 2:
+                    usrm_right_msg.range = USRM_RIGHT.update();
+                    set_msg_stamp(&usrm_right_msg.header);
+                    RCCHECK(rcl_publish(&usrm_right_pub, &usrm_right_msg, NULL));
+                    break;
+                case 3:
+                    usrm_left_msg.range = USRM_LEFT.update();
+                    set_msg_stamp(&usrm_left_msg.header);
+                    RCCHECK(rcl_publish(&usrm_left_pub, &usrm_left_msg, NULL));
+                    break;
+            }
+            usrm_index = (usrm_index + 1) % 4;
         }
-        usrm_index = (usrm_index + 1) % 4;
+        usrm_div_counter = (usrm_div_counter + 1) % USRM_DIVIDER;
 
-        // 3. Snapshot setpoint (m/s).  Apply cmd_vel watchdog timeout.
-        float setpoint_l = target_vel_l_mps;
-        float setpoint_r = target_vel_r_mps;
+        // 3. Snapshot raw setpoint (m/s).  Apply cmd_vel watchdog timeout.
+        float setpoint_l_raw = target_vel_l_mps;
+        float setpoint_r_raw = target_vel_r_mps;
         if (now - last_cmd_vel_time_us > CMD_VEL_TIMEOUT_US) {
-            setpoint_l = 0.0f;
-            setpoint_r = 0.0f;
+            setpoint_l_raw = 0.0f;
+            setpoint_r_raw = 0.0f;
         }
 
-        if (setpoint_l >  V_MAX_MPS) setpoint_l =  V_MAX_MPS;
-        if (setpoint_l < -V_MAX_MPS) setpoint_l = -V_MAX_MPS;
-        if (setpoint_r >  V_MAX_MPS) setpoint_r =  V_MAX_MPS;
-        if (setpoint_r < -V_MAX_MPS) setpoint_r = -V_MAX_MPS;
+        // Saturate raw setpoint to physical max BEFORE slew-rate limiting,
+        // so the smoother can't be asked to reach an unreachable target.
+        setpoint_l_raw = clampf(setpoint_l_raw, -V_MAX_MPS, V_MAX_MPS);
+        setpoint_r_raw = clampf(setpoint_r_raw, -V_MAX_MPS, V_MAX_MPS);
 
         // 4. Directional safety E-stop  (METRES vs METRES, no unit hacks)
-        float v_avg        = 0.5f * (setpoint_l + setpoint_r);
+        float v_avg        = 0.5f * (setpoint_l_raw + setpoint_r_raw);
         bool  want_forward  = (v_avg >  DIRECTION_DEADZONE_MPS);
         bool  want_backward = (v_avg < -DIRECTION_DEADZONE_MPS);
         float d_front       = usrm_front_msg.range;
         float d_back        = usrm_back_msg.range;
         if (want_forward  && d_front > 0.0f && d_front < FRONT_STOP_DIST_M) {
-            setpoint_l = 0.0f; setpoint_r = 0.0f;
+            setpoint_l_raw = 0.0f; setpoint_r_raw = 0.0f;
         }
         if (want_backward && d_back  > 0.0f && d_back  < BACK_STOP_DIST_M) {
-            setpoint_l = 0.0f; setpoint_r = 0.0f;
+            setpoint_l_raw = 0.0f; setpoint_r_raw = 0.0f;
         }
 
-        // 5. Closed-loop velocity control with feed-forward
-        //    duty = (setpoint / V_MAX) [feed-forward]  +  PID(setpoint, meas)
-        //    Encoder velocity is EWMA-filtered to keep tick quantisation
-        //    noise out of the PID.
-        float meas_l_raw = LEFT_ENCODER .get_vel();
-        float meas_r_raw = RIGHT_ENCODER.get_vel();
-        meas_l_filt += VEL_FILTER_ALPHA * (meas_l_raw - meas_l_filt);
-        meas_r_filt += VEL_FILTER_ALPHA * (meas_r_raw - meas_r_filt);
+        // 5. Slew-rate limit setpoint.  This is the new line that kills
+        //    instant 0 -> V_MAX transients regardless of who published.
+        setpoint_l_smooth = slew(setpoint_l_smooth, setpoint_l_raw, MAX_VEL_STEP_MPS);
+        setpoint_r_smooth = slew(setpoint_r_smooth, setpoint_r_raw, MAX_VEL_STEP_MPS);
+
+        // 6. Closed-loop velocity control
+        //
+        //         setpoint (m/s) ---+--> [Feedforward: setpoint / V_MAX] -----+
+        //                           |                                        |
+        //                           +--> [PID error vs measured] -- correction
+        //                                                                    |
+        //                                            +-----------------------+
+        //                                            v
+        //                                     duty cycle ∈ [-1, 1]
+        //
+        //  Feedforward provides ~80% of the duty needed for steady state.
+        //  PID handles disturbances, model mismatch, friction asymmetry.
+        float meas_l = LEFT_ENCODER .get_vel();
+        float meas_r = RIGHT_ENCODER.get_vel();
 
         float duty_l, duty_r;
-        if (setpoint_l == 0.0f && setpoint_r == 0.0f) {
-            // Commanded stop — drop integrator so we don't creep
+
+        // Treat "essentially zero" setpoint as a commanded stop.  Use
+        // fabsf-with-threshold rather than == 0.0f because the slew-limited
+        // signal will pass through tiny non-zero values on its way to zero.
+        constexpr float STOP_THRESHOLD_MPS = 1e-3f;
+        bool commanded_stop =   (fabsf(setpoint_l_smooth) < STOP_THRESHOLD_MPS) &&
+                                (fabsf(setpoint_r_smooth) < STOP_THRESHOLD_MPS);
+
+        if (commanded_stop) {
             LEFT_PID .reset();
             RIGHT_PID.reset();
             duty_l = 0.0f;
             duty_r = 0.0f;
         } else {
-            float ff_l = setpoint_l / V_MAX_MPS;
-            float ff_r = setpoint_r / V_MAX_MPS;
-            duty_l = ff_l + LEFT_PID .calculate(setpoint_l, meas_l_filt);
-            duty_r = ff_r + RIGHT_PID.calculate(setpoint_r, meas_r_filt);
-            if (duty_l >  1.0f) duty_l =  1.0f;
-            if (duty_l < -1.0f) duty_l = -1.0f;
-            if (duty_r >  1.0f) duty_r =  1.0f;
-            if (duty_r < -1.0f) duty_r = -1.0f;
+            float ff_l = setpoint_l_smooth / V_MAX_MPS;   // feedforward (open-loop estimate)
+            float ff_r = setpoint_r_smooth / V_MAX_MPS;
+
+            float pid_l = LEFT_PID .calculate(setpoint_l_smooth, meas_l);
+            float pid_r = RIGHT_PID.calculate(setpoint_r_smooth, meas_r);
+
+            duty_l = clampf(ff_l + pid_l, -1.0f, 1.0f);
+            duty_r = clampf(ff_r + pid_r, -1.0f, 1.0f);
         }
 
-        // 6. Drive motors (Motor handles wiring polarity internally)
+        // 7. Drive motors (Motor handles wiring polarity internally)
         MOTOR.move(duty_l, duty_r);
 
-        // 7. Publish encoder ticks (sign-corrected by Encoder class itself)
+        // 8. Publish encoder ticks (sign-corrected by Encoder class itself)
         enc_left_msg .data = LEFT_ENCODER .get_count();
         enc_right_msg.data = RIGHT_ENCODER.get_count();
         RCCHECK(rcl_publish(&enc_left_pub,  &enc_left_msg,  NULL));

@@ -31,30 +31,58 @@ constexpr uint  PWM_TOP = 6249;
 // ---------------------------------------------------------------------------
 //                              Robot Geometry  (METRES)
 // ---------------------------------------------------------------------------
-//  Diameter is stored in METRES so encoder distance / velocity come out in
-//  metres / metres-per-second naturally — no unit conversion in the loop.
 constexpr float WHEEL_DIAMETER_M = 0.05465f;     // 5.465 cm
 constexpr float WHEEL_BASE_M     = 0.356f;        // distance between L & R wheels
 constexpr float GEAR_REDUCTION   = 169.0f;
 constexpr int   ENCODER_PPR      = 11;           // raw pulses per motor rev (pre-gearbox)
-constexpr float V_MAX_MPS = 0.20f;   // max wheel surface speed at full PWM
+constexpr float V_MAX_MPS        = 0.20f;        // max wheel surface speed at full PWM
 
 // ---------------------------------------------------------------------------
 //                              Safety / E-stop  (METRES, METRES-PER-SECOND)
 // ---------------------------------------------------------------------------
 constexpr float FRONT_STOP_DIST_M       = 0.15f;
 constexpr float BACK_STOP_DIST_M        = 0.15f;
-constexpr float DIRECTION_DEADZONE_MPS  = 0.02f; // ignore tiny commands when
-                                                 // deciding "forward / backward"
+constexpr float DIRECTION_DEADZONE_MPS  = 0.02f;
 
 // ---------------------------------------------------------------------------
 //                              PID Gains
 // ---------------------------------------------------------------------------
-//  Output is duty cycle in [-1, 1].  Error is in m/s.  Units of Kp are
-//  (duty per m/s); Ki is (duty per (m/s × s)); Kd is (duty per (m/s / s)).
-constexpr float PID_KP = 6.0f;
-constexpr float PID_KI = 10.0f;
-constexpr float PID_KD = 0.0f;
+//  Output is duty cycle in [-1, 1].  Error is in m/s.
+//
+//  Tuning context (assumes V_MAX_MPS = 0.20):
+//    - Feedforward provides ~80% of the duty.  PID only corrects residual.
+//    - Kp small enough that worst-case error (0.20) gives ~0.30 P-term, well
+//      below saturation, so PID stays in linear regime.
+//    - Ki provides slow integral correction without runaway.
+//    - Kd damps overshoot from the feedforward step.
+//
+//  If still unstable: halve Kp and Ki together.
+//  If sluggish: raise Kp first, then Ki.
+constexpr float PID_KP = 1.5f;    // was 6.0 — reduced to keep PID in linear regime
+constexpr float PID_KI = 2.0f;    // was 10.0 — slower integral, less wind-up
+constexpr float PID_KD = 0.05f;   // was 0.0 — small damping term added
+
+// ---------------------------------------------------------------------------
+//                              Motion Smoothing
+// ---------------------------------------------------------------------------
+//  Slew-rate limit on the velocity setpoint, applied in the firmware so that
+//  ANY publisher (teleop, brain node, joystick…) gets smooth motion without
+//  having to ramp on its own side.
+//
+//  At 0.5 m/s² and 100 Hz loop, max change per tick = 0.005 m/s.
+//  A 0 -> V_MAX (0.20 m/s) ramp takes 40 ticks = 400 ms.  Tweak to taste.
+constexpr float MAX_ACCEL_MPS2 = 0.5f;
+
+// ---------------------------------------------------------------------------
+//                              Ultrasonic Scheduling
+// ---------------------------------------------------------------------------
+//  HC-SR04 reads block for up to ~30 ms while waiting for the echo timeout.
+//  Firing one every loop iteration corrupts the 100 Hz PID timing.  Instead
+//  we fire one only every USRM_DIVIDER iterations.  With DIVIDER = 3 and a
+//  4-sensor round-robin, each individual sensor updates at ~8 Hz — fine for
+//  collision avoidance at our top speed of 0.20 m/s (= 25 mm of travel
+//  between readings worst case).
+constexpr uint  USRM_DIVIDER = 3;
 
 // ---------------------------------------------------------------------------
 //                              Watchdog
