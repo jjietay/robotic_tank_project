@@ -52,9 +52,16 @@ constexpr float DIRECTION_DEADZONE_MPS  = 0.02f; // ignore tiny commands when
 // ---------------------------------------------------------------------------
 //  Output is duty cycle in [-1, 1].  Error is in m/s.  Units of Kp are
 //  (duty per m/s); Ki is (duty per (m/s × s)); Kd is (duty per (m/s / s)).
-constexpr float PID_KP = 6.0f;
-constexpr float PID_KI = 12.0f;
+//  Feed-forward (duty = setpoint / V_MAX_MPS) supplies the bulk of the
+//  command, so PID only needs to trim — gains are deliberately modest.
+constexpr float PID_KP = 2.0f;
+constexpr float PID_KI = 4.0f;
 constexpr float PID_KD = 0.0f;
+
+// EWMA smoothing on measured wheel velocity. α∈(0,1]: higher = more
+// responsive, lower = more filtered. 0.3 trades a small lag for much
+// less tick-quantisation noise into the PID at 100 Hz.
+constexpr float VEL_FILTER_ALPHA = 0.3f;
 
 // ---------------------------------------------------------------------------
 //                              Watchdog

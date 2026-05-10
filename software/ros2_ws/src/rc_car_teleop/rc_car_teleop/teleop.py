@@ -11,8 +11,10 @@ from geometry_msgs.msg import Twist
 
 HOLD_TIMEOUT_MS = 200.0
 WHEEL_BASE_M = 0.356
-V_MAX_MPS    = 0.14
-MAX_ANGULAR = V_MAX_MPS / (WHEEL_BASE_M / 2) 
+# Drive setpoint: kept below the firmware's physical V_MAX_MPS (0.14) so the
+# PID has duty-cycle headroom to correct left/right wheel asymmetry.
+V_MAX_MPS    = 0.13
+MAX_ANGULAR = V_MAX_MPS / (WHEEL_BASE_M / 2)
 
 def configure_terminal():
     fd = sys.stdin.fileno()
@@ -39,8 +41,12 @@ class TeleopNode(Node):
 
         self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
 
-        self.last_cmd = 'X'  
+        self.last_cmd = 'X'
         self.last_key_time = time.time()
+        # Cached desired twist — published every tick so the firmware's
+        # cmd_vel watchdog (500 ms) never trips while a key is held through
+        # the terminal's auto-repeat delay.
+        self.current_twist = Twist()
 
         self.fd, self.original = configure_terminal()
         self.get_logger().info(
@@ -50,49 +56,44 @@ class TeleopNode(Node):
 
         self.timer = self.create_timer(0.02, self.timer_callback)
 
-    def send_cmd_and_twist(self, cmd, twist):
+    def update_cmd_label(self, cmd):
         if cmd is not None and cmd != self.last_cmd:
             self.last_cmd = cmd
             sys.stdout.write(f'\rCMD: {cmd}   ')
             sys.stdout.flush()
-        if twist is not None:
-            self.cmd_pub.publish(twist)
 
     def timer_callback(self):
         try:
             key = read_key(self.fd, 0.0)
             cmd = None
-            twist = None
 
             if key is not None:
                 self.last_key_time = time.time()
 
                 if key in ('w', 'W'):
-                    cmd = 'W'            
-                    twist = Twist()
-                    twist.linear.x = V_MAX_MPS
+                    cmd = 'W'
+                    self.current_twist = Twist()
+                    self.current_twist.linear.x = V_MAX_MPS
                 elif key in ('s', 'S'):
-                    cmd = 'S'            
-                    twist = Twist()
-                    twist.linear.x = -V_MAX_MPS
+                    cmd = 'S'
+                    self.current_twist = Twist()
+                    self.current_twist.linear.x = -V_MAX_MPS
                 elif key in ('a', 'A'):
-                    cmd = 'A'            
-                    twist = Twist()
-                    twist.angular.z = - MAX_ANGULAR
+                    cmd = 'A'
+                    self.current_twist = Twist()
+                    self.current_twist.angular.z = -MAX_ANGULAR
                 elif key in ('d', 'D'):
-                    cmd = 'D'            
-                    twist = Twist()
-                    twist.angular.z = MAX_ANGULAR
+                    cmd = 'D'
+                    self.current_twist = Twist()
+                    self.current_twist.angular.z = MAX_ANGULAR
                 elif key == ' ':
-                    cmd = 'X'            
-                    twist = Twist()
+                    cmd = 'X'
+                    self.current_twist = Twist()
                 elif key in ('q', 'Q'):
-                    try:
-                        self.ser.write('X')  # FIX 3
-                        sys.stdout.write('\rCMD: Stop   ')
-                        sys.stdout.flush()
-                    except Exception:
-                        pass
+                    self.current_twist = Twist()
+                    self.cmd_pub.publish(self.current_twist)
+                    sys.stdout.write('\rCMD: Stop   ')
+                    sys.stdout.flush()
                     self.get_logger().info('Q pressed, shutting down teleop node.')
                     try:
                         restore_terminal(self.original)
@@ -105,15 +106,19 @@ class TeleopNode(Node):
                     rclpy.shutdown()
                     return
 
-                self.send_cmd_and_twist(cmd, twist)
+                self.update_cmd_label(cmd)
 
             else:
                 now = time.time()
                 if (now - self.last_key_time) * 1000.0 >= HOLD_TIMEOUT_MS:
-                    if self.last_cmd != 'X':   # FIX 3, 6: sentinel is 'X'
-                        cmd = 'X'
-                        twist = Twist()
-                        self.send_cmd_and_twist(cmd, twist)
+                    if self.last_cmd != 'X':
+                        self.current_twist = Twist()
+                        self.update_cmd_label('X')
+
+            # Always publish the cached twist so the firmware sees a steady
+            # stream and its watchdog doesn't zero the setpoint between
+            # auto-repeat key events.
+            self.cmd_pub.publish(self.current_twist)
 
         except Exception as e:
             self.get_logger().error(f'Error in teleop loop: {e}')

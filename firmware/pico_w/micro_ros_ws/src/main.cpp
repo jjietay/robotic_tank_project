@@ -141,9 +141,15 @@ int main()
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
                             /*invert*/ false);
 
-    // PID per wheel — m/s setpoint vs m/s measured -> duty cycle [-1, 1]
+    // PID per wheel — m/s setpoint vs m/s measured -> duty trim in [-1, 1].
+    // Most of the duty comes from the feed-forward term in the loop body;
+    // PID only corrects residual error.
     PID LEFT_PID (PID_KP, PID_KI, PID_KD, -1.0f, 1.0f, 1.0f);
     PID RIGHT_PID(PID_KP, PID_KI, PID_KD, -1.0f, 1.0f, 1.0f);
+
+    // EWMA-filtered wheel velocities (m/s), seeded at zero.
+    float meas_l_filt = 0.0f;
+    float meas_r_filt = 0.0f;
 
     USRM_FRONT.ShowStatus(); USRM_BACK.ShowStatus();
     USRM_RIGHT.ShowStatus(); USRM_LEFT.ShowStatus();
@@ -271,12 +277,14 @@ int main()
             setpoint_l = 0.0f; setpoint_r = 0.0f;
         }
 
-        // 5. Closed-loop velocity control
-        //    measured (m/s) ←-- encoder        setpoint (m/s) ←-- cmd_vel
-        //                       \             /
-        //                        +--- PID ---+ ---> duty cycle ∈ [-1, 1]
-        float meas_l = LEFT_ENCODER .get_vel();
-        float meas_r = RIGHT_ENCODER.get_vel();
+        // 5. Closed-loop velocity control with feed-forward
+        //    duty = (setpoint / V_MAX) [feed-forward]  +  PID(setpoint, meas)
+        //    Encoder velocity is EWMA-filtered to keep tick quantisation
+        //    noise out of the PID.
+        float meas_l_raw = LEFT_ENCODER .get_vel();
+        float meas_r_raw = RIGHT_ENCODER.get_vel();
+        meas_l_filt += VEL_FILTER_ALPHA * (meas_l_raw - meas_l_filt);
+        meas_r_filt += VEL_FILTER_ALPHA * (meas_r_raw - meas_r_filt);
 
         float duty_l, duty_r;
         if (setpoint_l == 0.0f && setpoint_r == 0.0f) {
@@ -286,8 +294,14 @@ int main()
             duty_l = 0.0f;
             duty_r = 0.0f;
         } else {
-            duty_l = LEFT_PID .calculate(setpoint_l, meas_l);
-            duty_r = RIGHT_PID.calculate(setpoint_r, meas_r);
+            float ff_l = setpoint_l / V_MAX_MPS;
+            float ff_r = setpoint_r / V_MAX_MPS;
+            duty_l = ff_l + LEFT_PID .calculate(setpoint_l, meas_l_filt);
+            duty_r = ff_r + RIGHT_PID.calculate(setpoint_r, meas_r_filt);
+            if (duty_l >  1.0f) duty_l =  1.0f;
+            if (duty_l < -1.0f) duty_l = -1.0f;
+            if (duty_r >  1.0f) duty_r =  1.0f;
+            if (duty_r < -1.0f) duty_r = -1.0f;
         }
 
         // 6. Drive motors (Motor handles wiring polarity internally)
