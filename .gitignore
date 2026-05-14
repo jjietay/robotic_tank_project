@@ -10,7 +10,6 @@
 **/libmicroros/
 **/microros_static_library/
 **/.images/
-**/.github/
 
 # --- CMake / compile cache ---
 CMakeCache.txt
