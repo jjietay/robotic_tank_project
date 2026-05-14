@@ -25,3 +25,4 @@ templates_path = ["_templates"]
 language = 'en'
 locale_dirs = []
 gettext_compact = True
+html_baseurl = 'https://jjietay.github.io/robotic_tank_project/'
