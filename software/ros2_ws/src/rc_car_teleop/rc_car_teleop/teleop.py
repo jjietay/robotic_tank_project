@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------------
 #                   teleop.py  —  Manual WASD driving (ROS 2)
 # ---------------------------------------------------------------------------
-#  Publishes geometry_msgs/Twist on /cmd_vel.  Sends raw setpoints in m/s
+#  Publishes geometry_msgs/Twist on /cmd_vel.  Sends raw setpoints in m/s 
 #  and rad/s — the firmware applies its own slew-rate limiting, so this
 #  node does NOT need to ramp on its own side.  When a brain / nav2 node
 #  takes over later, it can publish to the same topic with the same
