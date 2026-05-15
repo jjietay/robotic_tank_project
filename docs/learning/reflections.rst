@@ -9,7 +9,7 @@ while building the autonomous tank.
 Background
 ----------
 
-I started this project because I realised how cooked I was with regards to my future career.
+I started this project because I wanted to have more hands-on experience on a project that teaches me robotics
 
 Past 2 years of Uni (Y1 & Y2) was just studying a lot of math and physics subjects. I studied really hard (was still adjusting from NS to Y1), took exams and then called it a day. But in Y3S2 (during my internship at ST Engineering), I realised that the modules taken in Y1-2 did not exactly prepare me enough for what I might face when I actually become an engineer.
 
@@ -70,7 +70,7 @@ This first success building the car made me more motivated and excited to contin
 
    <figure style="text-align: center;">
    <video width="640" height="360" controls style="display: block; margin: auto;">
-      <source src="/_static/reflections_vid1.mp4" type="video/mp4">
+      <source src="../_static/reflections_vid1.mp4" type="video/mp4">
       Your browser does not support the video tag.
    </video>
    <figcaption style="color: gray; margin-top: 0.8em;">Video 1: Car moving around and spinning</figcaption>
@@ -341,10 +341,41 @@ Figure 13 shows my completed hardware. At this point, I already have my main.cpp
 29 Apr 26 — E-Stop Function using Ultrasonic Sensors
 -----------------------------------------------------
 
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid2.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 2: Car stopping when 15cm from an object</figcaption>
+   </figure>
+
 Video 2 shows the simple E-stop function using my ultrasonic sensors. It will stop when it detects an object 15cm in front and behind it. 
 
 
 5 May 2026 — PID Controller
 -----------------------------
+.. figure:: ../_images/reflections_img14.png
+   :alt: Before building
+   :width: 500px
+   :align: center
 
-This was one of the most challenging tasks. 
+   Figure 13: Finished Hardware
+
+I decided to first brush up on my concept of PID controller. Having studied this in theory and now using it irl, it was a step up. I knew that i should first begin with P, and gradually add in I and D and tune in base on how the car reacts.
+
+When I calculate the PID values, I had to see the maximum error possible. Assuming maximum error, I can calculate the maximum PID output, and ensure that it doesn't go out of the maximum allowed value, i.e. saturation. Besides having a PID controller, we have a feedforward path that provides 80% of the motion, with PID just affect 20% of the final output by making tiny adjustments to the pwm.
+
+I also added a slew rate that allows for smoother acceleration and deceleration.
+
+6 May 2026 — Disaster #2
+-----------------------------
+.. figure:: ../_images/reflections_img15.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 13: Finished Hardware
+
+PID controller works fine, but while moving the car, the coupler snapped once again. To save future costs of remaking and repurchasing this coupler/motor, I decided to just get a tank kit with correctly sized motors with encoders to ensure reliability. This way I can focus on what matters more, which is my SLAM. Though, what I 3D designed, the chassis and coupler, I wouldn't say its a waste of time since I did learn quite abit from this.

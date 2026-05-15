@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="g2G-zV-ZtBjgGkt8N3bn" name="Page-1">
-        <mxGraphModel dx="724" dy="2563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="2133" dy="2917" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -14,9 +14,9 @@
                     <mxGeometry x="600" y="-1420" width="650" height="850" as="geometry"/>
                 </mxCell>
                 <mxCell id="82" value="" style="rounded=0;whiteSpace=wrap;html=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
-                    <mxGeometry x="300" y="-988" width="250" height="413" as="geometry"/>
+                    <mxGeometry x="1941" y="-725.94" width="250" height="413" as="geometry"/>
                 </mxCell>
-                <mxCell id="205" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;" parent="1" source="3" target="202" edge="1">
+                <mxCell id="205" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;flowAnimation=1;strokeColor=#FF1807;" parent="1" source="3" target="202" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="610" y="-400"/>
@@ -24,7 +24,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="206" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;" parent="1" source="3" target="203" edge="1">
+                <mxCell id="206" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;flowAnimation=1;strokeColor=#FF1807;" parent="1" source="3" target="203" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="610" y="-400"/>
@@ -53,53 +53,53 @@
                 <mxCell id="22" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;&lt;b style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-size: 14px; white-space: pre;&quot;&gt;ultrasonic/&lt;/b&gt;&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;usrm_right&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;&lt;b style=&quot;color: rgb(63, 63, 63); font-size: 14px; white-space: pre; font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; background-color: transparent;&quot;&gt;&quot;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="935.5999999999999" y="-638.69" width="234.5" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="235" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="36" target="233" edge="1">
+                <mxCell id="235" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#3333FF;flowAnimation=1;" parent="1" source="36" target="233" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="36" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/teleop/cmd_vel&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="1730" y="-272.5" width="150" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="240" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="49" target="36" edge="1">
+                <mxCell id="240" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;flowAnimation=1;strokeColor=#FF1807;" parent="1" source="49" target="36" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="49" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;teleop&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="2120" y="-280" width="81" height="55" as="geometry"/>
                 </mxCell>
                 <mxCell id="72" value="&lt;b style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-size: 14px; white-space: pre;&quot;&gt;&lt;i style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251);&quot;&gt;PkgName/MsgSubfolder/MsgName&lt;/i&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;dashed=1;" parent="1" vertex="1">
-                    <mxGeometry x="313.81999999999994" y="-947" width="221.63" height="42.5" as="geometry"/>
+                    <mxGeometry x="1954.82" y="-684.94" width="221.63" height="42.5" as="geometry"/>
                 </mxCell>
                 <mxCell id="73" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&lt;b&gt;&lt;u&gt;Legend:&lt;/u&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=0;fillColor=none;fontSize=16;" parent="1" vertex="1">
-                    <mxGeometry x="387.6300000000001" y="-988" width="74" height="35" as="geometry"/>
+                    <mxGeometry x="2028.63" y="-725.94" width="74" height="35" as="geometry"/>
                 </mxCell>
                 <mxCell id="74" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; font-size: 14px; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;node_name&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="372.94000000000005" y="-890" width="103.37" height="45" as="geometry"/>
+                    <mxGeometry x="2013.94" y="-627.94" width="103.37" height="45" as="geometry"/>
                 </mxCell>
                 <mxCell id="75" value="" style="edgeStyle=entityRelationEdgeStyle;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;endArrow=classic;endFill=1;rounded=1;strokeColor=#FF1807;startArrow=none;startFill=0;flowAnimation=1;" parent="1" edge="1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="338.80999999999995" y="-689" as="sourcePoint"/>
-                        <mxPoint x="510.44000000000005" y="-688.5" as="targetPoint"/>
+                        <mxPoint x="1979.81" y="-426.94" as="sourcePoint"/>
+                        <mxPoint x="2151.44" y="-426.44" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="76" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&lt;b&gt;publisher&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=0;fillColor=none;strokeWidth=1;fontSize=12;" parent="1" vertex="1">
-                    <mxGeometry x="387.80999999999995" y="-717.5" width="74" height="35" as="geometry"/>
+                    <mxGeometry x="2028.81" y="-455.44" width="74" height="35" as="geometry"/>
                 </mxCell>
                 <mxCell id="77" style="edgeStyle=none;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;flowAnimation=1;strokeColor=#3333FF;" parent="1" edge="1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="510.44000000000005" y="-651.5" as="sourcePoint"/>
-                        <mxPoint x="338.80999999999995" y="-651.5" as="targetPoint"/>
+                        <mxPoint x="2151.44" y="-389.44" as="sourcePoint"/>
+                        <mxPoint x="1979.81" y="-389.44" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="78" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&lt;b&gt;subscriber&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=0;fillColor=none;strokeWidth=1;fontSize=12;" parent="1" vertex="1">
-                    <mxGeometry x="387.44000000000005" y="-680" width="74" height="35" as="geometry"/>
+                    <mxGeometry x="2028.44" y="-417.94" width="74" height="35" as="geometry"/>
                 </mxCell>
                 <mxCell id="80" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;topic_name&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
-                    <mxGeometry x="369.44000000000005" y="-634.5" width="110" height="40" as="geometry"/>
+                    <mxGeometry x="2010.44" y="-372.44" width="110" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="84" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; font-size: 14px; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;pico_node&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
-                    <mxGeometry x="366.28" y="-778" width="116.69" height="45" as="geometry"/>
+                    <mxGeometry x="2007.28" y="-515.94" width="116.69" height="45" as="geometry"/>
                 </mxCell>
                 <mxCell id="85" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; font-size: 14px; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;rpi4_node&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
-                    <mxGeometry x="366.75" y="-835" width="116.5" height="45" as="geometry"/>
+                    <mxGeometry x="2007.75" y="-572.94" width="116.5" height="45" as="geometry"/>
                 </mxCell>
                 <mxCell id="86" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1920" y="-270" width="181" height="35" as="geometry"/>
@@ -177,7 +177,7 @@
                 <mxCell id="128" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&lt;b&gt;&lt;u&gt;Thinking&lt;/u&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=0;fillColor=none;fontSize=16;" parent="1" vertex="1">
                     <mxGeometry x="1728.5" y="-1445" width="74" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="231" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="130" target="230" edge="1">
+                <mxCell id="231" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;flowAnimation=1;strokeColor=#FF1807;" parent="1" source="130" target="230" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="130" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;brain&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
@@ -233,7 +233,7 @@
                 <mxCell id="185" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;std_msgs/msg/String&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1581" y="-901.94" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="187" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="186" target="3" edge="1">
+                <mxCell id="187" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#3333FF;flowAnimation=1;" parent="1" source="186" target="3" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="186" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/cmd_vel&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
@@ -242,13 +242,13 @@
                 <mxCell id="190" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="850" y="-420" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="208" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="202" target="207" edge="1">
+                <mxCell id="208" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;flowAnimation=1;strokeColor=#3333FF;" parent="1" source="202" target="207" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="202" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/encoders/right_ticks&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
                     <mxGeometry x="935.5999999999999" y="-964.19" width="234.5" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="209" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" parent="1" source="203" target="207" edge="1">
+                <mxCell id="209" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;flowAnimation=1;strokeColor=#3333FF;" parent="1" source="203" target="207" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="203" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;&lt;b style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-size: 14px; white-space: pre;&quot;&gt;encoders/left_ticks&lt;/b&gt;&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
@@ -257,7 +257,7 @@
                 <mxCell id="204" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Int32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="710.75" y="-964.19" width="180" height="102.85" as="geometry"/>
                 </mxCell>
-                <mxCell id="213" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="207" target="212" edge="1">
+                <mxCell id="213" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;flowAnimation=1;strokeColor=#FF1807;" parent="1" source="207" target="212" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="207" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;odometry&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
@@ -266,7 +266,7 @@
                 <mxCell id="210" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Int32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1220" y="-1020" width="180" height="102.85" as="geometry"/>
                 </mxCell>
-                <mxCell id="216" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" parent="1" source="212" target="130" edge="1">
+                <mxCell id="216" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;strokeColor=#3333FF;flowAnimation=1;" parent="1" source="212" target="130" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="212" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/odom&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
@@ -278,13 +278,13 @@
                 <mxCell id="215" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;nav_msgs/msg/Odometry&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1440" y="-835" width="181" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="221" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="218" target="219" edge="1">
+                <mxCell id="221" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#FF1807;flowAnimation=1;" parent="1" source="218" target="219" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="218" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;ydlidar_ros2_driver_node&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="620" y="-1320" width="240" height="55" as="geometry"/>
                 </mxCell>
-                <mxCell id="228" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="219" target="222" edge="1">
+                <mxCell id="228" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#3333FF;flowAnimation=1;" parent="1" source="219" target="222" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="219" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/lidar&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
@@ -293,13 +293,13 @@
                 <mxCell id="220" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/LaserScan&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="880" y="-1310" width="189.25" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="225" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="222" target="223" edge="1">
+                <mxCell id="225" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#FF1807;flowAnimation=1;" parent="1" source="222" target="223" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="222" value="&lt;div style=&quot;font-family: &amp;quot;Iosevka Charon Mono&amp;quot;, Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; font-weight: normal; line-height: 21px; white-space: pre; color: rgb(205, 214, 244);&quot;&gt;&lt;span style=&quot;color: rgb(205, 214, 244);&quot;&gt;&lt;font color=&quot;#000000&quot;&gt;lidar_processor&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=17;" parent="1" vertex="1">
                     <mxGeometry x="1446" y="-1365.56" width="169" height="55" as="geometry"/>
                 </mxCell>
-                <mxCell id="226" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=1;" parent="1" source="223" target="130" edge="1">
+                <mxCell id="226" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=1;strokeColor=#3333FF;flowAnimation=1;" parent="1" source="223" target="130" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="2110" y="-1320"/>
@@ -319,7 +319,7 @@
                 <mxCell id="229" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/LaserScan&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1230" y="-1330" width="189.25" height="35" as="geometry"/>
                 </mxCell>
-                <mxCell id="234" style="edgeStyle=none;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" parent="1" source="230" target="233" edge="1">
+                <mxCell id="234" style="edgeStyle=none;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;strokeColor=#3333FF;flowAnimation=1;" parent="1" source="230" target="233" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="230" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/brain/cmd_vel&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
@@ -328,7 +328,7 @@
                 <mxCell id="232" value="visualizer" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="1771" y="-856" width="129" height="87" as="geometry"/>
                 </mxCell>
-                <mxCell id="238" style="edgeStyle=none;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="233" target="186" edge="1">
+                <mxCell id="238" style="edgeStyle=none;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;flowAnimation=1;strokeColor=#FF1807;" parent="1" source="233" target="186" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="233" value="twist_mux" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
