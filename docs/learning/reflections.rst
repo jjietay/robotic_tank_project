@@ -9,13 +9,11 @@ while building the autonomous tank.
 Background
 ----------
 
-I started this project because I wanted to have more hands-on experience on a project that teaches me robotics
+Past 2 years of Uni (Y1 & Y2) was just studying a lot of math and physics subjects. I studied really hard (was still adjusting from NS to Y1), took exams and then called it a day. But in Y3S2 (during my internship at ST Engineering), I realised that the modules taken in Y1-2 did not exactly prepare me enough for what I might face when I actually become an engineer. Therefore, I needed to take matters in my own hands and actually learn meaningful things that will help me in expanding my knowledge pool and also in my future career. 
 
-Past 2 years of Uni (Y1 & Y2) was just studying a lot of math and physics subjects. I studied really hard (was still adjusting from NS to Y1), took exams and then called it a day. But in Y3S2 (during my internship at ST Engineering), I realised that the modules taken in Y1-2 did not exactly prepare me enough for what I might face when I actually become an engineer.
+I knew I wanted to do something related to my initial specialization, Robotics & Automation (now changed to ML). That's why I thought about a robotic car.
 
-This was when I decided to take on this project. I knew I wanted to do something related to my initial specialization, Robotics & Automation (now changed to ML). That's why I thought about a robotic car.
-
-However, after dwelving into agentic AI quite a bit, I wanted to incorporate AI into my project. That's where Computer Vision comes in (I know agents and CV is quite different...). This project is also a very good precursor to my FYP which is incoporating (Vision Transformers + Large Language Models = Vision Language Model) + Action --->  Vision Language Action in robotic systems.
+However, after dwelving into agentic AI quite a bit, I wanted to incorporate AI into my project. That's where Computer Vision comes in (I know agents and CV is quite different...). However, this project is a good precursor to my FYP which is incoporating Vision Language Action in robotic systems.
 
 I believe understanding the fundamentals of Ultrasonic Sensors, LIDARS, SLAM, ROS2, Nav2, will certainly give me an edge in robotics, especially when I would want to do something related to my FYP for my future job (AI + Robotics).
 
@@ -191,7 +189,7 @@ Figure 6 shows the final product after building. Notice the rasberry camera modu
       - F2.0
       - F2.9
 
-When I got the OV5647, I tried it and observed a larger FOV. However, when it took it and pulled the latch on the Camera Serial Interface (CSI) to unlock it (so that I can remove the ribbon attached to my OV5637, it broke.
+When I got the OV5647, I tried it and observed a larger FOV. However, when it took it and pulled the latch on the Camera Serial Interface (CSI) to unlock it (so that I can remove the ribbon attached to my OV5637, it **broke**.
 
 .. figure:: ../_images/reflections_img7.png
    :alt: Before building
@@ -240,7 +238,7 @@ From the table above, we can see that JBG37-520-12V-60RPM motor gives ALOT of to
 
 JBG37-520 uses AB-phase Quadrature Hall Encoders. The encoder outputs 11 Pulses per Revolution (PPR). This means that the effective output shaft resolution is ``11 * gear_ratio``. For this 60RPM variant, it is around 1848 counts/rev which is excellent resolution.
 
-Additionally, the existing H-bridge proved to be quite inefficient, dissipating a significant amount of energy as heat — with a voltage drop of nearly 2V across it. To address this, I sourced the Cytron MDD10A Dual Channel 10A DC Motor Driver, which utilises a fully NMOS H-Bridge design to achieve significantly lower voltage drop and improved efficiency.
+Additionally, the existing H-bridge proved to be quite inefficient, dissipating a significant amount of energy as heat, with a voltage drop of nearly 2V across it. To address this, I sourced the Cytron MDD10A Dual Channel 10A DC Motor Driver, which uses a fully NMOS H-Bridge design to achieve significantly lower voltage drop and improved efficiency.
 
 16 Apr 26 — Motor Mismatch + LIDAR's custom fit
 -------------------------------------------------
@@ -258,9 +256,10 @@ From Figure 8 above, we can see the different parts required to connect the moto
 
 However, my new motor's housing extrusion can't fit through the hole in A, and the coupler couldn't attach to the motor shaft.
 
-To fix this, I have decided to customize my chassis,by:
-1) 3D print my own custom chassis with custom coupler
-2) Mount my LIDAR on custom acrylic
+To fix this, I have decided to customize my chassis by:
+
+1) **3D printing** my own custom chassis with custom coupler
+2) Mounting my LIDAR on custom **acrylic**
 
 27 Apr 26 — Acrylic
 -----------------------
@@ -303,14 +302,18 @@ Some issues faced with this design was that the shaft turned while the coupler s
 
 26 Apr 26 — How I learn coding/ROS 2
 --------------------------------------
+.. figure:: ../_images/reflections_img_holy_trinity.png
+   :alt: Before building
+   :width: 400px
+   :align: center
 
-Throughout the whole process, while waiting for shipment to arrive (usually takes a week), I was learning ROS 2. I found it a very big challenge at the beginning because this is all completely new to me.
+   ~ holy trinity ~
 
-What I did was to use AI to teach me, while also asking thought provoking questions (I wrote a custom instructions for the AI to talk to me in this certain manner). This way, I wasn't just passively learning, but actively thinking about what I am learning and then constantly asking more questions and making sure that I first understand at least about 80% of the theory. 
+Throughout the whole process while waiting for shipment to arrive (usually takes a week or two), I would take this time to brush up on my python, learn my C++, and also learn ROS from scratch. I found it a very big challenge at the beginning because this is all completely new to me.
 
-I then moved on the writing the actual code. I will ask AI to generate generic ROS 2 code (those you can find on github, but simplified), and I will try to replicate it. Usually my attempts will fail, but I can rectify it with the help of AI. This way, my learning is not only limited to the basics of ROS 2 code, but what I can learn from AI's more complex generated code. 
+My process was as such. First I used AI to teach me the relevant concepts. I will then ask it to generate some questions/practice for me to do. After that, it will check my code and also my output and give me my score. If I still don't feel confident about that particular exercise, I will ask it generate another one. Only when I understand at least 80% of it, I will ask it to teach me another concept. The exercise portion is so that I can learn actively instead of passively.
 
-Also, I chose python for my codebase for RPI4 since its easier. When the full pipeline works, then I might explore C++, though my plans after this project would be to grind https://www.learncpp.com/ first.
+Also, I chose python for my codebase for RPI4 because its easier. When the full pipeline works, I might explore C++.
 
 27 Apr 26 — Minor Upgrades: Ultrasonic Sensors and Electrical Schematics
 -------------------------------------------------------------------------
@@ -378,4 +381,5 @@ I also added a slew rate that allows for smoother acceleration and deceleration.
 
    Figure 13: Finished Hardware
 
-PID controller works fine, but while moving the car, the coupler snapped once again. To save future costs of remaking and repurchasing this coupler/motor, I decided to just get a tank kit with correctly sized motors with encoders to ensure reliability. This way I can focus on what matters more, which is my SLAM. Though, what I 3D designed, the chassis and coupler, I wouldn't say its a waste of time since I did learn quite abit from this.
+PID controller works fine, but while moving the car, the coupler **snapped once again**. Since this entire project is self-funded and I have blasted a hole through my wallet, I had to save future costs of remaking and repurchasing this coupler and motor. Therefore, I decided to just get a full tank kit with correctly sized motors with encoders to ensure reliability. This way I can focus on what matters more, which is my SLAM and higher level algorithms. Though, what I 3D designed, the chassis and coupler, I wouldn't say its a waste of time since I did learn quite abit from this.
+
