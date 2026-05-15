@@ -21,6 +21,7 @@ html_theme_options = {
   "accent_color": "pink",
 }
 templates_path = ["_templates"]
+html_static_path = ['_static']
 
 language = 'en'
 locale_dirs = []
