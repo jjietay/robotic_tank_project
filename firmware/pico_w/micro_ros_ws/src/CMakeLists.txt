@@ -13,7 +13,7 @@ set(MICROROS_LIB_DIR     ${CMAKE_CURRENT_LIST_DIR}/libmicroros)
 set(MICROROS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/libmicroros/include)
 
 # SH2 library (BNO085 protocol layer)
-set(SH2_DIR ${CMAKE_CURRENT_LIST_DIR}/lib/sh2)
+set(SH2_DIR ${CMAKE_CURRENT_LIST_DIR}/sh2)
 
 link_directories(${MICROROS_LIB_DIR})
 

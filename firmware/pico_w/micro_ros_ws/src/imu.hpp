@@ -10,9 +10,18 @@
 //
 //  Usage in main.cpp:
 //    IMU imu("IMU", "ON", i2c0, IMU_SDA, IMU_SCL);
-//    imu.init();       // call once after micro-ROS init
+//    imu.init();       // call once after hardware init, before main loop
 //    ...
-//    imu.update();     // call every main loop tick  — pumps SH2 service
+//    imu.update();     // call every main loop tick — pumps SH2 service
+//
+//  Required SH2 source files (copy from Adafruit_BNO08x/src/sh2/):
+//    sh2.c / sh2.h
+//    sh2_SensorValue.c / sh2_SensorValue.h
+//    sh2_err.h
+//    sh2_hal.h
+//    shtp.c / shtp.h
+//    sh2_util.c / sh2_util.h
+//  Place them in firmware/pico_w/micro_ros_ws/src/sh2/ and add to CMakeLists.
 // ---------------------------------------------------------------------------
 
 #pragma once
@@ -33,7 +42,7 @@ constexpr uint8_t BNO085_I2C_ADDR = 0x4A;
 
 // ---------------------------------------------------------------------------
 //  Report interval for all enabled sensor reports.
-//  20 000 µs = 50 Hz.  Increase to 10 000 for 100 Hz if needed.
+//  20 000 µs = 50 Hz.  Decrease to 10 000 for 100 Hz if needed.
 // ---------------------------------------------------------------------------
 constexpr uint32_t IMU_REPORT_US = 20000;
 
@@ -107,7 +116,10 @@ private:
     static int      hal_write   (sh2_Hal_t* self, uint8_t* buf, unsigned len);
     static uint32_t hal_get_time(sh2_Hal_t* self);
 
-    // SH2 sensor-event callback
+    // SH2 async-event callback (resets, shutdowns) — required by sh2_open()
+    static void on_async_event(void* cookie, sh2_AsyncEvent_t* evt);
+
+    // SH2 sensor-event callback — registered via sh2_setSensorCallback()
     static void on_sensor_event(void* cookie, sh2_SensorEvent_t* evt);
     void        handle_event   (sh2_SensorEvent_t* evt);
 
