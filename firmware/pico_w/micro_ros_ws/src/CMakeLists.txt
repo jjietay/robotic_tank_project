@@ -12,6 +12,9 @@ pico_sdk_init()
 set(MICROROS_LIB_DIR     ${CMAKE_CURRENT_LIST_DIR}/libmicroros)
 set(MICROROS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/libmicroros/include)
 
+# SH2 library (BNO085 protocol layer)
+set(SH2_DIR ${CMAKE_CURRENT_LIST_DIR}/lib/sh2)
+
 link_directories(${MICROROS_LIB_DIR})
 
 add_executable(pico_micro_ros
@@ -20,7 +23,13 @@ add_executable(pico_micro_ros
     motor.cpp
     encoder.cpp
     pid.cpp
+    imu.cpp
     pico_uart_transport.c
+    # SH2 library sources (Hillcrest protocol layer for BNO085)
+    ${SH2_DIR}/sh2.c
+    ${SH2_DIR}/sh2_SensorValue.c
+    ${SH2_DIR}/shtp.c
+    ${SH2_DIR}/sh2_util.c
 )
 
 target_link_libraries(pico_micro_ros
@@ -28,11 +37,13 @@ target_link_libraries(pico_micro_ros
     hardware_pwm
     hardware_gpio
     hardware_sync
+    hardware_i2c          
     microros
 )
 
 target_include_directories(pico_micro_ros PUBLIC
     ${MICROROS_INCLUDE_DIR}
+    ${SH2_DIR}            
 )
 
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")

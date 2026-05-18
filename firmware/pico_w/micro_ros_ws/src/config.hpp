@@ -88,3 +88,10 @@ constexpr uint  USRM_DIVIDER = 3;
 //                              Watchdog
 // ---------------------------------------------------------------------------
 constexpr uint64_t CMD_VEL_TIMEOUT_US = 500000ULL;  // 500 ms — stop if no cmd_vel
+
+// ---------------------------------------------------------------------------
+//                              IMU (BNO085 — I2C0)
+// ---------------------------------------------------------------------------
+constexpr uint IMU_SDA     = 4;   // GP4 — free on current pinout
+constexpr uint IMU_SCL     = 5;   // GP5 — free on current pinout
+constexpr uint IMU_DIVIDER = 2;   // publish at 50 Hz from the 100 Hz loop

@@ -9,6 +9,7 @@
 //    • encoder.*      — quadrature wheel encoder (m/s, sign-corrected)
 //    • pid.*          — discrete PID with anti-windup
 //    • main.cpp       — micro-ROS plumbing and the 100 Hz control loop
+//    • imu.*          — BNO085 orientation / gyro / linear-accel (SH2 over I2C)
 //
 //  Units convention:  ALL velocities are m/s, ALL distances are metres.
 //  No [-1, 1] velocity normalisation anywhere.  The only [-1, 1] saturation
@@ -20,6 +21,7 @@
 //    2. Velocity feedforward         — PID only corrects residual error
 //    3. Ultrasonic divider           — protects 100 Hz PID timing
 //    4. fabsf() near-zero compare    — replaces fragile float == 0 test
+//    5. BNO085 IMU added — quaternion, gyro, linear accel on /sensors/imu
 // ---------------------------------------------------------------------------
 
 #include "pico/stdlib.h"
@@ -40,6 +42,7 @@ extern "C" {
 #include <std_msgs/msg/int32.h>
 #include <geometry_msgs/msg/twist.h>
 #include <sensor_msgs/msg/range.h>
+#include <sensor_msgs/msg/imu.h>
 #include <rosidl_runtime_c/string_functions.h>
 
 #include "config.hpp"
@@ -47,6 +50,7 @@ extern "C" {
 #include "motor.hpp"
 #include "encoder.hpp"
 #include "pid.hpp"
+#include "imu.hpp"
 
 #define RCCHECK(fn) { rcl_ret_t rc = (fn); \
     if (rc != RCL_RET_OK) { printf("RCL error %ld at %s:%d\n", rc, __FILE__, __LINE__); } }
@@ -57,10 +61,12 @@ extern "C" {
 rcl_subscription_t cmd_vel_sub;
 rcl_publisher_t    usrm_front_pub, usrm_back_pub, usrm_left_pub, usrm_right_pub;
 rcl_publisher_t    enc_left_pub,   enc_right_pub;
+rcl_publisher_t        imu_pub;
 
 geometry_msgs__msg__Twist cmd_vel_msg;
 sensor_msgs__msg__Range   usrm_front_msg, usrm_back_msg, usrm_left_msg, usrm_right_msg;
 std_msgs__msg__Int32      enc_left_msg, enc_right_msg;
+sensor_msgs__msg__Imu     imu_msg;
 
 rclc_executor_t executor;
 rclc_support_t  support;
@@ -156,6 +162,8 @@ int main()
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
                             /*invert*/ false);
 
+    IMU        IMU_SENSOR("IMU", "ON", i2c0, IMU_SDA, IMU_SCL);
+
     // PID per wheel — m/s setpoint vs m/s measured -> PID *correction* term
     // (NOT raw duty cycle anymore).  Output limited to ±0.5 so the
     // feedforward stays in charge and PID can only nudge.
@@ -166,6 +174,7 @@ int main()
     USRM_RIGHT.ShowStatus(); USRM_LEFT.ShowStatus();
     MOTOR.ShowStatus();
     LEFT_ENCODER.ShowStatus(); RIGHT_ENCODER.ShowStatus();
+    IMU_SENSOR.init(); IMU_SENSOR.ShowStatus();
 
     // ---- micro-ROS init ----
     rmw_uros_set_custom_transport(
@@ -200,6 +209,9 @@ int main()
     rclc_publisher_init_default(&enc_right_pub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
         "/sensors/encoders/right_ticks");
+    rclc_publisher_init_default(&imu_pub, &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
+        "/sensors/imu");
 
     init_range_msg(&usrm_front_msg, 0, 0.26f, 0.02f, 4.00f);
     init_range_msg(&usrm_back_msg,  0, 0.26f, 0.02f, 4.00f);
@@ -210,6 +222,7 @@ int main()
     rosidl_runtime_c__String__assign(&usrm_back_msg.header.frame_id,  "ultrasonic_back_link");
     rosidl_runtime_c__String__assign(&usrm_left_msg.header.frame_id,  "ultrasonic_left_link");
     rosidl_runtime_c__String__assign(&usrm_right_msg.header.frame_id, "ultrasonic_right_link");
+    rosidl_runtime_c__String__assign(&imu_msg.header.frame_id, "imu_link");
 
     rclc_executor_init(&executor, &support.context, 1, &allocator);
     rclc_executor_add_subscription(
@@ -224,6 +237,7 @@ int main()
     uint64_t loop_last  = 0;
     uint8_t  usrm_index = 0;
     uint8_t  usrm_div_counter = 0;
+    uint8_t imu_div_counter = 0;
 
     // Smoothed (slew-rate-limited) setpoints.  These are what actually feed
     // the PID — NOT the raw target_vel_*_mps values written by cmd_vel.
@@ -246,7 +260,7 @@ int main()
         // 1. Pump the ROS executor
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(2));
 
-        // 2. Fire one ultrasonic per Nth tick (round-robin).  Spaced out so
+        // 2a. Fire one ultrasonic per Nth tick (round-robin).  Spaced out so
         //    a blocking HC-SR04 echo doesn't corrupt PID timing every loop.
         if (usrm_div_counter == 0) {
             switch (usrm_index) {
@@ -274,6 +288,24 @@ int main()
             usrm_index = (usrm_index + 1) % 4;
         }
         usrm_div_counter = (usrm_div_counter + 1) % USRM_DIVIDER;
+
+        // 2b. Pump IMU every tick; publish at IMU_DIVIDER rate
+        IMU_SENSOR.update();
+        if (imu_div_counter == 0) {
+            imu_msg.orientation.x         = IMU_SENSOR.getQuatI();
+            imu_msg.orientation.y         = IMU_SENSOR.getQuatJ();
+            imu_msg.orientation.z         = IMU_SENSOR.getQuatK();
+            imu_msg.orientation.w         = IMU_SENSOR.getQuatReal();
+            imu_msg.angular_velocity.x    = IMU_SENSOR.getGyroX();
+            imu_msg.angular_velocity.y    = IMU_SENSOR.getGyroY();
+            imu_msg.angular_velocity.z    = IMU_SENSOR.getGyroZ();
+            imu_msg.linear_acceleration.x = IMU_SENSOR.getLinAccelX();
+            imu_msg.linear_acceleration.y = IMU_SENSOR.getLinAccelY();
+            imu_msg.linear_acceleration.z = IMU_SENSOR.getLinAccelZ();
+            set_msg_stamp(&imu_msg.header);
+            RCCHECK(rcl_publish(&imu_pub, &imu_msg, NULL));
+        }
+        imu_div_counter = (imu_div_counter + 1) % IMU_DIVIDER;
 
         // 3. Snapshot raw setpoint (m/s).  Apply cmd_vel watchdog timeout.
         float setpoint_l_raw = target_vel_l_mps;

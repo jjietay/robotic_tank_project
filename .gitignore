@@ -5,6 +5,7 @@
 **/pico-sdk/
 **/picotool-src/
 **/freertos/
+**/sh2
 
 # --- micro-ROS Pico SDK generated folders ---
 **/libmicroros/
