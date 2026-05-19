@@ -30,8 +30,8 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
 HOLD_TIMEOUT_MS = 200.0
-WHEEL_BASE_M    = 0.356
-V_MAX_MPS       = 0.20
+WHEEL_BASE_M    = 0.168
+V_MAX_MPS       = 1.0
 MAX_ANGULAR     = V_MAX_MPS / (WHEEL_BASE_M / 2.0)
 
 

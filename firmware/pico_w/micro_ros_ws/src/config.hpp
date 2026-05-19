@@ -31,10 +31,10 @@ constexpr uint  PWM_TOP = 6249;
 // ---------------------------------------------------------------------------
 //                              Robot Geometry  (METRES)
 // ---------------------------------------------------------------------------
-constexpr float WHEEL_DIAMETER_M = 0.05465f;     // 5.465 cm
-constexpr float WHEEL_BASE_M     = 0.356f;        // distance between L & R wheels
-constexpr float GEAR_REDUCTION   = 169.0f;
-constexpr int   ENCODER_PPR      = 11;           // raw pulses per motor rev (pre-gearbox)
+constexpr float WHEEL_DIAMETER_M = 0.0423f;     // 42.3 mm
+constexpr float WHEEL_BASE_M     = 0.1488f;     // distance between L & R wheels
+constexpr float GEAR_REDUCTION   = 30.0f;
+constexpr int   ENCODER_PPR      = 13;           // raw pulses per motor rev (pre-gearbox)
 constexpr float V_MAX_MPS        = 0.20f;        // max wheel surface speed at full PWM
 
 // ---------------------------------------------------------------------------
