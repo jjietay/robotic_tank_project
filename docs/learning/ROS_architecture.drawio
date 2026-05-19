@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="g2G-zV-ZtBjgGkt8N3bn" name="Page-1">
-        <mxGraphModel dx="2133" dy="2917" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="1354" dy="3108" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -29,6 +29,14 @@
                         <Array as="points">
                             <mxPoint x="610" y="-400"/>
                             <mxPoint x="610" y="-884"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="246" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;curved=1;strokeColor=#FF1807;flowAnimation=1;" edge="1" parent="1" source="3" target="243">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="620" y="-400"/>
+                            <mxPoint x="620" y="-1001"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
@@ -255,7 +263,7 @@
                     <mxGeometry x="935.5999999999999" y="-904.44" width="234.5" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="204" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Int32&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
-                    <mxGeometry x="710.75" y="-964.19" width="180" height="102.85" as="geometry"/>
+                    <mxGeometry x="714.65" y="-945.5600000000001" width="180" height="102.85" as="geometry"/>
                 </mxCell>
                 <mxCell id="213" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;flowAnimation=1;strokeColor=#FF1807;" parent="1" source="207" target="212" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -342,6 +350,22 @@
                 </mxCell>
                 <mxCell id="242" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;geometry_msgs/msg/Twist&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;rotation=0;glass=0;gradientColor=none;dashed=1;" parent="1" vertex="1">
                     <mxGeometry x="1530" y="-270.00000000000006" width="181" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="248" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;strokeColor=#3333FF;flowAnimation=1;" edge="1" parent="1" source="243" target="207">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1130" y="-1047"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="243" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&quot;/sensors/imu&quot;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;shadow=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+                    <mxGeometry x="935.6" y="-1020.56" width="114.4" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="244" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Imu&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                    <mxGeometry x="714.6500000000002" y="-1006.2299999999999" width="180" height="37.04" as="geometry"/>
+                </mxCell>
+                <mxCell id="247" value="&lt;font face=&quot;Iosevka Charon Mono, Menlo, Monaco, Courier New, monospace&quot;&gt;&lt;span style=&quot;font-size: 14px; white-space: pre;&quot;&gt;&lt;b&gt;&lt;i&gt;sensor_msgs/msg/Imu&lt;/i&gt;&lt;/b&gt;&lt;/span&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;shadow=0;fillColor=#e1d5e7;strokeColor=#9673a6;glass=0;gradientColor=none;dashed=1;" vertex="1" parent="1">
+                    <mxGeometry x="1170.1000000000001" y="-1075" width="180" height="37.04" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

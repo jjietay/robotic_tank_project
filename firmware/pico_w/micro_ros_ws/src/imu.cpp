@@ -12,7 +12,7 @@
 //  Static member definitions
 // ---------------------------------------------------------------------------
 sh2_Hal_t   IMU::_hal      = {};
-i2c_inst_t* IMU::_s_i2c   = nullptr;
+i2c_inst_t* IMU::_s_i2c   = nullptr;        
 IMU*        IMU::_instance = nullptr;
 
 // ---------------------------------------------------------------------------
@@ -22,7 +22,8 @@ IMU*        IMU::_instance = nullptr;
 //  I2C is already configured by init(), so we only need to wait for the
 //  BNO085 to finish its internal boot sequence (~300 ms).
 // ---------------------------------------------------------------------------
-int IMU::hal_open(sh2_Hal_t*)
+int IMU::hal_open(sh2_Hal_t*)   // just a simple function to ensure things work
+                                // init() already setup the hardware via gpio_set_function()
 {
     sleep_ms(300);
     return SH2_OK;
@@ -36,14 +37,21 @@ void IMU::hal_close(sh2_Hal_t*) {}
 
 // ---------------------------------------------------------------------------
 //  HAL: read
-//
-//  BNO085 SHTP-over-I2C framing:
+//  SHTP is Sensor Hub Transport Protocol, is a standard protocol used by 
+// sensor hubs like BN0080 to transmit complex, multi-axis sensor data
+// to a host microcontroller
+
+//  BNO085 SHTP-over-I2C Packet Structure:
 //    Byte 0 : cargo length LSB
 //    Byte 1 : cargo length MSB   (bit 15 = continuation flag — mask with 0x7F)
 //    Byte 2 : channel number
 //    Byte 3 : sequence number
 //    Bytes 4..N : payload
 //
+
+//  Sensor Hub Transport Protocol (SHTP) splits traffic across specific channels:
+//  Command (0), Executable (1), Control (2), Reports (3)
+
 //  Strategy:
 //    Read the whole packet (up to `len` bytes) in a single I2C transaction.
 //    The BNO085 clock-stretches if it is not ready, so the blocking call
