@@ -31,7 +31,10 @@ from geometry_msgs.msg import Twist
 
 HOLD_TIMEOUT_MS = 200.0
 WHEEL_BASE_M    = 0.168
-V_MAX_MPS       = 0.60
+# Slow cruise speed for manual driving.  Keeping this well above the
+# minimum-duty floor (~0.17 m/s at 0.28 duty) prevents the motors from
+# stalling in the deadband.  Raise towards 0.60 once the tank is stable.
+V_MAX_MPS       = 0.25
 MAX_ANGULAR     = V_MAX_MPS / (WHEEL_BASE_M / 2.0)
 
 

@@ -231,7 +231,9 @@ int main()
 
     Motor      MOTOR("MOTORS", "ON", L_DIR, L_PWM, R_DIR, R_PWM,
                     /*invert_left*/  true,
-                    /*invert_right*/ true);
+                    /*invert_right*/ true,
+                    /*trim_left*/    LEFT_MOTOR_TRIM,
+                    /*trim_right*/   RIGHT_MOTOR_TRIM);
 
     Encoder    LEFT_ENCODER ("L_ENC", "ON",
                             ENC_L_A, ENC_L_B,
