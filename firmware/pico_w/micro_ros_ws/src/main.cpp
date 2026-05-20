@@ -238,7 +238,7 @@ int main()
     Encoder    LEFT_ENCODER ("L_ENC", "ON",
                             ENC_L_A, ENC_L_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                            /*invert*/ true);
+                            /*invert*/ false);
     Encoder    RIGHT_ENCODER("R_ENC", "ON",
                             ENC_R_A, ENC_R_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
@@ -448,11 +448,25 @@ int main()
             duty_l = 0.0f;
             duty_r = 0.0f;
         } else {
-            float ff_l = setpoint_l_smooth / V_MAX_MPS;
-            float ff_r = setpoint_r_smooth / V_MAX_MPS;
+            // Map any sub-minimum setpoint to V_MIN_MPS so the PID and
+            // feedforward never chase a speed the motor physically cannot
+            // reach.  Without this, the slew ramp passes through the
+            // 0..V_MIN zone where the motor runs at ~V_MIN (lifted by the
+            // deadband) while the setpoint is tiny — the resulting large
+            // negative P-correction pushes duty negative, which the deadband
+            // then snaps to -MOTOR_MIN_DUTY, driving the robot backward.
+            float ctrl_l = setpoint_l_smooth;
+            float ctrl_r = setpoint_r_smooth;
+            if (fabsf(ctrl_l) < V_MIN_MPS)
+                ctrl_l = (ctrl_l > 0.0f) ? V_MIN_MPS : -V_MIN_MPS;
+            if (fabsf(ctrl_r) < V_MIN_MPS)
+                ctrl_r = (ctrl_r > 0.0f) ? V_MIN_MPS : -V_MIN_MPS;
 
-            float pid_l = LEFT_PID .calculate(setpoint_l_smooth, meas_l);
-            float pid_r = RIGHT_PID.calculate(setpoint_r_smooth, meas_r);
+            float ff_l = ctrl_l / V_MAX_MPS;
+            float ff_r = ctrl_r / V_MAX_MPS;
+
+            float pid_l = LEFT_PID .calculate(ctrl_l, meas_l);
+            float pid_r = RIGHT_PID.calculate(ctrl_r, meas_r);
 
             duty_l = clampf(ff_l + pid_l, -1.0f, 1.0f);
             duty_r = clampf(ff_r + pid_r, -1.0f, 1.0f);

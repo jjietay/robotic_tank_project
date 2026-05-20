@@ -33,6 +33,11 @@ constexpr uint  PWM_TOP = 6249;
 // the motors never stall in the deadband and cause the PID to lurch.
 constexpr float MOTOR_MIN_DUTY = 0.28f;
 
+// Minimum controllable speed — the wheel speed produced by MOTOR_MIN_DUTY.
+// The PID setpoint is never allowed to fall between 0 and this value so that
+// the controller is never chasing a speed the motor physically cannot sustain.
+constexpr float V_MIN_MPS = MOTOR_MIN_DUTY * V_MAX_MPS;  // ≈ 0.168 m/s
+
 // Per-motor output trim factors ∈ (0, 1].  Left motor runs stronger, so we
 // scale it down to drive straight.  Adjust LEFT_MOTOR_TRIM until the tank
 // tracks a straight line at cruising speed.  Start here and fine-tune by

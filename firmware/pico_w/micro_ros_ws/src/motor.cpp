@@ -19,14 +19,6 @@ void Motor::set_one_side(uint dir_pin, uint pwm_pin, float duty)
     if (duty >  1.0f) duty =  1.0f;
     if (duty < -1.0f) duty = -1.0f;
 
-    // Deadband compensation: lift any non-zero duty that is below the
-    // measured stiction floor up to MOTOR_MIN_DUTY so the motor never
-    // stalls inside the deadband and causes the PID to lurch/jitter.
-    if (duty > 0.0f && duty < MOTOR_MIN_DUTY)
-        duty = MOTOR_MIN_DUTY;
-    else if (duty < 0.0f && duty > -MOTOR_MIN_DUTY)
-        duty = -MOTOR_MIN_DUTY;
-
     gpio_put(dir_pin, duty >= 0.0f ? 1 : 0);
     pwm_set_gpio_level(pwm_pin, (uint16_t)(std::fabs(duty) * (float)PWM_TOP));
 }
@@ -49,11 +41,22 @@ Motor::Motor(std::string name_, std::string status_,
 
 void Motor::move(float duty_left, float duty_right)
 {
-    // Apply per-motor trim before polarity inversion so the scale always
-    // reduces magnitude (trim ∈ (0,1]), regardless of direction.
+    // Apply per-motor trim first — still in the logical domain where
+    // positive always means "forward", so the scale is always a magnitude
+    // reduction regardless of direction.
     duty_left  *= l_trim;
     duty_right *= r_trim;
 
+    // Deadband compensation — applied HERE, before polarity inversion, so
+    // "positive = forward" is still true.  Lifting a small positive value
+    // after inversion would make it negative (backward), which was the bug.
+    // Any non-zero magnitude below the stiction floor is snapped up to it.
+    if (duty_left  > 0.0f && duty_left  < MOTOR_MIN_DUTY)  duty_left  =  MOTOR_MIN_DUTY;
+    if (duty_left  < 0.0f && duty_left  > -MOTOR_MIN_DUTY) duty_left  = -MOTOR_MIN_DUTY;
+    if (duty_right > 0.0f && duty_right < MOTOR_MIN_DUTY)  duty_right =  MOTOR_MIN_DUTY;
+    if (duty_right < 0.0f && duty_right > -MOTOR_MIN_DUTY) duty_right = -MOTOR_MIN_DUTY;
+
+    // Now flip polarity to match hardware wiring.
     if (l_invert) duty_left  = -duty_left;
     if (r_invert) duty_right = -duty_right;
     set_one_side(l_dir_pin, l_pwm_pin, duty_left);
