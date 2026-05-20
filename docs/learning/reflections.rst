@@ -1,5 +1,5 @@
 Reflections
-================
+================================
 
 See also: :doc:`ROS 2 Notes <ros2>`
 
@@ -423,4 +423,3 @@ Figure 18 shows some soldering work that I also did with this new kit. Mainly fo
 Figure 19 shows the new model that i built as a urdf file and visualized using urdf-visualizer extension in vscode. I used provided chassis and ultrasonic sensors stl files in this design. I also added frame links in relation to base link.
 
 Since the motor is completely new, I tested the max speed and minimum duty cycle using debug code. I used encoder counts to estimate the distance and calculated the speed at max duty cycle (using time from my stopwatch). As for minimum duty cycle, I create a debug code that steps down the duty cycle every 3 seconds, and I can manually count and see at which duty cycle the car can no longer move.
-

@@ -1,4 +1,4 @@
-Firmware
+Firmware (Draft)
 =================
 
 This section captures the overview of firmware implementation, then detailed code for the control of hardware that connects to the Pico W microcontroller.
