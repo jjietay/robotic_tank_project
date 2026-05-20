@@ -28,6 +28,18 @@ constexpr uint USRM_LEFT_TRIG  =  6, USRM_LEFT_ECHO  =  7;
 // ---------------------------------------------------------------------------
 constexpr uint  PWM_TOP = 6249;
 
+// Minimum PWM duty cycle that overcomes motor stiction (measured empirically).
+// Any non-zero duty below this value is automatically lifted to this floor so
+// the motors never stall in the deadband and cause the PID to lurch.
+constexpr float MOTOR_MIN_DUTY = 0.28f;
+
+// Per-motor output trim factors ∈ (0, 1].  Left motor runs stronger, so we
+// scale it down to drive straight.  Adjust LEFT_MOTOR_TRIM until the tank
+// tracks a straight line at cruising speed.  Start here and fine-tune by
+// 0.01 increments: if still drifting right, lower it; if overcorrected, raise it.
+constexpr float LEFT_MOTOR_TRIM  = 0.90f;
+constexpr float RIGHT_MOTOR_TRIM = 1.00f;
+
 // ---------------------------------------------------------------------------
 //                              Robot Geometry  (METRES)
 // ---------------------------------------------------------------------------
