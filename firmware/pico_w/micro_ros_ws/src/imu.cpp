@@ -103,6 +103,28 @@ uint32_t IMU::hal_get_time(sh2_Hal_t*)
 }
 
 // ---------------------------------------------------------------------------
+//  Static async-event callback
+//  Fires for hub-level events: resets, FRS changes, etc.  After a reset the
+//  sensor reports stop arriving until they are re-enabled, so we re-apply
+//  the configuration here.
+// ---------------------------------------------------------------------------
+void IMU::on_async_event(void* /*cookie*/, sh2_AsyncEvent_t* evt)
+{
+    if (!_instance) return;
+
+    if (evt->eventId == SH2_RESET) {
+        printf("[%s] BNO085 reset detected — re-enabling reports\n",
+               _instance->_name);
+
+        sh2_SensorConfig_t cfg = {};
+        cfg.reportInterval_us  = IMU_REPORT_US;
+        sh2_setSensorConfig(SH2_ROTATION_VECTOR,      &cfg);
+        sh2_setSensorConfig(SH2_GYROSCOPE_CALIBRATED, &cfg);
+        sh2_setSensorConfig(SH2_LINEAR_ACCELERATION,  &cfg);
+    }
+}
+
+// ---------------------------------------------------------------------------
 //  Static sensor-event callback
 //  The SH2 library calls this (from inside sh2_service()) for every decoded
 //  sensor packet.  We simply forward to the owning instance.
@@ -193,11 +215,18 @@ bool IMU::init()
     _hal.write     = hal_write;
     _hal.getTimeUs = hal_get_time;
 
-    // ---- Open SH2 transport (internally calls hal_open + handshakes) -------
-    int rc = sh2_open(&_hal, on_sensor_event, nullptr);
+    // ---- Open SH2 transport (async-event callback is optional) -------------
+    int rc = sh2_open(&_hal, on_async_event, nullptr);
     if (rc != SH2_OK) {
         printf("[%s] sh2_open failed (err=%d) — check wiring and I2C address\n",
             _name, rc);
+        return false;
+    }
+
+    // ---- Register the sensor-report callback -------------------------------
+    rc = sh2_setSensorCallback(on_sensor_event, nullptr);
+    if (rc != SH2_OK) {
+        printf("[%s] sh2_setSensorCallback failed (err=%d)\n", _name, rc);
         return false;
     }
 

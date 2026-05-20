@@ -8,8 +8,8 @@
 //    • motor.*        — Cytron MDD10A duty-cycle driver
 //    • encoder.*      — quadrature wheel encoder (m/s, sign-corrected)
 //    • pid.*          — discrete PID with anti-windup
-//    • main.cpp       — micro-ROS plumbing and the 100 Hz control loop
-//    • imu.*          — BNO085 orientation / gyro / linear-accel (SH2 over I2C)
+//    • main.cpp       — micro-ROS plumbing and the 100 Hz control loop (CORE 0)
+//    • imu.*          — BNO085 orientation / gyro / linear-accel (CORE 1)
 //
 //  Units convention:  ALL velocities are m/s, ALL distances are metres.
 //  No [-1, 1] velocity normalisation anywhere.  The only [-1, 1] saturation
@@ -22,13 +22,19 @@
 //    3. Ultrasonic divider           — protects 100 Hz PID timing
 //    4. fabsf() near-zero compare    — replaces fragile float == 0 test
 //    5. BNO085 IMU added — quaternion, gyro, linear accel on /sensors/imu
+//    6. IMU moved to CORE 1          — sh2_service() can no longer stall
+//                                      the 100 Hz control loop on I2C.
+//    7. Loop pacing moved to END     — timestamp at start, busy-wait at end.
 // ---------------------------------------------------------------------------
 
 #include "pico/stdlib.h"
 #include "pico/time.h"
+#include "pico/multicore.h"
+#include "pico/mutex.h"
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 extern "C" {
 #include "pico_uart_transports.h"
@@ -61,7 +67,7 @@ extern "C" {
 rcl_subscription_t cmd_vel_sub;
 rcl_publisher_t    usrm_front_pub, usrm_back_pub, usrm_left_pub, usrm_right_pub;
 rcl_publisher_t    enc_left_pub,   enc_right_pub;
-rcl_publisher_t        imu_pub;
+rcl_publisher_t    imu_pub;
 
 geometry_msgs__msg__Twist cmd_vel_msg;
 sensor_msgs__msg__Range   usrm_front_msg, usrm_back_msg, usrm_left_msg, usrm_right_msg;
@@ -74,11 +80,37 @@ rcl_allocator_t allocator;
 rcl_node_t      node;
 
 // ---------------------------------------------------------------------------
-//                              Shared state
+//                              Shared state — cmd_vel
 // ---------------------------------------------------------------------------
 volatile float    target_vel_l_mps     = 0.0f;
 volatile float    target_vel_r_mps     = 0.0f;
 volatile uint64_t last_cmd_vel_time_us = 0;
+
+// ---------------------------------------------------------------------------
+//                          Shared state — IMU (Core 1 → Core 0)
+// ---------------------------------------------------------------------------
+//  Core 1 runs sh2_service() in a tight loop and copies the IMU readings
+//  into g_imu_snap under g_imu_mutex.  Core 0 grabs an atomic snapshot of
+//  the struct under the same mutex at IMU publish time.
+//
+//  The mutex is held for ~50 cycles (one struct copy), so cross-core
+//  contention is negligible even at 2 kHz polling on core 1.
+// ---------------------------------------------------------------------------
+struct ImuSnapshot {
+    float qi, qj, qk, qr;     // rotation vector (quaternion)
+    float gx, gy, gz;         // calibrated gyroscope (rad/s)
+    float ax, ay, az;         // linear acceleration (m/s², gravity removed)
+};
+static ImuSnapshot g_imu_snap = {0.0f, 0.0f, 0.0f, 1.0f,   // identity quat
+                                 0.0f, 0.0f, 0.0f,
+                                 0.0f, 0.0f, 0.0f};
+static mutex_t        g_imu_mutex;
+static volatile bool  g_imu_ready = false;   // set by core 1 once SH2 is up
+
+//  IMU instance lives at file scope so core 1 can reach it.  Constructor
+//  only assigns members (no HW access), so it is safe to default-construct
+//  here; init() runs on core 1.
+static IMU IMU_SENSOR("IMU", "ON", i2c0, IMU_SDA, IMU_SCL);
 
 // ---------------------------------------------------------------------------
 //                              cmd_vel callback
@@ -136,6 +168,54 @@ static inline float clampf(float x, float lo, float hi)
 }
 
 // ---------------------------------------------------------------------------
+//                            Core 1 entry point
+// ---------------------------------------------------------------------------
+//  Core 1 owns the IMU exclusively:
+//    1. Initialise I2C + SH2 transport (also runs sh2_open on this core).
+//    2. Spin pumping sh2_service() and copying decoded values into the
+//       shared snapshot under g_imu_mutex.
+//
+//  Polling at ~2 kHz (sleep 500 µs) is far faster than the 100 Hz IMU
+//  report rate, so we never miss a packet, and the core is idle the rest
+//  of the time so power draw stays low.
+//
+//  If init() fails, core 1 enters a quiet idle loop — core 0 will see
+//  g_imu_ready == false and simply skip IMU publishing.
+// ---------------------------------------------------------------------------
+static void core1_entry()
+{
+    if (!IMU_SENSOR.init()) {
+        printf("[core1] IMU init failed — IMU publish will be skipped\n");
+        while (true) {
+            tight_loop_contents();
+        }
+    }
+    IMU_SENSOR.ShowStatus();
+    g_imu_ready = true;
+
+    while (true) {
+        IMU_SENSOR.update();    // pumps sh2_service() — may block briefly on I2C
+
+        // Copy decoded values into the shared snapshot.  Mutex is held only
+        // long enough to copy 10 floats — well under a microsecond.
+        mutex_enter_blocking(&g_imu_mutex);
+        g_imu_snap.qi = IMU_SENSOR.getQuatI();
+        g_imu_snap.qj = IMU_SENSOR.getQuatJ();
+        g_imu_snap.qk = IMU_SENSOR.getQuatK();
+        g_imu_snap.qr = IMU_SENSOR.getQuatReal();
+        g_imu_snap.gx = IMU_SENSOR.getGyroX();
+        g_imu_snap.gy = IMU_SENSOR.getGyroY();
+        g_imu_snap.gz = IMU_SENSOR.getGyroZ();
+        g_imu_snap.ax = IMU_SENSOR.getLinAccelX();
+        g_imu_snap.ay = IMU_SENSOR.getLinAccelY();
+        g_imu_snap.az = IMU_SENSOR.getLinAccelZ();
+        mutex_exit(&g_imu_mutex);
+
+        sleep_us(500);          // ~2 kHz service rate, plenty for 100 Hz IMU
+    }
+}
+
+// ---------------------------------------------------------------------------
 //                                   main
 // ---------------------------------------------------------------------------
 int main()
@@ -143,7 +223,7 @@ int main()
     stdio_init_all();
     sleep_ms(2000);
 
-    // ---- Hardware ----
+    // ---- Hardware (core 0 owned) ----
     Ultrasonic USRM_FRONT("Front", "ON", USRM_FRONT_TRIG, USRM_FRONT_ECHO);
     Ultrasonic USRM_BACK ("Back",  "ON", USRM_BACK_TRIG,  USRM_BACK_ECHO );
     Ultrasonic USRM_RIGHT("Right", "ON", USRM_RIGHT_TRIG, USRM_RIGHT_ECHO);
@@ -151,7 +231,7 @@ int main()
 
     Motor      MOTOR("MOTORS", "ON", L_DIR, L_PWM, R_DIR, R_PWM,
                     /*invert_left*/  true,
-                    /*invert_right*/ false);
+                    /*invert_right*/ true);
 
     Encoder    LEFT_ENCODER ("L_ENC", "ON",
                             ENC_L_A, ENC_L_B,
@@ -160,9 +240,7 @@ int main()
     Encoder    RIGHT_ENCODER("R_ENC", "ON",
                             ENC_R_A, ENC_R_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                            /*invert*/ false);
-
-    IMU        IMU_SENSOR("IMU", "ON", i2c0, IMU_SDA, IMU_SCL);
+                            /*invert*/ true);
 
     // PID per wheel — m/s setpoint vs m/s measured -> PID *correction* term
     // (NOT raw duty cycle anymore).  Output limited to ±0.5 so the
@@ -174,9 +252,15 @@ int main()
     USRM_RIGHT.ShowStatus(); USRM_LEFT.ShowStatus();
     MOTOR.ShowStatus();
     LEFT_ENCODER.ShowStatus(); RIGHT_ENCODER.ShowStatus();
-    IMU_SENSOR.init(); IMU_SENSOR.ShowStatus();
 
-    // ---- micro-ROS init ----
+    // ---- Launch core 1 (IMU loop) ----------------------------------------
+    // Done BEFORE micro-ROS init so the IMU is already producing data by
+    // the time the first control tick runs.  The handshake is purely the
+    // g_imu_ready flag — we don't block waiting for it.
+    mutex_init(&g_imu_mutex);
+    multicore_launch_core1(core1_entry);
+
+    // ---- micro-ROS init (core 0) ----
     rmw_uros_set_custom_transport(
         true, NULL,
         pico_serial_transport_open,  pico_serial_transport_close,
@@ -232,36 +316,32 @@ int main()
     printf("micro-ROS ready, listening on /cmd_vel\n");
 
     // -----------------------------------------------------------------------
-    //                              Main loop @ 100 Hz
+    //                              Main loop @ 100 Hz   (CORE 0)
     // -----------------------------------------------------------------------
-    uint64_t loop_last  = 0;
     uint8_t  usrm_index = 0;
     uint8_t  usrm_div_counter = 0;
-    uint8_t imu_div_counter = 0;
+    uint8_t  imu_div_counter = 0;
 
     // Smoothed (slew-rate-limited) setpoints.  These are what actually feed
     // the PID — NOT the raw target_vel_*_mps values written by cmd_vel.
     float setpoint_l_smooth = 0.0f;
     float setpoint_r_smooth = 0.0f;
 
-    constexpr float LOOP_DT_S        = 0.01f;                       // 100 Hz
-    constexpr float MAX_VEL_STEP_MPS = MAX_ACCEL_MPS2 * LOOP_DT_S;  // 0.005 m/s
+    constexpr float    LOOP_DT_S        = 0.01f;                       // 100 Hz
+    constexpr float    MAX_VEL_STEP_MPS = MAX_ACCEL_MPS2 * LOOP_DT_S;  // 0.005 m/s
+    constexpr uint64_t LOOP_PERIOD_US   = 10000ULL;                    // 10 ms
 
     while (true)
     {
-        // 0. Pace at 100 Hz
-        uint64_t now = time_us_64();
-        if (now - loop_last < 10000ULL) {
-            tight_loop_contents();
-            continue;
-        }
-        loop_last = now;
+        // ===== 0. Mark the start of this control tick =====
+        uint64_t loop_start = time_us_64();
 
-        // 1. Pump the ROS executor
+        // ===== 1. Pump the ROS executor =====
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(2));
 
-        // 2a. Fire one ultrasonic per Nth tick (round-robin).  Spaced out so
-        //    a blocking HC-SR04 echo doesn't corrupt PID timing every loop.
+        // ===== 2a. Fire one ultrasonic per Nth tick (round-robin) =====
+        //  Spaced out so a blocking HC-SR04 echo doesn't corrupt PID timing
+        //  every loop.
         if (usrm_div_counter == 0) {
             switch (usrm_index) {
                 case 0:
@@ -289,28 +369,32 @@ int main()
         }
         usrm_div_counter = (usrm_div_counter + 1) % USRM_DIVIDER;
 
-        // 2b. Pump IMU every tick; publish at IMU_DIVIDER rate
-        IMU_SENSOR.update();
-        if (imu_div_counter == 0) {
-            imu_msg.orientation.x         = IMU_SENSOR.getQuatI();
-            imu_msg.orientation.y         = IMU_SENSOR.getQuatJ();
-            imu_msg.orientation.z         = IMU_SENSOR.getQuatK();
-            imu_msg.orientation.w         = IMU_SENSOR.getQuatReal();
-            imu_msg.angular_velocity.x    = IMU_SENSOR.getGyroX();
-            imu_msg.angular_velocity.y    = IMU_SENSOR.getGyroY();
-            imu_msg.angular_velocity.z    = IMU_SENSOR.getGyroZ();
-            imu_msg.linear_acceleration.x = IMU_SENSOR.getLinAccelX();
-            imu_msg.linear_acceleration.y = IMU_SENSOR.getLinAccelY();
-            imu_msg.linear_acceleration.z = IMU_SENSOR.getLinAccelZ();
+        // ===== 2b. IMU runs on core 1 — just snapshot and publish here =====
+        if (imu_div_counter == 0 && g_imu_ready) {
+            ImuSnapshot snap;
+            mutex_enter_blocking(&g_imu_mutex);
+            snap = g_imu_snap;                  // tiny struct copy under lock
+            mutex_exit(&g_imu_mutex);
+
+            imu_msg.orientation.x         = snap.qi;
+            imu_msg.orientation.y         = snap.qj;
+            imu_msg.orientation.z         = snap.qk;
+            imu_msg.orientation.w         = snap.qr;
+            imu_msg.angular_velocity.x    = snap.gx;
+            imu_msg.angular_velocity.y    = snap.gy;
+            imu_msg.angular_velocity.z    = snap.gz;
+            imu_msg.linear_acceleration.x = snap.ax;
+            imu_msg.linear_acceleration.y = snap.ay;
+            imu_msg.linear_acceleration.z = snap.az;
             set_msg_stamp(&imu_msg.header);
             RCCHECK(rcl_publish(&imu_pub, &imu_msg, NULL));
         }
         imu_div_counter = (imu_div_counter + 1) % IMU_DIVIDER;
 
-        // 3. Snapshot raw setpoint (m/s).  Apply cmd_vel watchdog timeout.
+        // ===== 3. Snapshot raw setpoint (m/s) + cmd_vel watchdog =====
         float setpoint_l_raw = target_vel_l_mps;
         float setpoint_r_raw = target_vel_r_mps;
-        if (now - last_cmd_vel_time_us > CMD_VEL_TIMEOUT_US) {
+        if (loop_start - last_cmd_vel_time_us > CMD_VEL_TIMEOUT_US) {
             setpoint_l_raw = 0.0f;
             setpoint_r_raw = 0.0f;
         }
@@ -320,8 +404,8 @@ int main()
         setpoint_l_raw = clampf(setpoint_l_raw, -V_MAX_MPS, V_MAX_MPS);
         setpoint_r_raw = clampf(setpoint_r_raw, -V_MAX_MPS, V_MAX_MPS);
 
-        // 4. Directional safety E-stop  (METRES vs METRES, no unit hacks)
-        float v_avg        = 0.5f * (setpoint_l_raw + setpoint_r_raw);
+        // ===== 4. Directional safety E-stop =====
+        float v_avg         = 0.5f * (setpoint_l_raw + setpoint_r_raw);
         bool  want_forward  = (v_avg >  DIRECTION_DEADZONE_MPS);
         bool  want_backward = (v_avg < -DIRECTION_DEADZONE_MPS);
         float d_front       = usrm_front_msg.range;
@@ -333,34 +417,28 @@ int main()
             setpoint_l_raw = 0.0f; setpoint_r_raw = 0.0f;
         }
 
-        // 5. Slew-rate limit setpoint.  This is the new line that kills
-        //    instant 0 -> V_MAX transients regardless of who published.
+        // ===== 5. Slew-rate limit setpoint =====
         setpoint_l_smooth = slew(setpoint_l_smooth, setpoint_l_raw, MAX_VEL_STEP_MPS);
         setpoint_r_smooth = slew(setpoint_r_smooth, setpoint_r_raw, MAX_VEL_STEP_MPS);
 
-        // 6. Closed-loop velocity control
+        // ===== 6. Closed-loop velocity control =====
         //
-        //         setpoint (m/s) ---+--> [Feedforward: setpoint / V_MAX] -----+
-        //                           |                                        |
-        //                           +--> [PID error vs measured] -- correction
-        //                                                                    |
-        //                                            +-----------------------+
-        //                                            v
-        //                                     duty cycle ∈ [-1, 1]
+        //   setpoint (m/s) ---+--> [Feedforward: setpoint / V_MAX] -----+
+        //                     |                                        |
+        //                     +--> [PID error vs measured] -- correction
+        //                                                              |
+        //                                      +-----------------------+
+        //                                      v
+        //                               duty cycle ∈ [-1, 1]
         //
-        //  Feedforward provides ~80% of the duty needed for steady state.
-        //  PID handles disturbances, model mismatch, friction asymmetry.
         float meas_l = LEFT_ENCODER .get_vel();
         float meas_r = RIGHT_ENCODER.get_vel();
 
         float duty_l, duty_r;
 
-        // Treat "essentially zero" setpoint as a commanded stop.  Use
-        // fabsf-with-threshold rather than == 0.0f because the slew-limited
-        // signal will pass through tiny non-zero values on its way to zero.
         constexpr float STOP_THRESHOLD_MPS = 1e-3f;
-        bool commanded_stop =   (fabsf(setpoint_l_smooth) < STOP_THRESHOLD_MPS) &&
-                                (fabsf(setpoint_r_smooth) < STOP_THRESHOLD_MPS);
+        bool commanded_stop = (fabsf(setpoint_l_smooth) < STOP_THRESHOLD_MPS) &&
+                              (fabsf(setpoint_r_smooth) < STOP_THRESHOLD_MPS);
 
         if (commanded_stop) {
             LEFT_PID .reset();
@@ -368,7 +446,7 @@ int main()
             duty_l = 0.0f;
             duty_r = 0.0f;
         } else {
-            float ff_l = setpoint_l_smooth / V_MAX_MPS;   // feedforward (open-loop estimate)
+            float ff_l = setpoint_l_smooth / V_MAX_MPS;
             float ff_r = setpoint_r_smooth / V_MAX_MPS;
 
             float pid_l = LEFT_PID .calculate(setpoint_l_smooth, meas_l);
@@ -378,14 +456,24 @@ int main()
             duty_r = clampf(ff_r + pid_r, -1.0f, 1.0f);
         }
 
-        // 7. Drive motors (Motor handles wiring polarity internally)
+        // ===== 7. Drive motors =====
         MOTOR.move(duty_l, duty_r);
 
-        // 8. Publish encoder ticks (sign-corrected by Encoder class itself)
+        // ===== 8. Publish encoder ticks =====
         enc_left_msg .data = LEFT_ENCODER .get_count();
         enc_right_msg.data = RIGHT_ENCODER.get_count();
         RCCHECK(rcl_publish(&enc_left_pub,  &enc_left_msg,  NULL));
         RCCHECK(rcl_publish(&enc_right_pub, &enc_right_msg, NULL));
+
+        // ===== 9. Pace at 100 Hz =====
+        //  Busy-wait until 10 ms has elapsed since loop_start.  If the work
+        //  above ever overruns 10 ms (e.g. an exceptionally slow ultrasonic),
+        //  we skip the wait and run straight into the next tick — there is
+        //  no time compensation, by design.  Watch for this with a logic
+        //  analyser on GP_x if you suspect overruns.
+        while ((time_us_64() - loop_start) < LOOP_PERIOD_US) {
+            tight_loop_contents();
+        }
     }
     return 0;
 }

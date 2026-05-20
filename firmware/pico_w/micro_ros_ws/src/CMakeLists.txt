@@ -34,16 +34,18 @@ add_executable(pico_micro_ros
 
 target_link_libraries(pico_micro_ros
     pico_stdlib
+    pico_multicore        # Core 1 launch (multicore_launch_core1)
+    pico_sync             # mutex_t / mutex_enter_blocking / mutex_exit
     hardware_pwm
     hardware_gpio
     hardware_sync
-    hardware_i2c          
+    hardware_i2c
     microros
 )
 
 target_include_directories(pico_micro_ros PUBLIC
     ${MICROROS_INCLUDE_DIR}
-    ${SH2_DIR}            
+    ${SH2_DIR}
 )
 
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
