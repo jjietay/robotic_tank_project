@@ -364,7 +364,7 @@ Video 2 shows the simple E-stop function using my ultrasonic sensors. It will st
    :width: 500px
    :align: center
 
-   Figure 13: Finished Hardware
+   Figure 14: Finished Hardware
 
 I decided to first brush up on my concept of PID controller. Having studied this in theory and now using it irl, it was a step up. I knew that i should first begin with P, and gradually add in I and D and tune in base on how the car reacts.
 
@@ -379,7 +379,48 @@ I also added a slew rate that allows for smoother acceleration and deceleration.
    :width: 500px
    :align: center
 
-   Figure 13: Finished Hardware
+   Figure 15: Finished Hardware
 
 PID controller works fine, but while moving the car, the coupler **snapped once again**. Since this entire project is self-funded and I have blasted a hole through my wallet, I had to save future costs of remaking and repurchasing this coupler and motor. Therefore, I decided to just get a full tank kit with correctly sized motors with encoders to ensure reliability. This way I can focus on what matters more, which is my SLAM and higher level algorithms. Though, what I 3D designed, the chassis and coupler, I wouldn't say its a waste of time since I did learn quite abit from this.
+
+
+12 May 2026 — New Kit
+-----------------------------
+.. figure:: ../_images/reflections_img16.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 16: In progress
+
+Figure 16 shows my new chassis halfway built. Had to think about placement of sensors, how to fit my lidar on top, ensuring maximum usage of space in this smaller chassis. Also had to ensure that weight is at best equally distributed.
+
+.. figure:: ../_images/reflections_img17-.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 17: New IMU
+
+Figure 17 shows a new IMU I bought. It is the BN0085 which has 9 degree of freedom. During implementation, I ensured that it is in the geometrical center of my build with z axis facing upwards, etc.
+
+.. figure:: ../_images/reflections_img18.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 18: Soldering
+
+Figure 18 shows some soldering work that I also did with this new kit. Mainly for the motor's connections.
+
+.. figure:: ../_images/reflections_img19.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 19: URDF
+
+Figure 19 shows the new model that i built as a urdf file and visualized using urdf-visualizer extension in vscode. I used provided chassis and ultrasonic sensors stl files in this design. I also added frame links in relation to base link.
+
+Since the motor is completely new, I tested the max speed and minimum duty cycle using debug code. I used encoder counts to estimate the distance and calculated the speed at max duty cycle (using time from my stopwatch). As for minimum duty cycle, I create a debug code that steps down the duty cycle every 3 seconds, and I can manually count and see at which duty cycle the car can no longer move.
 
