@@ -2,25 +2,26 @@
 # ---------------------------------------------------------------------------
 #                   teleop.py  —  Manual WASD driving (ROS 2)
 # ---------------------------------------------------------------------------
-#  Publishes geometry_msgs/Twist on /cmd_vel.  Sends raw setpoints in m/s 
-#  and rad/s — the firmware applies its own slew-rate limiting, so this
-#  node does NOT need to ramp on its own side.  When a brain / nav2 node
-#  takes over later, it can publish to the same topic with the same
-#  conventions and motion will be smooth automatically.
-#
 #  Controls:
 #      W / S    forward / backward   (linear.x = ± V_MAX_MPS)
 #      A / D    spin left / right    (angular.z = ± MAX_ANGULAR)
 #      Space    explicit stop
 #      Q        quit
 #
-#  Holding a key pulses ~30–50 Hz from the OS key-repeat.  If no key has
-#  been seen for HOLD_TIMEOUT_MS, the node publishes a zero Twist so the
-#  robot stops on key-release.
+#  Design: tracks an ACTIVE command as state and publishes it every timer
+#  tick at 50 Hz, regardless of whether a key event arrived this tick.
+#  This avoids jitter from the OS key-repeat initial delay (~500 ms on
+#  macOS), which would otherwise trigger the hold-timeout and send a
+#  spurious STOP before repeat events begin.
+#
+#  HOLD_TIMEOUT_MS must be > the OS initial key-repeat delay so the robot
+#  doesn't stop during that window.  600 ms works for the macOS default.
+#  After releasing a key, the robot stops within one key-repeat interval
+#  (≈33 ms) + HOLD_TIMEOUT_MS.
 # ---------------------------------------------------------------------------
 
 import sys
-import termios 
+import termios
 import tty
 import select
 import time
@@ -29,13 +30,12 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
-HOLD_TIMEOUT_MS = 200.0
-WHEEL_BASE_M    = 0.1488
-# Slow cruise speed for manual driving.  Keeping this well above the
-# minimum-duty floor (~0.17 m/s at 0.28 duty) prevents the motors from
-# stalling in the deadband.  Raise towards 0.60 once the tank is stable.
-V_MAX_MPS       = 0.25
-MAX_ANGULAR     = V_MAX_MPS / (WHEEL_BASE_M / 2.0)
+# Must be longer than the OS initial key-repeat delay (≈500 ms on macOS).
+HOLD_TIMEOUT_MS = 600.0
+
+WHEEL_BASE_M = 0.1488
+V_MAX_MPS    = 0.25                              # slow cruise; raise once stable
+MAX_ANGULAR  = V_MAX_MPS / (WHEEL_BASE_M / 2.0)
 
 
 def configure_terminal():
@@ -50,8 +50,9 @@ def restore_terminal(original):
     termios.tcsetattr(fd, termios.TCSADRAIN, original)
 
 
-def read_key(fd, timeout_ms):
-    rlist, _, _ = select.select([fd], [], [], timeout_ms / 1000.0)
+def read_key(fd):
+    """Non-blocking single-character read. Returns None if no key available."""
+    rlist, _, _ = select.select([fd], [], [], 0.0)
     if rlist:
         return sys.stdin.read(1)
     return None
@@ -60,47 +61,49 @@ def read_key(fd, timeout_ms):
 class TeleopNode(Node):
     def __init__(self):
         super().__init__('teleop')
-
         self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
 
-        self.last_cmd      = 'X'
-        self.last_key_time = time.time()
+        # Active command state — published every tick until hold-timeout clears it.
+        self.active_linear  = 0.0
+        self.active_angular = 0.0
+        self.active_label   = 'X'
+        self.last_key_time  = time.time()
 
         self.fd, self.original = configure_terminal()
         self.get_logger().info(
             'Hold WASD to drive, release to stop. Space = stop, Q = quit.'
         )
 
-        # 50 Hz publish loop is plenty — firmware smooths anyway.
+        # Publish at 50 Hz — active command is sent every tick.
         self.timer = self.create_timer(0.02, self.timer_callback)
 
     # ------------------------------------------------------------------
-    #                          Twist builders
+    #                          Helpers
     # ------------------------------------------------------------------
     @staticmethod
-    def _twist(linear_x: float = 0.0, angular_z: float = 0.0) -> Twist:
+    def _make_twist(linear_x: float = 0.0, angular_z: float = 0.0) -> Twist:
         t = Twist()
         t.linear.x  = float(linear_x)
         t.angular.z = float(angular_z)
         return t
 
-    def _publish(self, cmd_label: str, twist: Twist) -> None:
-        if cmd_label != self.last_cmd:
-            self.last_cmd = cmd_label
-            sys.stdout.write(f'\rCMD: {cmd_label}   ')
+    def _set_active(self, label: str, linear: float, angular: float) -> None:
+        """Update active command state and log on change."""
+        if label != self.active_label:
+            self.active_label = label
+            sys.stdout.write(f'\rCMD: {label}   ')
             sys.stdout.flush()
-        self.cmd_pub.publish(twist)
+        self.active_linear  = linear
+        self.active_angular = angular
 
     def _shutdown(self) -> None:
-        # Best-effort: send a zero Twist so the firmware watchdog isn't the
-        # only thing stopping the robot.
         try:
-            self.cmd_pub.publish(self._twist())
+            self.cmd_pub.publish(self._make_twist())
         except Exception:
             pass
-        sys.stdout.write('\rCMD: Stop   ')
+        sys.stdout.write('\rCMD: Stop   \n')
         sys.stdout.flush()
-        self.get_logger().info('Q pressed, shutting down teleop node.')
+        self.get_logger().info('Q pressed — shutting down.')
         try:
             restore_terminal(self.original)
         except Exception:
@@ -112,35 +115,39 @@ class TeleopNode(Node):
         rclpy.shutdown()
 
     # ------------------------------------------------------------------
-    #                          Main timer
+    #                          Main timer (50 Hz)
     # ------------------------------------------------------------------
     def timer_callback(self):
         try:
-            key = read_key(self.fd, 0.0)
+            key = read_key(self.fd)
 
             if key is not None:
+                # A key event arrived — update active command and reset timeout.
                 self.last_key_time = time.time()
 
                 if key in ('w', 'W'):
-                    self._publish('W', self._twist(linear_x=V_MAX_MPS))
+                    self._set_active('W',  V_MAX_MPS,  0.0)
                 elif key in ('s', 'S'):
-                    self._publish('S', self._twist(linear_x=-V_MAX_MPS))
+                    self._set_active('S', -V_MAX_MPS,  0.0)
                 elif key in ('a', 'A'):
-                    self._publish('A', self._twist(angular_z=MAX_ANGULAR))
+                    self._set_active('A',  0.0,  MAX_ANGULAR)
                 elif key in ('d', 'D'):
-                    self._publish('D', self._twist(angular_z=-MAX_ANGULAR))
+                    self._set_active('D',  0.0, -MAX_ANGULAR)
                 elif key == ' ':
-                    self._publish('X', self._twist())
+                    self._set_active('X',  0.0,  0.0)
                 elif key in ('q', 'Q'):
                     self._shutdown()
                     return
             else:
-                # No key seen this tick — if it's been long enough since the
-                # last keypress, treat the key as released and stop.
-                now_s = time.time()
-                if (now_s - self.last_key_time) * 1000.0 >= HOLD_TIMEOUT_MS:
-                    if self.last_cmd != 'X':
-                        self._publish('X', self._twist())
+                # No key this tick — check hold-timeout for key-release detection.
+                elapsed_ms = (time.time() - self.last_key_time) * 1000.0
+                if elapsed_ms >= HOLD_TIMEOUT_MS:
+                    self._set_active('X', 0.0, 0.0)
+
+            # Always publish the active command every tick.
+            self.cmd_pub.publish(
+                self._make_twist(self.active_linear, self.active_angular)
+            )
 
         except Exception as e:
             self.get_logger().error(f'Error in teleop loop: {e}')
