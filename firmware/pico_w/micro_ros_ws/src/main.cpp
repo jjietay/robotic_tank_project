@@ -2,29 +2,17 @@
 //                       main.cpp  —  micro-ROS robot core loop
 // ---------------------------------------------------------------------------
 //  Responsibility split:
-//    • config.hpp     — pins / geometry / gains
+//    • config.hpp     — pins / geometry / thresholds
 //    • electronics.*  — common base class
 //    • ultrasonic.*   — HC-SR04 distance (METRES)
 //    • motor.*        — Cytron MDD10A duty-cycle driver
-//    • encoder.*      — quadrature wheel encoder (m/s, sign-corrected)
-//    • pid.*          — discrete PID with anti-windup
+//    • encoder.*      — quadrature wheel encoder (tick counter)
 //    • main.cpp       — micro-ROS plumbing and the 100 Hz control loop (CORE 0)
 //    • imu.*          — BNO085 orientation / gyro / linear-accel (CORE 1)
 //
-//  Units convention:  ALL velocities are m/s, ALL distances are metres.
-//  No [-1, 1] velocity normalisation anywhere.  The only [-1, 1] saturation
-//  in the codebase is on PWM duty cycle, which is a hardware physical limit.
-// ---------------------------------------------------------------------------
-//
-//  Changes vs previous version:
-//    1. Slew-rate limited setpoint  — kills 0->V_MAX step transients
-//    2. Velocity feedforward         — PID only corrects residual error
-//    3. Ultrasonic divider           — protects 100 Hz PID timing
-//    4. fabsf() near-zero compare    — replaces fragile float == 0 test
-//    5. BNO085 IMU added — quaternion, gyro, linear accel on /sensors/imu
-//    6. IMU moved to CORE 1          — sh2_service() can no longer stall
-//                                      the 100 Hz control loop on I2C.
-//    7. Loop pacing moved to END     — timestamp at start, busy-wait at end.
+//  Control mode: OPEN LOOP
+//    cmd_vel (m/s) is converted directly to a duty cycle via
+//    duty = velocity / V_MAX_MPS.  No PID, no slew rate.
 // ---------------------------------------------------------------------------
 
 #include "pico/stdlib.h"
@@ -55,7 +43,6 @@ extern "C" {
 #include "ultrasonic.hpp"
 #include "motor.hpp"
 #include "encoder.hpp"
-#include "pid.hpp"
 #include "imu.hpp"
 
 #define RCCHECK(fn) { rcl_ret_t rc = (fn); \
@@ -147,17 +134,6 @@ static void set_msg_stamp(std_msgs__msg__Header* header)
     header->stamp.nanosec = (now_us % 1000000ULL) * 1000ULL;
 }
 
-//  Slew-rate limit a single setpoint towards its target.  Caps how fast the
-//  commanded velocity can change per loop iteration, which prevents step
-//  inputs from teleop / brain node from causing PID transients.
-static inline float slew(float current, float target, float max_step)
-{
-    float delta = target - current;
-    if (delta >  max_step) delta =  max_step;
-    if (delta < -max_step) delta = -max_step;
-    return current + delta;
-}
-
 //  Saturate a value to a closed interval.  Used for clamping duty cycle
 //  after feedforward + PID summation.
 static inline float clampf(float x, float lo, float hi)
@@ -244,12 +220,6 @@ int main()
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
                             /*invert*/ true);
 
-    // PID per wheel — m/s setpoint vs m/s measured -> PID *correction* term
-    // (NOT raw duty cycle anymore).  Output limited to ±0.5 so the
-    // feedforward stays in charge and PID can only nudge.
-    PID LEFT_PID (PID_KP, PID_KI, PID_KD, -0.5f, 0.5f, 0.5f);
-    PID RIGHT_PID(PID_KP, PID_KI, PID_KD, -0.5f, 0.5f, 0.5f);
-
     USRM_FRONT.ShowStatus(); USRM_BACK.ShowStatus();
     USRM_RIGHT.ShowStatus(); USRM_LEFT.ShowStatus();
     MOTOR.ShowStatus();
@@ -324,14 +294,7 @@ int main()
     uint8_t  usrm_div_counter = 0;
     uint8_t  imu_div_counter = 0;
 
-    // Smoothed (slew-rate-limited) setpoints.  These are what actually feed
-    // the PID — NOT the raw target_vel_*_mps values written by cmd_vel.
-    float setpoint_l_smooth = 0.0f;
-    float setpoint_r_smooth = 0.0f;
-
-    constexpr float    LOOP_DT_S        = 0.01f;                       // 100 Hz
-    constexpr float    MAX_VEL_STEP_MPS = MAX_ACCEL_MPS2 * LOOP_DT_S;  // 0.005 m/s
-    constexpr uint64_t LOOP_PERIOD_US   = 10000ULL;                    // 10 ms
+    constexpr uint64_t LOOP_PERIOD_US = 10000ULL;  // 100 Hz = 10 ms
 
     while (true)
     {
@@ -393,95 +356,44 @@ int main()
         }
         imu_div_counter = (imu_div_counter + 1) % IMU_DIVIDER;
 
-        // ===== 3. Snapshot raw setpoint (m/s) + cmd_vel watchdog =====
-        float setpoint_l_raw = target_vel_l_mps;
-        float setpoint_r_raw = target_vel_r_mps;
+        // ===== 3. Snapshot setpoint + cmd_vel watchdog =====
+        float vel_l = target_vel_l_mps;
+        float vel_r = target_vel_r_mps;
         if (loop_start - last_cmd_vel_time_us > CMD_VEL_TIMEOUT_US) {
-            setpoint_l_raw = 0.0f;
-            setpoint_r_raw = 0.0f;
+            vel_l = 0.0f;
+            vel_r = 0.0f;
         }
 
-        // Saturate raw setpoint to physical max BEFORE slew-rate limiting,
-        // so the smoother can't be asked to reach an unreachable target.
-        setpoint_l_raw = clampf(setpoint_l_raw, -V_MAX_MPS, V_MAX_MPS);
-        setpoint_r_raw = clampf(setpoint_r_raw, -V_MAX_MPS, V_MAX_MPS);
-
         // ===== 4. Directional safety E-stop =====
-        float v_avg         = 0.5f * (setpoint_l_raw + setpoint_r_raw);
+        float v_avg         = 0.5f * (vel_l + vel_r);
         bool  want_forward  = (v_avg >  DIRECTION_DEADZONE_MPS);
         bool  want_backward = (v_avg < -DIRECTION_DEADZONE_MPS);
         float d_front       = usrm_front_msg.range;
         float d_back        = usrm_back_msg.range;
         if (want_forward  && d_front > 0.0f && d_front < FRONT_STOP_DIST_M) {
-            setpoint_l_raw = 0.0f; setpoint_r_raw = 0.0f;
+            vel_l = 0.0f; vel_r = 0.0f;
         }
         if (want_backward && d_back  > 0.0f && d_back  < BACK_STOP_DIST_M) {
-            setpoint_l_raw = 0.0f; setpoint_r_raw = 0.0f;
+            vel_l = 0.0f; vel_r = 0.0f;
         }
 
-        // ===== 5. Slew-rate limit setpoint =====
-        setpoint_l_smooth = slew(setpoint_l_smooth, setpoint_l_raw, MAX_VEL_STEP_MPS);
-        setpoint_r_smooth = slew(setpoint_r_smooth, setpoint_r_raw, MAX_VEL_STEP_MPS);
+        // ===== 5. Open-loop duty: velocity → duty cycle =====
+        //   duty = vel / V_MAX_MPS  (clamped to [-1, 1])
+        //   motor.cpp deadband lifts any non-zero duty below MOTOR_MIN_DUTY
+        //   up to MOTOR_MIN_DUTY so the motors never stall silently.
+        float duty_l = clampf(vel_l / V_MAX_MPS, -1.0f, 1.0f);
+        float duty_r = clampf(vel_r / V_MAX_MPS, -1.0f, 1.0f);
 
-        // ===== 6. Closed-loop velocity control =====
-        //
-        //   setpoint (m/s) ---+--> [Feedforward: setpoint / V_MAX] -----+
-        //                     |                                        |
-        //                     +--> [PID error vs measured] -- correction
-        //                                                              |
-        //                                      +-----------------------+
-        //                                      v
-        //                               duty cycle ∈ [-1, 1]
-        //
-        float meas_l = LEFT_ENCODER .get_vel();
-        float meas_r = RIGHT_ENCODER.get_vel();
-
-        float duty_l, duty_r;
-
-        constexpr float STOP_THRESHOLD_MPS = 1e-3f;
-        bool commanded_stop = (fabsf(setpoint_l_smooth) < STOP_THRESHOLD_MPS) &&
-                              (fabsf(setpoint_r_smooth) < STOP_THRESHOLD_MPS);
-
-        if (commanded_stop) {
-            LEFT_PID .reset();
-            RIGHT_PID.reset();
-            duty_l = 0.0f;
-            duty_r = 0.0f;
-        } else {
-            // Map any sub-minimum setpoint to V_MIN_MPS so the PID and
-            // feedforward never chase a speed the motor physically cannot
-            // reach.  Without this, the slew ramp passes through the
-            // 0..V_MIN zone where the motor runs at ~V_MIN (lifted by the
-            // deadband) while the setpoint is tiny — the resulting large
-            // negative P-correction pushes duty negative, which the deadband
-            // then snaps to -MOTOR_MIN_DUTY, driving the robot backward.
-            float ctrl_l = setpoint_l_smooth;
-            float ctrl_r = setpoint_r_smooth;
-            if (fabsf(ctrl_l) < V_MIN_MPS)
-                ctrl_l = (ctrl_l > 0.0f) ? V_MIN_MPS : -V_MIN_MPS;
-            if (fabsf(ctrl_r) < V_MIN_MPS)
-                ctrl_r = (ctrl_r > 0.0f) ? V_MIN_MPS : -V_MIN_MPS;
-
-            float ff_l = ctrl_l / V_MAX_MPS;
-            float ff_r = ctrl_r / V_MAX_MPS;
-
-            float pid_l = LEFT_PID .calculate(ctrl_l, meas_l);
-            float pid_r = RIGHT_PID.calculate(ctrl_r, meas_r);
-
-            duty_l = clampf(ff_l + pid_l, -1.0f, 1.0f);
-            duty_r = clampf(ff_r + pid_r, -1.0f, 1.0f);
-        }
-
-        // ===== 7. Drive motors =====
+        // ===== 6. Drive motors =====
         MOTOR.move(duty_l, duty_r);
 
-        // ===== 8. Publish encoder ticks =====
+        // ===== 7. Publish encoder ticks =====
         enc_left_msg .data = LEFT_ENCODER .get_count();
         enc_right_msg.data = RIGHT_ENCODER.get_count();
         RCCHECK(rcl_publish(&enc_left_pub,  &enc_left_msg,  NULL));
         RCCHECK(rcl_publish(&enc_right_pub, &enc_right_msg, NULL));
 
-        // ===== 9. Pace at 100 Hz =====
+        // ===== 8. Pace at 100 Hz =====
         //  Busy-wait until 10 ms has elapsed since loop_start.  If the work
         //  above ever overruns 10 ms (e.g. an exceptionally slow ultrasonic),
         //  we skip the wait and run straight into the next tick — there is
