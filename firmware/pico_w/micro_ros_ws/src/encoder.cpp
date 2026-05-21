@@ -89,13 +89,36 @@ float Encoder::get_vel()
     int      current_count = count;
     restore_interrupts(saved);
 
+    // First call: snapshot the count baseline and return 0.  Without this,
+    // any ticks accumulated between construction and the first get_vel()
+    // call (micro-ROS init can block on the agent, and the wheels can be
+    // bumped during that window) would be averaged over the entire elapsed
+    // time, producing a small but spurious initial velocity that feeds
+    // straight into the PID on the first control tick.
+    if (first_vel_call) {
+        last_count     = current_count;
+        last_time      = now;
+        first_vel_call = false;
+        return 0.0f;
+    }
+
     float dt_s        = (float)time_diff_us * 1e-6f;
     int   count_diff  = current_count - last_count;
     float distance_m  = ((float)count_diff / counts_per_output_rev) * circumference_m;
 
+    float vel_mps = distance_m / dt_s;
+
+    // First call: seed the filter with the first real reading
+    // rather than blending from zero, which would cause a slow
+    // ramp-up artifact on startup.
+    if (vel_filtered == 0.0f && vel_mps != 0.0f) {
+        vel_filtered = vel_mps;
+    } else {
+        vel_filtered = 0.8f * vel_filtered + 0.2f * vel_mps;
+    }
+
     last_time  = now;
     last_count = current_count;
 
-    float vel_mps = distance_m / dt_s;
-    return invert ? -vel_mps : vel_mps;
+    return invert ? -vel_filtered : vel_filtered;
 }

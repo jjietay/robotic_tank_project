@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-//                       main.cpp  —  micro-ROS robot core loop
+//                  main.cpp  —  micro-ROS robot core loop
 // ---------------------------------------------------------------------------
 //  Responsibility split:
 //    • config.hpp     — pins / geometry / thresholds
@@ -10,9 +10,9 @@
 //    • main.cpp       — micro-ROS plumbing and the 100 Hz control loop (CORE 0)
 //    • imu.*          — BNO085 orientation / gyro / linear-accel (CORE 1)
 //
-//  Control mode: OPEN LOOP
-//    cmd_vel (m/s) is converted directly to a duty cycle via
-//    duty = velocity / V_MAX_MPS.  No PID, no slew rate.
+//  Control mode: CLOSED LOOP — feedforward + PID velocity control
+//    Feedforward: duty = vel / V_MAX_MPS  (handles ~80% of the work)
+//    PID corrects the residual error between setpoint and encoder velocity.
 // ---------------------------------------------------------------------------
 
 #include "pico/stdlib.h"
@@ -43,10 +43,22 @@ extern "C" {
 #include "ultrasonic.hpp"
 #include "motor.hpp"
 #include "encoder.hpp"
+#include "pid.hpp"
 #include "imu.hpp"
 
 #define RCCHECK(fn) { rcl_ret_t rc = (fn); \
     if (rc != RCL_RET_OK) { printf("RCL error %ld at %s:%d\n", rc, __FILE__, __LINE__); } }
+
+// ---------------------------------------------------------------------------
+//  PID + feedforward tuning
+//  Feedforward handles ~80% of the work; PID corrects the residual.
+//  If sluggish:   raise KP first, then KI slightly.
+//  If oscillates: lower KP, then KD.
+// ---------------------------------------------------------------------------
+static constexpr float KP          = 0.8f;
+static constexpr float KI          = 0.5f;
+static constexpr float KD          = 0.02f;
+static constexpr float PID_OUT_MAX = 0.25f;  // PID nudge capped at ±25% duty
 
 // ---------------------------------------------------------------------------
 //                              micro-ROS handles
@@ -89,8 +101,8 @@ struct ImuSnapshot {
     float ax, ay, az;         // linear acceleration (m/s², gravity removed)
 };
 static ImuSnapshot g_imu_snap = {0.0f, 0.0f, 0.0f, 1.0f,   // identity quat
-                                 0.0f, 0.0f, 0.0f,
-                                 0.0f, 0.0f, 0.0f};
+                                0.0f, 0.0f, 0.0f,
+                                0.0f, 0.0f, 0.0f};
 static mutex_t        g_imu_mutex;
 static volatile bool  g_imu_ready = false;   // set by core 1 once SH2 is up
 
@@ -219,6 +231,9 @@ int main()
                             ENC_R_A, ENC_R_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
                             /*invert*/ true);
+
+    PID pid_l(KP, KI, KD, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
+    PID pid_r(KP, KI, KD, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
 
     USRM_FRONT.ShowStatus(); USRM_BACK.ShowStatus();
     USRM_RIGHT.ShowStatus(); USRM_LEFT.ShowStatus();
@@ -357,9 +372,16 @@ int main()
         imu_div_counter = (imu_div_counter + 1) % IMU_DIVIDER;
 
         // ===== 3. Snapshot setpoint + cmd_vel watchdog =====
+        //  IMPORTANT: compare against time_us_64() (current time), NOT
+        //  loop_start.  rclc_executor_spin_some() above can deliver a fresh
+        //  cmd_vel and stamp last_cmd_vel_time_us with a value > loop_start.
+        //  With uint64_t arithmetic, loop_start - last_cmd_vel_time_us would
+        //  then underflow to ~2^64 and spuriously trigger the watchdog,
+        //  zeroing every fresh command.  Using "now" instead also correctly
+        //  charges any time spent inside spin_some against the watchdog.
         float vel_l = target_vel_l_mps;
         float vel_r = target_vel_r_mps;
-        if (loop_start - last_cmd_vel_time_us > CMD_VEL_TIMEOUT_US) {
+        if ((time_us_64() - last_cmd_vel_time_us) > CMD_VEL_TIMEOUT_US) {
             vel_l = 0.0f;
             vel_r = 0.0f;
         }
@@ -377,12 +399,22 @@ int main()
             vel_l = 0.0f; vel_r = 0.0f;
         }
 
-        // ===== 5. Open-loop duty: velocity → duty cycle =====
-        //   duty = vel / V_MAX_MPS  (clamped to [-1, 1])
-        //   motor.cpp deadband lifts any non-zero duty below MOTOR_MIN_DUTY
-        //   up to MOTOR_MIN_DUTY so the motors never stall silently.
-        float duty_l = clampf(vel_l / V_MAX_MPS, -1.0f, 1.0f);
-        float duty_r = clampf(vel_r / V_MAX_MPS, -1.0f, 1.0f);
+        // ===== 5. Feedforward + PID velocity control =====
+        float meas_l = LEFT_ENCODER.get_vel();
+        float meas_r = RIGHT_ENCODER.get_vel();
+
+        float duty_l, duty_r;
+        if (vel_l == 0.0f && vel_r == 0.0f) {
+            pid_l.reset();
+            pid_r.reset();
+            duty_l = 0.0f;
+            duty_r = 0.0f;
+        } else {
+            float ff_l = clampf(vel_l / V_MAX_MPS, -1.0f, 1.0f);
+            float ff_r = clampf(vel_r / V_MAX_MPS, -1.0f, 1.0f);
+            duty_l = clampf(ff_l + pid_l.calculate(vel_l, meas_l), -1.0f, 1.0f);
+            duty_r = clampf(ff_r + pid_r.calculate(vel_r, meas_r), -1.0f, 1.0f);
+        }
 
         // ===== 6. Drive motors =====
         MOTOR.move(duty_l, duty_r);

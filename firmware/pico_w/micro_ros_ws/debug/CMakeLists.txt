@@ -17,6 +17,8 @@ link_directories(${MICROROS_LIB_DIR})
 add_executable(tank_debug
     main.cpp
     ../src/motor.cpp
+    ../src/encoder.cpp
+    ../src/pid.cpp
     ../src/pico_uart_transport.c
 )
 

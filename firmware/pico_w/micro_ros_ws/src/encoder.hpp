@@ -16,7 +16,8 @@ class Encoder : public Electronics
 {
 public:
     static constexpr int MAX_ENCODERS = 2;     // bump if you add more wheels
-
+    float vel_filtered = 0.0f;
+    
 private:
     uint     pin_a, pin_b;
     float    reduction_ratio;
@@ -27,8 +28,13 @@ private:
     bool     invert;
 
     volatile int count = 0;                    // written from ISR
-    int          last_count = 0;
-    uint64_t     last_time  = 0;
+    int          last_count    = 0;
+    uint64_t     last_time     = 0;
+    bool         first_vel_call = true;        // gate the first get_vel() call
+                                               // so it can baseline last_count
+                                               // against any ticks accumulated
+                                               // between construction and first
+                                               // use (see encoder.cpp).
 
     static Encoder*     instances[MAX_ENCODERS];
     static volatile int instance_count;
