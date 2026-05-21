@@ -5,60 +5,61 @@
 #include "pico/time.h"
 
 PID::PID(float _kp, float _ki, float _kd, float out_min, float out_max, float i_max) 
-    : kp(_kp), ki(_ki), kd(_kd), integral_max(i_max), output_min(out_min), output_max(out_max), last_time(time_us_64())
+    : kp(_kp), ki(_ki), kd(_kd), integral_max(i_max),
+    pwm_out_min(out_min), pwm_out_max(out_max), last_time(time_us_64())
 {}
 
 float PID::calculate(float setpoint, float measured)
 {
+    // Calculation of dt (loop supposed to run at 100Hz, meaning dt should be 10ms)
     uint64_t now = time_us_64();
-    float    dt  = (float)(now - last_time) * 1e-6f;    // in seconds, last_time was init time_us_64 in constructor
+    float dt = (float)(now - last_time) * 1e-6f;
 
-    // in the event of jitters (lag), we don't want dt to accumulate
+    // Prevents dt from accumulating in the event of jitters/lag
     if (dt <= 0.0f || dt > 0.5f) dt = 0.01f;
 
-    float error = setpoint - measured;  // error
+    // Error calculation
+    float error = setpoint - measured;
 
-    // ---- P ----
-    float p_term = kp * error;      // kp is just "how much" PWM to tweak per unit error to tweak such that we can reduce the error
+    // P Term
+    // max_p_term = max_error * kp = 0.60 * 1.5 = 0.9
+    float p_term = kp * error;
 
-    // ---- I (with hard clamp; back-calc happens after output saturation) ----
+    // I Term with hard clamp
     integral += error * dt;
     if (integral >  integral_max) integral =  integral_max;     // clamp to max value
     if (integral < -integral_max) integral = -integral_max;     // clamp to min value
     float i_term = ki * integral;                               // get I term
 
-    // ---- D (skip on the very first call) ----
+    // D Term (we skip for the first call)
     float d_term = 0.0f;
-    if (!first_run) {      // for first run, previous_error would be 0. So we need 1st run
-        d_term = kd * (error - previous_error) / dt;
-    }
+    if (!first_run) {d_term = kd * (error - previous_error) / dt;}
     first_run = false;
 
-    float u = p_term + i_term + d_term; // pwm to set
+    // PWM value from adding all PID terms
+    float pwm_to_set = p_term + i_term + d_term;
 
-    // ---- Output saturation + anti-windup back-calculation ----
-    if (u > output_max) {   // limit to output_max, also windup for I part
-        if (ki > 1e-6f) integral -= (u - output_max) / ki;
-        u = output_max;
-    } else if (u < output_min) {    // limit to min output
-        if (ki > 1e-6f) integral += (output_min - u) / ki;
-        u = output_min;
+    // Anti-integral windup
+    if (pwm_to_set > pwm_out_max)
+    {
+        if (ki > 1e-6f) integral -= (pwm_to_set - pwm_out_max) / ki;
+        pwm_to_set = pwm_out_max;
+    }
+    else if (pwm_to_set < pwm_out_min)
+    {
+        if (ki > 1e-6f) integral += (pwm_out_min - pwm_to_set) / ki;
+        pwm_to_set = pwm_out_min;
     }
 
     previous_error = error;
-    last_time      = now;
-    return u;   // returns pwm value
+    last_time = now;
+    return pwm_to_set;
 }
 
 void PID::reset()
 {
-    integral       = 0.0f;
+    integral = 0.0f;
     previous_error = 0.0f;
-    first_run      = true;
-    last_time      = time_us_64();
+    first_run = true;
+    last_time = time_us_64();
 }
-
-
-/*
-We know that we want the output, u, of the PID controller to just give us the PWM value we should set. 
-*/

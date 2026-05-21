@@ -2,7 +2,7 @@
 //                       motor.hpp  —  Cytron MDD10A driver
 // ---------------------------------------------------------------------------
 //  Accepts a duty cycle in [-1, 1].  -1 = full reverse, 0 = stop, +1 = full
-//  forward.  This is the only place the [-1, 1] saturation lives — it is a
+//  forward.  This is the only place the [-1, 1] saturation lives, it is a
 //  HARDWARE limit of the PWM peripheral, not a normalisation of velocity.
 //
 //  Each side has an `invert` flag so the wiring polarity is encapsulated
@@ -16,13 +16,13 @@
 class Motor : public Electronics
 {
 private:
-    uint  l_dir_pin, l_pwm_pin;
-    uint  r_dir_pin, r_pwm_pin;
-    bool  l_invert, r_invert;
+    uint  l_dir_pin, l_pwm_pin; // left motor pins
+    uint  r_dir_pin, r_pwm_pin; // right motor pins
+    bool  l_invert, r_invert;   // inverting flags
     float l_trim,   r_trim;     // per-motor scale ∈ (0, 1] — hardware balance
 
-    void setup_pwm(uint pin);
-    void set_one_side(uint dir_pin, uint pwm_pin, float duty);
+    void setup_pwm(uint pin);   // initialization
+    void set_one_side(uint dir_pin, uint pwm_pin, float duty);  // Set raw PWM per side
 
 public:
     Motor(std::string name, std::string status,

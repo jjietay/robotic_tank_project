@@ -4,8 +4,10 @@
 #include "hardware/pwm.h"
 #include <cmath>
 
+// Initialization
 void Motor::setup_pwm(uint pin)
 {
+    // Initialization of pins
     gpio_set_function(pin, GPIO_FUNC_PWM);
     uint slice = pwm_gpio_to_slice_num(pin);
     pwm_set_wrap(slice, PWM_TOP);
@@ -13,16 +15,7 @@ void Motor::setup_pwm(uint pin)
     pwm_set_enabled(slice, true);
 }
 
-void Motor::set_one_side(uint dir_pin, uint pwm_pin, float duty)
-{
-    // Hardware saturation — duty cycle physically cannot exceed 100 %.
-    if (duty >  1.0f) duty =  1.0f;
-    if (duty < -1.0f) duty = -1.0f;
-
-    gpio_put(dir_pin, duty >= 0.0f ? 1 : 0);
-    pwm_set_gpio_level(pwm_pin, (uint16_t)(std::fabs(duty) * (float)PWM_TOP));
-}
-
+// Constructor
 Motor::Motor(std::string name_, std::string status_,
             uint l_dir, uint l_pwm, uint r_dir, uint r_pwm,
             bool invert_left, bool invert_right,
@@ -39,32 +32,47 @@ Motor::Motor(std::string name_, std::string status_,
     setup_pwm(r_pwm_pin);
 }
 
+// Set 1 motor
+void Motor::set_one_side(uint dir_pin, uint pwm_pin, float duty)
+{
+    // Keep max and min duty cycle within [-1, 1]
+    if (duty >  1.0f) duty =  1.0f;
+    if (duty < -1.0f) duty = -1.0f;
+
+    // If duty is +ve, means forward, we pull dir_pin to high
+    gpio_put(dir_pin, duty >= 0.0f ? 1 : 0);
+    
+    // Set raw PWM to particular pwm_pin
+    pwm_set_gpio_level(pwm_pin, (uint16_t)(std::fabs(duty) * (float)PWM_TOP));
+}
+
+// Move both motors
 void Motor::move(float duty_left, float duty_right)
 {
-    // Apply per-motor trim first — still in the logical domain where
-    // positive always means "forward", so the scale is always a magnitude
-    // reduction regardless of direction.
+    // this changes level of duty cycle with based on trim factor
     duty_left  *= l_trim;
     duty_right *= r_trim;
 
-    // Deadband compensation — applied HERE, before polarity inversion, so
-    // "positive = forward" is still true.  Lifting a small positive value
-    // after inversion would make it negative (backward), which was the bug.
-    // Any non-zero magnitude below the stiction floor is snapped up to it.
+    // Deadband compensation helps to ensure min duty of
+    // commanded duty_left and duty_right is not less than 0, and not less than min_duty
     if (duty_left  > 0.0f && duty_left  < MOTOR_MIN_DUTY)  duty_left  =  MOTOR_MIN_DUTY;
     if (duty_left  < 0.0f && duty_left  > -MOTOR_MIN_DUTY) duty_left  = -MOTOR_MIN_DUTY;
     if (duty_right > 0.0f && duty_right < MOTOR_MIN_DUTY)  duty_right =  MOTOR_MIN_DUTY;
     if (duty_right < 0.0f && duty_right > -MOTOR_MIN_DUTY) duty_right = -MOTOR_MIN_DUTY;
 
-    // Now flip polarity to match hardware wiring.
+    // Flip polarity (if invert is True)
     if (l_invert) duty_left  = -duty_left;
     if (r_invert) duty_right = -duty_right;
+
+    // Send the actual raw PWM to pins to drive motor
     set_one_side(l_dir_pin, l_pwm_pin, duty_left);
     set_one_side(r_dir_pin, r_pwm_pin, duty_right);
 }
 
+// Stopping function
 void Motor::stop()
 {
+    // Stop both motors
     set_one_side(l_dir_pin, l_pwm_pin, 0.0f);
     set_one_side(r_dir_pin, r_pwm_pin, 0.0f);
 }
