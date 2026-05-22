@@ -39,3 +39,6 @@ uv.lock
 docs/terminal.md
 docs/_build/
 picotool-src/
+
+_local_setup_util_sh.py
+_local_setup_util_ps1.py
