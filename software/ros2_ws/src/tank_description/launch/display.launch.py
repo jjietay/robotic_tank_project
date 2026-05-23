@@ -45,6 +45,13 @@ def generate_launch_description():
             output='screen',
         ),
 
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            name='joint_state_publisher',
+            output='screen',
+        ),
+
         # RViz2 — loads saved config if present, otherwise opens with defaults
         Node(
             package='rviz2',
