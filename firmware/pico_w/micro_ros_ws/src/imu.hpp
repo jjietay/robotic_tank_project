@@ -79,22 +79,20 @@ public:
     bool update();
 
     // ---- Rotation vector (unit quaternion, magnetometer-fused) --------------
-    float getQuatI()    const { return _qi; }
-    float getQuatJ()    const { return _qj; }
-    float getQuatK()    const { return _qk; }
-    float getQuatReal() const { return _qr; }
+    float getQuatI() const{return _qi;}
+    float getQuatJ() const{return _qj;}
+    float getQuatK() const{return _qk;}
+    float getQuatReal() const {return _qr;}
 
     // ---- Calibrated angular velocity (rad/s) ---------------------------------
-    float getGyroX() const { return _gx; }
-    float getGyroY() const { return _gy; }
-    float getGyroZ() const { return _gz; }
+    float getGyroX() const{return _gx;}
+    float getGyroY() const{return _gy;}
+    float getGyroZ() const{return _gz;}
 
     // ---- Linear acceleration with gravity removed (m/s²) --------------------
-    float getLinAccelX() const { return _ax; }
-    float getLinAccelY() const { return _ay; }
-    float getLinAccelZ() const { return _az; }
-
-    bool isReady() const { return _ready; }
+    float getLinAccelX() const{return _ax;}
+    float getLinAccelY() const{return _ay;}
+    float getLinAccelZ() const{return _az;}
 
     void ShowStatus();
 
@@ -109,11 +107,10 @@ private:
     static IMU*        _instance;
 
     // SH2 HAL callbacks
-    static int      hal_open    (sh2_Hal_t* self);
-    static void     hal_close   (sh2_Hal_t* self);
-    static int      hal_read    (sh2_Hal_t* self, uint8_t* buf,
-                                 unsigned len, uint32_t* t_us);
-    static int      hal_write   (sh2_Hal_t* self, uint8_t* buf, unsigned len);
+    static int hal_open(sh2_Hal_t* self);
+    static void hal_close(sh2_Hal_t* self);
+    static int hal_read(sh2_Hal_t* self, uint8_t* buf, unsigned len, uint32_t* t_us);
+    static int hal_write(sh2_Hal_t* self, uint8_t* buf, unsigned len);
     static uint32_t hal_get_time(sh2_Hal_t* self);
 
     // SH2 async-event callback (resets, shutdowns) — required by sh2_open()
@@ -121,19 +118,19 @@ private:
 
     // SH2 sensor-event callback — registered via sh2_setSensorCallback()
     static void on_sensor_event(void* cookie, sh2_SensorEvent_t* evt);
-    void        handle_event   (sh2_SensorEvent_t* evt);
+    void handle_event (sh2_SensorEvent_t* evt);
 
     // Instance fields
-    const char*  _name;
-    const char*  _status;
-    i2c_inst_t*  _i2c;
-    uint         _sda;
-    uint         _scl;
-    uint32_t     _freq;
-    bool         _ready;
+    const char* _name;
+    const char* _status;
+    i2c_inst_t* _i2c;
+    uint _sda;
+    uint _scl;
+    uint32_t _freq;
+    bool _ready;
 
     // Latest sensor values
-    float _qi, _qj, _qk, _qr;   // quaternion  (real = _qr)
-    float _gx, _gy, _gz;         // gyroscope   (rad/s)
-    float _ax, _ay, _az;         // lin. accel  (m/s²)
+    float _qi, _qj, _qk, _qr;   // quaternion (real = _qr)
+    float _gx, _gy, _gz;        // gyroscope (rad/s)
+    float _ax, _ay, _az;        // lin. accel (m/s²)
 };

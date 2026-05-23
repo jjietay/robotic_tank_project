@@ -22,7 +22,7 @@ float PID::calculate(float setpoint, float measured)
     float error = setpoint - measured;
 
     // P Term
-    // max_p_term = max_error * kp = 0.60 * 1.5 = 0.9
+    // max_p_term = max_error * kp = 0.60 * 0.8 = 0.48
     float p_term = kp * error;
 
     // I Term with hard clamp

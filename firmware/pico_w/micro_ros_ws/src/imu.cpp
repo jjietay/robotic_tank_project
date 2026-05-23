@@ -11,9 +11,9 @@
 // ---------------------------------------------------------------------------
 //  Static member definitions
 // ---------------------------------------------------------------------------
-sh2_Hal_t   IMU::_hal      = {};
-i2c_inst_t* IMU::_s_i2c   = nullptr;        
-IMU*        IMU::_instance = nullptr;
+sh2_Hal_t IMU::_hal = {};
+i2c_inst_t* IMU::_s_i2c = nullptr;        
+IMU* IMU::_instance = nullptr;
 
 // ---------------------------------------------------------------------------
 //  HAL: open
@@ -65,7 +65,7 @@ int IMU::hal_read(sh2_Hal_t*, uint8_t* buf, unsigned len, uint32_t* t_us)
 {
     if (!_s_i2c || len < 4) return 0;
 
-    int rc = i2c_read_blocking(_s_i2c, BNO085_I2C_ADDR, buf, len, false);
+    int rc = i2c_read_timeout_us(_s_i2c, BNO085_I2C_ADDR, buf, len, false, 10000);
     if (rc < 4) return 0;   // negative = NACK or timeout; < 4 = incomplete header
 
     // Parse cargo length and mask off the continuation bit in byte 1
@@ -88,7 +88,7 @@ int IMU::hal_read(sh2_Hal_t*, uint8_t* buf, unsigned len, uint32_t* t_us)
 int IMU::hal_write(sh2_Hal_t*, uint8_t* buf, unsigned len)
 {
     if (!_s_i2c) return 0;
-    int rc = i2c_write_blocking(_s_i2c, BNO085_I2C_ADDR, buf, len, false);
+    int rc = i2c_write_timeout_us(_s_i2c, BNO085_I2C_ADDR, buf, len, false, 10000);
     return (rc == (int)len) ? (int)len : 0;
 }
 
@@ -113,14 +113,19 @@ void IMU::on_async_event(void* /*cookie*/, sh2_AsyncEvent_t* evt)
     if (!_instance) return;
 
     if (evt->eventId == SH2_RESET) {
-        printf("[%s] BNO085 reset detected — re-enabling reports\n",
-               _instance->_name);
+        printf("[%s] BNO085 reset detected — re-enabling reports\n", _instance->_name);
 
         sh2_SensorConfig_t cfg = {};
-        cfg.reportInterval_us  = IMU_REPORT_US;
-        sh2_setSensorConfig(SH2_ROTATION_VECTOR,      &cfg);
-        sh2_setSensorConfig(SH2_GYROSCOPE_CALIBRATED, &cfg);
-        sh2_setSensorConfig(SH2_LINEAR_ACCELERATION,  &cfg);
+        cfg.reportInterval_us = IMU_REPORT_US;
+        if (sh2_setSensorConfig(SH2_ROTATION_VECTOR, &cfg) != SH2_OK) {
+            printf("[%s] Failed to re-enable SH2_ROTATION_VECTOR\n", _instance->_name);
+        }
+        if (sh2_setSensorConfig(SH2_GYROSCOPE_CALIBRATED, &cfg) != SH2_OK) {
+            printf("[%s] Failed to re-enable SH2_GYROSCOPE_CALIBRATED\n", _instance->_name);
+        }
+        if (sh2_setSensorConfig(SH2_LINEAR_ACCELERATION, &cfg) != SH2_OK) {
+            printf("[%s] Failed to re-enable SH2_LINEAR_ACCELERATION\n", _instance->_name);
+        }
     }
 }
 
@@ -209,10 +214,10 @@ bool IMU::init()
     gpio_pull_up(_scl);
 
     // ---- Wire up SH2 HAL ---------------------------------------------------
-    _hal.open      = hal_open;
-    _hal.close     = hal_close;
-    _hal.read      = hal_read;
-    _hal.write     = hal_write;
+    _hal.open = hal_open;
+    _hal.close = hal_close;
+    _hal.read = hal_read;
+    _hal.write = hal_write;
     _hal.getTimeUs = hal_get_time;
 
     // ---- Open SH2 transport (async-event callback is optional) -------------

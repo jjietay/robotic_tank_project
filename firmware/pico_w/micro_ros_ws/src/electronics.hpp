@@ -20,6 +20,6 @@ public:
     Electronics(std::string device_name, std::string device_status)
         : name(std::move(device_name)), status(std::move(device_status)) {}
 
-    void ShowStatus()  const { printf("%s initialised.\n",  name.c_str()); }
-    void CheckStatus() const { printf("%s disconnected.\n", name.c_str()); }
+    void ShowStatus() const {printf("%s [%s] initialised.\n", name.c_str(), status.c_str());}
+    void CheckStatus() const {printf("%s disconnected.\n", name.c_str());}
 };

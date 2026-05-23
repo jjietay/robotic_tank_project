@@ -26,5 +26,4 @@ public:
     //   -1.0  → echo never went HIGH (no object / wiring fault)
     //   -2.0  → echo stuck HIGH past timeout
     float update();
-    float get_distance() const { return last_distance_m; }
 };

@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
 //                          config.hpp  —  Robot constants
 // ---------------------------------------------------------------------------
-//  Single source of truth for pin assignments, robot geometry, controller
-//  gains and safety thresholds.  ALL physical quantities are SI (metres,
-//  seconds, m/s, rad/s).
+//  Contains pin assignments, robot geometry, controller gains and 
+//  safety thresholds.  ALL physical quantities are in
+//  SI (metres, seconds, m/s, rad/s).
 // ---------------------------------------------------------------------------
 
 #pragma once
@@ -15,100 +15,74 @@
 constexpr uint ENC_L_A = 16, ENC_L_B = 17;
 constexpr uint ENC_R_A = 18, ENC_R_B = 19;
 
-constexpr uint L_DIR   = 0,  L_PWM   = 8;
-constexpr uint R_DIR   = 2,  R_PWM   = 9;
+constexpr uint L_DIR = 0, L_PWM = 8;
+constexpr uint R_DIR = 2, R_PWM = 9;
 
 constexpr uint USRM_FRONT_TRIG = 10, USRM_FRONT_ECHO = 11;
-constexpr uint USRM_BACK_TRIG  = 14, USRM_BACK_ECHO  = 15;
+constexpr uint USRM_BACK_TRIG = 14, USRM_BACK_ECHO = 15;
 constexpr uint USRM_RIGHT_TRIG = 12, USRM_RIGHT_ECHO = 13;
-constexpr uint USRM_LEFT_TRIG  =  6, USRM_LEFT_ECHO  =  7;
+constexpr uint USRM_LEFT_TRIG = 6, USRM_LEFT_ECHO = 7;
 
 // ---------------------------------------------------------------------------
-//                              Hardware Limits
+//                             Hardware Limits
 // ---------------------------------------------------------------------------
-constexpr uint  PWM_TOP = 6249;
+constexpr uint PWM_TOP = 6249;
 
-// Minimum PWM duty cycle that overcomes motor stiction (measured empirically).
-// Any non-zero duty below this value is automatically lifted to this floor so
-// the motors never stall in the deadband and cause the PID to lurch.
+// Minimum PWM duty cycle that overcomes motor stiction
 constexpr float MOTOR_MIN_DUTY = 0.15f;
 
-// Per-motor output trim factors ∈ (0, 1].  Left motor runs stronger, so we
-// scale it down to drive straight.  Adjust LEFT_MOTOR_TRIM until the tank
-// tracks a straight line at cruising speed.  Start here and fine-tune by
-// 0.01 increments: if still drifting right, lower it; if overcorrected, raise it.
-constexpr float LEFT_MOTOR_TRIM  = 1.00f;
+// Trim factor for balancing motor strength
+constexpr float LEFT_MOTOR_TRIM = 1.00f;
 constexpr float RIGHT_MOTOR_TRIM = 1.00f;
 
 // ---------------------------------------------------------------------------
-//                              Robot Geometry  (METRES)
+//                       Robot Geometry (in metres)
 // ---------------------------------------------------------------------------
-constexpr float WHEEL_DIAMETER_M = 0.0423f;     // 42.3 mm
-constexpr float WHEEL_BASE_M     = 0.1488f;     // distance between L & R wheels
-constexpr float GEAR_REDUCTION   = 30.0f;
-constexpr int   ENCODER_PPR      = 13;           // raw pulses per motor rev (pre-gearbox)
-constexpr float V_MAX_MPS        = 0.60f;        // max wheel surface speed at full PWM
+constexpr float WHEEL_DIAMETER_M = 0.0423f;
+constexpr float WHEEL_BASE_M = 0.1488f; // distance between L & R wheels
+constexpr float GEAR_REDUCTION = 30.0f;
+constexpr int   ENCODER_PPR = 13;       // raw pulses per motor rev
+constexpr float ENC_EMA_ALPHA = 0.2f;
+constexpr float V_MAX_MPS = 0.60f;      // max wheel surface speed at full PWM
 
-// Minimum controllable speed — the wheel speed produced by MOTOR_MIN_DUTY.
-// The PID setpoint is never allowed to fall between 0 and this value so that
-// the controller is never chasing a speed the motor physically cannot sustain.
-constexpr float V_MIN_MPS = MOTOR_MIN_DUTY * V_MAX_MPS;  // ≈ 0.168 m/s
-
-// ---------------------------------------------------------------------------
-//                              Safety / E-stop  (METRES, METRES-PER-SECOND)
-// ---------------------------------------------------------------------------
-constexpr float FRONT_STOP_DIST_M       = 0.15f;
-constexpr float BACK_STOP_DIST_M        = 0.15f;
-constexpr float DIRECTION_DEADZONE_MPS  = 0.02f;
+// Minimum controllable speed
+constexpr float V_MIN_MPS = MOTOR_MIN_DUTY * V_MAX_MPS;
 
 // ---------------------------------------------------------------------------
-//                              PID Gains
+//                Safety / E-stop  (METRES, METRES-PER-SECOND)
 // ---------------------------------------------------------------------------
-//  Output is duty cycle in [-1, 1].  Error is in m/s.
-//
-//  Tuning context (assumes V_MAX_MPS = 0.20):
-//    - Feedforward provides ~80% of the duty.  PID only corrects residual.
-//    - Kp small enough that worst-case error (0.20) gives ~0.30 P-term, well
-//      below saturation, so PID stays in linear regime.
-//    - Ki provides slow integral correction without runaway.
-//    - Kd damps overshoot from the feedforward step.
-//
-//  If still unstable: halve Kp and Ki together.
-//  If sluggish: raise Kp first, then Ki.
-constexpr float PID_KP = 1.5f;    // was 6.0 — reduced to keep PID in linear regime
-constexpr float PID_KI = 2.0f;    // was 10.0 — slower integral, less wind-up
-constexpr float PID_KD = 0.05f;   // was 0.0 — small damping term added
+constexpr float FRONT_STOP_DIST_M = 0.15f;
+constexpr float BACK_STOP_DIST_M  = 0.15f;
+constexpr float DIRECTION_DEADZONE_MPS = 0.02f;
 
 // ---------------------------------------------------------------------------
-//                              Motion Smoothing
+//                               PID Gains
 // ---------------------------------------------------------------------------
-//  Slew-rate limit on the velocity setpoint, applied in the firmware so that
-//  ANY publisher (teleop, brain node, joystick…) gets smooth motion without
-//  having to ramp on its own side.
-//
-//  At 0.5 m/s² and 100 Hz loop, max change per tick = 0.005 m/s.
-//  A 0 -> V_MAX (0.20 m/s) ramp takes 40 ticks = 400 ms.  Tweak to taste.
-constexpr float MAX_ACCEL_MPS2 = 0.5f;
+//  Output is duty cycle in [-1, 1], error is in m/s,
+// Feedforward provides ~80% of the duty while PID only corrects residual
+constexpr float KP = 0.8f;
+constexpr float KI = 0.5f;
+constexpr float KD = 0.02f;
+constexpr float PID_OUT_MAX = 0.25f;
 
 // ---------------------------------------------------------------------------
-//                              Ultrasonic Scheduling
+//                         Ultrasonic Scheduling
 // ---------------------------------------------------------------------------
 //  HC-SR04 reads block for up to ~30 ms while waiting for the echo timeout.
 //  Firing one every loop iteration corrupts the 100 Hz PID timing.  Instead
 //  we fire one only every USRM_DIVIDER iterations.  With DIVIDER = 3 and a
 //  4-sensor round-robin, each individual sensor updates at ~8 Hz — fine for
-//  collision avoidance at our top speed of 0.20 m/s (= 25 mm of travel
-//  between readings worst case).
-constexpr uint  USRM_DIVIDER = 3;
+//  collision avoidance at our top speed
+constexpr uint USRM_DIVIDER = 3;
 
 // ---------------------------------------------------------------------------
-//                              Watchdog
+//                Watchdog (500 ms — stop if no cmd_vel)
 // ---------------------------------------------------------------------------
-constexpr uint64_t CMD_VEL_TIMEOUT_US = 500000ULL;  // 500 ms — stop if no cmd_vel
+constexpr uint64_t CMD_VEL_TIMEOUT_US = 500000ULL;
 
 // ---------------------------------------------------------------------------
-//                              IMU (BNO085 — I2C0)
+//                        IMU (BNO085 — I2C0)
 // ---------------------------------------------------------------------------
-constexpr uint IMU_SDA     = 4;   // GP4 — free on current pinout
-constexpr uint IMU_SCL     = 5;   // GP5 — free on current pinout
+constexpr uint IMU_SDA = 4;
+constexpr uint IMU_SCL = 5;
 constexpr uint IMU_DIVIDER = 2;   // publish at 50 Hz from the 100 Hz loop

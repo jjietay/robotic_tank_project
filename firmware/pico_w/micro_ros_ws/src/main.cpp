@@ -1,16 +1,16 @@
 // ---------------------------------------------------------------------------
-//                  main.cpp  —  micro-ROS robot core loop
+//                               main.cpp
 // ---------------------------------------------------------------------------
-//  Responsibility split:
-//    • config.hpp     — pins / geometry / thresholds
-//    • electronics.*  — common base class
-//    • ultrasonic.*   — HC-SR04 distance (METRES)
-//    • motor.*        — Cytron MDD10A duty-cycle driver
-//    • encoder.*      — quadrature wheel encoder (tick counter)
-//    • main.cpp       — micro-ROS plumbing and the 100 Hz control loop (CORE 0)
-//    • imu.*          — BNO085 orientation / gyro / linear-accel (CORE 1)
+//  Responsibilities:
+//      config.hpp  — contains all pins, geometry, thresholds
+//      electronics — common base class
+//      ultrasonic  — HC-SR04 distance (metres)
+//      motor       — Cytron MDD10A driver
+//      encoder     — quadrature hall encoder (tick counter + get_vel)
+//      main.cpp    — micro-ROS and the 100 Hz control loop (CORE 0)
+//      imu         — BNO085 orientation, gyro, linear-accel (CORE 1)
 //
-//  Control mode: CLOSED LOOP — feedforward + PID velocity control
+//   Control mode: Closed loop — feedforward + PID velocity control
 //    Feedforward: duty = vel / V_MAX_MPS  (handles ~80% of the work)
 //    PID corrects the residual error between setpoint and encoder velocity.
 // ---------------------------------------------------------------------------
@@ -49,44 +49,34 @@ extern "C" {
 #define RCCHECK(fn) { rcl_ret_t rc = (fn); \
     if (rc != RCL_RET_OK) { printf("RCL error %ld at %s:%d\n", rc, __FILE__, __LINE__); } }
 
-// ---------------------------------------------------------------------------
-//  PID + feedforward tuning
-//  Feedforward handles ~80% of the work; PID corrects the residual.
-//  If sluggish:   raise KP first, then KI slightly.
-//  If oscillates: lower KP, then KD.
-// ---------------------------------------------------------------------------
-static constexpr float KP          = 0.8f;
-static constexpr float KI          = 0.5f;
-static constexpr float KD          = 0.02f;
-static constexpr float PID_OUT_MAX = 0.25f;  // PID nudge capped at ±25% duty
 
 // ---------------------------------------------------------------------------
-//                              micro-ROS handles
+//                             micro-ROS handles
 // ---------------------------------------------------------------------------
 rcl_subscription_t cmd_vel_sub;
-rcl_publisher_t    usrm_front_pub, usrm_back_pub, usrm_left_pub, usrm_right_pub;
-rcl_publisher_t    enc_left_pub,   enc_right_pub;
-rcl_publisher_t    imu_pub;
+rcl_publisher_t usrm_front_pub, usrm_back_pub, usrm_left_pub, usrm_right_pub;
+rcl_publisher_t enc_left_pub, enc_right_pub;
+rcl_publisher_t imu_pub;
 
 geometry_msgs__msg__Twist cmd_vel_msg;
-sensor_msgs__msg__Range   usrm_front_msg, usrm_back_msg, usrm_left_msg, usrm_right_msg;
-std_msgs__msg__Int32      enc_left_msg, enc_right_msg;
-sensor_msgs__msg__Imu     imu_msg;
+sensor_msgs__msg__Range usrm_front_msg, usrm_back_msg, usrm_left_msg, usrm_right_msg;
+std_msgs__msg__Int32 enc_left_msg, enc_right_msg;
+sensor_msgs__msg__Imu imu_msg;
 
 rclc_executor_t executor;
 rclc_support_t  support;
 rcl_allocator_t allocator;
-rcl_node_t      node;
+rcl_node_t node;
 
 // ---------------------------------------------------------------------------
-//                              Shared state — cmd_vel
+//                         Shared state — cmd_vel
 // ---------------------------------------------------------------------------
-volatile float    target_vel_l_mps     = 0.0f;
-volatile float    target_vel_r_mps     = 0.0f;
-volatile uint64_t last_cmd_vel_time_us = 0;
+float target_vel_l_mps = 0.0f;
+float target_vel_r_mps = 0.0f;
+uint64_t last_cmd_vel_time_us = 0;
 
 // ---------------------------------------------------------------------------
-//                          Shared state — IMU (Core 1 → Core 0)
+//                  Shared state — IMU (Core 1 → Core 0)
 // ---------------------------------------------------------------------------
 //  Core 1 runs sh2_service() in a tight loop and copies the IMU readings
 //  into g_imu_snap under g_imu_mutex.  Core 0 grabs an atomic snapshot of
@@ -100,9 +90,11 @@ struct ImuSnapshot {
     float gx, gy, gz;         // calibrated gyroscope (rad/s)
     float ax, ay, az;         // linear acceleration (m/s², gravity removed)
 };
+
 static ImuSnapshot g_imu_snap = {0.0f, 0.0f, 0.0f, 1.0f,   // identity quat
                                 0.0f, 0.0f, 0.0f,
                                 0.0f, 0.0f, 0.0f};
+
 static mutex_t        g_imu_mutex;
 static volatile bool  g_imu_ready = false;   // set by core 1 once SH2 is up
 
@@ -112,7 +104,7 @@ static volatile bool  g_imu_ready = false;   // set by core 1 once SH2 is up
 static IMU IMU_SENSOR("IMU", "ON", i2c0, IMU_SDA, IMU_SCL);
 
 // ---------------------------------------------------------------------------
-//                              cmd_vel callback
+//                           cmd_vel callback
 // ---------------------------------------------------------------------------
 void cmd_vel_callback(const void* msg_in)
 {
@@ -127,27 +119,27 @@ void cmd_vel_callback(const void* msg_in)
 }
 
 // ---------------------------------------------------------------------------
-//                              Helpers
+//                               Helpers
 // ---------------------------------------------------------------------------
 static void init_range_msg(sensor_msgs__msg__Range* msg, uint8_t rad_type,
                         float fov, float min_r, float max_r)
 {
     msg->radiation_type = rad_type;
     msg->field_of_view  = fov;
-    msg->min_range      = min_r;
-    msg->max_range      = max_r;
-    msg->range          = 0.0f;
+    msg->min_range = min_r;
+    msg->max_range = max_r;
+    msg->range  = 0.0f;
 }
 
 static void set_msg_stamp(std_msgs__msg__Header* header)
 {
     uint64_t now_us = time_us_64();
-    header->stamp.sec     = now_us / 1000000ULL;
+    header->stamp.sec = now_us / 1000000ULL;
     header->stamp.nanosec = (now_us % 1000000ULL) * 1000ULL;
 }
 
-//  Saturate a value to a closed interval.  Used for clamping duty cycle
-//  after feedforward + PID summation.
+// Used for clamping duty cycle after feedforward + PID summation for
+// saturating a value to a closed interval
 static inline float clampf(float x, float lo, float hi)
 {
     if (x < lo) return lo;
