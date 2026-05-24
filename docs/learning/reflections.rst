@@ -9,15 +9,15 @@ while building the autonomous tank.
 Background
 ----------
 
-Past 2 years of Uni (Y1 & Y2) was just studying a lot of math and physics subjects. I studied really hard (was still adjusting from NS to Y1), took exams and then called it a day. But in Y3S2 (during my internship at ST Engineering), I realised that the modules taken in Y1-2 did not exactly prepare me enough for what I might face when I actually become an engineer. Therefore, I needed to take matters in my own hands and actually learn meaningful things that will help me in expanding my knowledge pool and also in my future career. 
+For the past 2 years of University, we had to study for a lot of math and physics subjects. I studied really hard, took exams and then called it a day. But in Y3S2 (during my internship at ST Engineering), I realised that the modules taken in Y1-2 did not exactly prepare me enough for what I might face in the future. Therefore, I needed to take matters in my own hands and actually learn meaningful things that will help me in expanding my knowledge pool and also in my future career. 
 
-I knew I wanted to do something related to my initial specialization, Robotics & Automation (now changed to ML). That's why I thought about a robotic car.
+I knew I wanted to do something related to robotics. That's why I thought about a robotic car.
 
-However, after dwelving into agentic AI quite a bit, I wanted to incorporate AI into my project. That's where Computer Vision comes in (I know agents and CV is quite different...). However, this project is a good precursor to my FYP which is incoporating Vision Language Action in robotic systems.
+However, after interning at ST Engineering, I wanted to incorporate computer vision into my project. This project is a good precursor to my FYP which is incoporating Vision Language Action in robotic systems, as it gives me a good understanding of Robotic systems are how they work in the software, middleware and hardware levels.
 
-I believe understanding the fundamentals of Ultrasonic Sensors, LIDARS, SLAM, ROS2, Nav2, will certainly give me an edge in robotics, especially when I would want to do something related to my FYP for my future job (AI + Robotics).
+I believe understanding the fundamentals of Electronic sensors like the HC-SR04, LIDARS, SLAM, ROS2, Nav2, will certainly give me a basic grasp in early days of robotics, certainly helping me with navigating modern robotics with VLA implementation for my FYP.
 
-Therefore, I decided to make Self-driving Robotic Car. Since, I extended my internship such that it ends just before Y4S1 starts, I decided that that should be my deadline. With all that yapping, lets move on with the timelines!
+Therefore, I decided to make Self-driving Robotic Car.
 
 ----
 
@@ -114,7 +114,7 @@ When I fitted the my bigger powerbank, everything changed. The whole system got 
 
    Figure 5: New chassis & motor
 
-From Figure 5, we can see that I am using the TP-101 chassis with 2 provided 33GB-520 motors.
+From Figure 5, we can see that I am using the TP-101 chassis with 2 provided 33GB-520 motors. The tank chassis certainly helped with distribution the weight across the tracks.
 
 The specifications of both are displayed in the table below.
 
@@ -422,4 +422,147 @@ Figure 18 shows some soldering work that I also did with this new kit. Mainly fo
 
 Figure 19 shows the new model that i built as a urdf file and visualized using urdf-visualizer extension in vscode. I used provided chassis and ultrasonic sensors stl files in this design. I also added frame links in relation to base link.
 
-Since the motor is completely new, I tested the max speed and minimum duty cycle using debug code. I used encoder counts to estimate the distance and calculated the speed at max duty cycle (using time from my stopwatch). As for minimum duty cycle, I create a debug code that steps down the duty cycle every 3 seconds, and I can manually count and see at which duty cycle the car can no longer move.
+.. figure:: ../_images/reflections_img20.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 20: Testing Notes
+
+From Figure 20, we can see my testing notes. I tested the max speed and minimum duty cycle using debug code. I used encoder counts to estimate the distance and calculated the speed at max duty cycle (using timer from my stopwatch). As for minimum duty cycle, I create a debug code that steps down the duty cycle every 3 seconds, and I can manually count and see at which duty cycle the car can no longer move. However, from all these testing, I noticed the somehow the right motor is significantly weaker than the left.
+
+
+20 May 2026 — Integration hell
+-------------------------------
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid3.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 3: Tank forward movement biasing right</figcaption>
+   </figure>
+
+From Video 3 above, we can see that the tank is moving to the right significantly. This meant that the left motor could be stronger than the right. After checking against the published encoder ticks, I could verify this as the ticks were off by about 25%.
+
+I thoroughly checked through my code because I thought it was a software issue, but there were nothing that caught my attention or could cause alarms.
+
+To minimize possibility of PID implementation issue, I ran a quick debug code to test the car via the same teleop node but without PID control (so purely open loop), but the same issue arised. Nevertheless, I went straight to my Motor Driver board to test. The Cytron MDD10A has 4 built-in testing buttons that allow for current to flow directly to the motors. 
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid4.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 4: Difference in sound between left and right motor</figcaption>
+   </figure>
+
+From Video 4, we can clearly hear the difference is sound of motor when its running at max speed. This is using the bypass test buttons built-in on the motor driver. My worry is that there is a manufacturing defact of the right motor. However to be very sure, I decided to switch the motor's Output A and B on the motor driver. Meaning left motor's wiring to driver is replaced with right motor's wiring to driver, and vice versa. This is to see if the motor driver is the issue. However, after switching same thing happened, meaning motor driver was never the issue. 
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid5.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 5: Clanking sound when shaking right motor</figcaption>
+   </figure>
+
+Video 5 represents a clanking sound when shaking the right motor after removing it. This was my last straw. I decided that it was a faulty motor.
+
+.. figure:: ../_images/reflections_img21.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 21: Motor Close Up
+
+Figure 21 shows the motor when I removed the gear cover. I didn't see anything odd, just poor lubrication. When I shake the motor I could still hear the clanging, and I knew it was something to do with the interal windings of the actual motor itself. But I decided not to pursue this any further and just purchase new motors (with spares cos I can't afford waiting 1.5 weeks whenever this happens).
+
+23 May 2026 — RViz & Gazebo
+---------------------------
+
+.. figure:: ../_images/reflections_img22.png
+   :alt: Before building
+   :width: 800px
+   :align: center
+
+   Figure 22: RViz
+
+Figure 22 shows my RViz model. Managed to set it up on my mac with much difficulty (thanks to apple sillicon). Below shows the steps I took to set it up.
+
+
+**On the Mac:**
+
+1) Installed ROS 2 Humble via conda robostack (``conda install -c robostack-staging ros-humble-desktop``)
+2) Built tank_description locally on Mac (``colcon build --packages-select tank_description``) so RViz can find the STL mesh files, because RViz resolves package:// paths locally
+3) Set ``AMENT_PREFIX_PATH`` in ``~/.zshrc`` to include both the conda env and the local tank_description install folder:
+
+.. code-block:: bash
+
+   export AMENT_PREFIX_PATH=/Users/jj/robotic_tank_project/software/ros2_ws/install/tank_description:/opt/homebrew/Caskroom/miniforge/base/envs/ros2
+
+4) Launched RViz, set Fixed Frame to base_link, added RobotModel display, set Description Topic to /robot_description and the robot model renders using topics from the Pi over WiFi
+
+**On the PI:**
+
+1) Created tank_description package with URDF (tank.urdf) containing all links such as chassis, wheels, ultrasonic sensors, LIDAR, IMU, platform, standoffs, with STL meshes referenced via ``package://tank_description/meshes/``
+
+2) Created a display.launch.py that launches ``robot_state_publisher`` (publishes ``/robot_description`` and ``/tf`` from the URDF) and ``joint_state_publisher`` (publishes ``/joint_states`` for non-fixed joints like wheels)
+
+3) launched with ros2 launch tank_description display.launch.py
+
+.. figure:: ../_images/reflections_img23.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 23: Gazebo
+
+Figure 23 shows Gazebo setup on my mac (also a pain due to apple's sillicon). Below shows the steps I took to set it up.
+
+
+**Installing SLAM Toolbox (on Mac):**
+
+1) Added the RoboStack staging channel (contains new/less stable packages) to the conda environment:
+
+.. code-block:: bash
+
+   conda config --env --add channels robostack-staging
+
+2) Installed slam_toolbox from the staging channel:
+
+.. code-block:: bash
+
+   conda install robostack-staging::ros-humble-slam-toolbox
+
+**Installing Gazebo Harmonic (on Mac):**
+
+1) Tapped the OSRF simulation Homebrew repository:
+
+.. code-block:: bash
+
+   brew tap osrf/simulation
+
+2) Installed Gz Harmonic (downloaded ~1GB of dependencies as pre-built bottles):
+
+.. code-block:: bash
+
+   brew install gz-harmonic
+
+3) Launched Gazebo using two terminals (macOS limitation where server and GUI must run separately):
+
+.. code-block:: bash
+
+   # Terminal 1
+   gz sim -s empty.sdf
+
+   # Terminal 2
+   gz sim -g
+
+4) Confirmed working — Gazebo GUI opened with empty world (ground plane, sun, entity tree visible)
