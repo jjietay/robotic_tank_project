@@ -16,6 +16,8 @@
 # ---------------------------------------------------------------------------
 
 import math
+import os
+import subprocess
 import time
 
 import serial
@@ -24,6 +26,26 @@ from adafruit_bno08x_rvc import BNO08x_RVC
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
+
+
+def free_serial_port(port: str) -> None:
+    """Kill any leftover process still holding the serial port.
+
+    Crashes and rough Ctrl+C exits can leave a dead process gripping the
+    UART, which silently eats the BNO085's bytes so the next run gets
+    nothing. fuser -k clears them. We resolve the symlink (e.g.
+    /dev/serial0 -> /dev/ttyS0) because fuser needs the real device.
+    """
+    try:
+        real = os.path.realpath(port)
+        subprocess.run(['fuser', '-k', real],
+                       stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL,
+                       check=False)
+        time.sleep(0.5)   # give the OS a moment to release the handle
+    except FileNotFoundError:
+        # fuser not installed — skip; not fatal.
+        pass
 
 
 def euler_to_quaternion(yaw_deg: float, pitch_deg: float, roll_deg: float):
@@ -67,14 +89,36 @@ class BNO085RVCNode(Node):
         rate     = self.get_parameter('publish_rate').value
 
         # -- Serial + RVC setup --
+        # Clear any zombie process holding the port (from a prior crash).
+        self.get_logger().info(f'Clearing any stale holders of {port}...')
+        free_serial_port(port)
+
         self.get_logger().info(f'Opening {port} at {baudrate} baud...')
-        self.uart = serial.Serial(port, baudrate=baudrate, timeout=1.0)
+        self.uart = None
+        for attempt in range(5):
+            try:
+                self.uart = serial.Serial(port, baudrate=baudrate, timeout=1.0)
+                break
+            except serial.SerialException as e:
+                self.get_logger().warn(
+                    f'Open failed (attempt {attempt + 1}/5): {e}'
+                )
+                time.sleep(1.0)
+        if self.uart is None:
+            raise RuntimeError(f'Could not open {port} after 5 attempts')
+
         time.sleep(1.0)
+        self.uart.reset_input_buffer()   # drop any partial boot data
         self.rvc = BNO08x_RVC(self.uart)
         self.get_logger().info('BNO085 RVC connected.')
 
         # -- Publisher --
         self.imu_pub = self.create_publisher(Imu, '/sensors/imu', 10)
+
+        # Recovery state: track consecutive read failures so we can reset
+        # the input buffer if the stream gets out of sync (e.g. after a
+        # brief power glitch on the IMU).
+        self._consec_errors = 0
 
         # -- Timer --
         period = 1.0 / rate
@@ -87,8 +131,18 @@ class BNO085RVCNode(Node):
     def timer_callback(self):
         try:
             yaw, pitch, roll, x_accel, y_accel, z_accel = self.rvc.heading
+            self._consec_errors = 0
         except Exception:
-            # Occasional UART hiccup — skip this tick silently.
+            # Occasional UART hiccup — skip this tick. But if many in a row,
+            # the stream is likely out of sync; flush the buffer to resync.
+            self._consec_errors += 1
+            if self._consec_errors >= 25:   # ~0.5 s of failures at 50 Hz
+                try:
+                    self.uart.reset_input_buffer()
+                except Exception:
+                    pass
+                self._consec_errors = 0
+                self.get_logger().warn('Stream out of sync — flushed buffer.')
             return
 
         qx, qy, qz, qw = euler_to_quaternion(yaw, pitch, roll)
