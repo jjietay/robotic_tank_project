@@ -33,7 +33,7 @@ constexpr float MOTOR_MIN_DUTY = 0.15f;
 
 // Trim factor for balancing motor strength
 constexpr float LEFT_MOTOR_TRIM = 1.00f;
-constexpr float RIGHT_MOTOR_TRIM = 1.00f;
+constexpr float RIGHT_MOTOR_TRIM = 0.95f;
 
 // ---------------------------------------------------------------------------
 //                       Robot Geometry (in metres)

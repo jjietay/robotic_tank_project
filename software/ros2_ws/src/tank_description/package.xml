@@ -5,7 +5,7 @@
     <name>tank_description</name>
     <version>0.1.0</version>
     <description>URDF description package for autonomous tank robot</description>
-    <maintainer email="jj@todo.todo">jj</maintainer>
+    <maintainer email="tayjuenjie.tjj@gmail.com">jj</maintainer>
     <license>MIT</license>
 
     <buildtool_depend>ament_cmake</buildtool_depend>

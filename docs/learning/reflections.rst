@@ -566,3 +566,39 @@ Figure 23 shows Gazebo setup on my mac (also a pain due to apple's sillicon). Be
    gz sim -g
 
 4) Confirmed working — Gazebo GUI opened with empty world (ground plane, sun, entity tree visible)
+
+
+29 May 2026 — IMU
+------------------
+When i tried running the BNO085 IMU, the ROS 2 topic ``/sensors/imu`` appeared, but no data was being published to that topic. I thought it was my firmware issue, because I had to create the fully written BNO085 driver on the pico W built around the SH2 library using I2C. So I used the built-in I2C GPIO pins on the Rasberry Pi 4 for testing. 
+
+Here are some things I did to debug this:
+- swapped SDA/SCL pair in case cables were reversed
+- confirmed 3.29V with multimeter at sensor and a lit up IMU board
+- tried 2 different STEMMA QT cables
+- continuity tested the blue (SDA) cable
+- pulsed RST pin to force hardware reset
+- used rpi4 to test if imu can be detected using ``i2c detect``
+
+**Problem 1: I2C Timing Violation**
+
+- SCL and SDA are both open-drain, meaning devices can only pull a line *low*
+- SDA needs to be stable before SCL risess
+- BNO085 uses **clock stretching** which holds SCL low to signal that its not ready yet
+- the problem comes when it releases SCL after stretching, it sometimes haven't finished settling SDA
+- so SDA changes too close to, or even after the clock edge
+- the data is sampled mid-transition and the byte is garbage or the device never appears to acknowledge at all
+
+**Problem 2: Pi's I2C clock-stretching bug**
+
+- i found online that Rasberry Pi's hardware I2C has a long-standing bug where it does not honour clock stretching properly
+
+**Solution: Swap to UART-RVC Mode**
+
+- BNO085 supports I2C, SPI, and UART
+- UART-RVC stands for Robotics Vehicle Control
+- a simplified, continuous serial communication protocol designed for hardware like the BNO085/BNO086 IMUs and robot vacuum cleaners
+- UART is asynchronous and does not require clock wire to get out of sync with data
+- they simply agree on a baud rate (115200)
+- the sensor pushes a fixed-format packet out its TX line on a timer and the Pi listens on its RX line
+- RCV gives Yaw, pitch, roll, linear acc automatic streaming at a fixed rate

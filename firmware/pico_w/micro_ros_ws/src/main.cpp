@@ -404,8 +404,10 @@ int main()
         } else {
             float ff_l = clampf(vel_l / V_MAX_MPS, -1.0f, 1.0f);
             float ff_r = clampf(vel_r / V_MAX_MPS, -1.0f, 1.0f);
-            duty_l = clampf(ff_l + pid_l.calculate(vel_l, meas_l), -1.0f, 1.0f);
-            duty_r = clampf(ff_r + pid_r.calculate(vel_r, meas_r), -1.0f, 1.0f);
+            // duty_l = clampf(ff_l + pid_l.calculate(vel_l, meas_l), -1.0f, 1.0f);
+            // duty_r = clampf(ff_r + pid_r.calculate(vel_r, meas_r), -1.0f, 1.0f);
+            duty_l = ff_l;
+            duty_r = ff_r;
         }
 
         // ===== 6. Drive motors =====

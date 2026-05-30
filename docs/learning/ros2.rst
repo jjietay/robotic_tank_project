@@ -7,324 +7,257 @@ See also: *Reflections*
 -------------------------------
 
 .. list-table::
-   :header-rows: 1
-   :widths: 20 80
+    :header-rows: 1
+    :widths: 20 80
 
-   * - Term
-     - Definition
+    * - Term
+      - Definition
 
-   * - Nodes
-     - A process that performs a specific task. Nodes are implemented as subclasses
-       inheriting from the ROS ``Node`` class (requiring OOP encapsulation). Each
-       runs in its own isolated runtime environment and can be written in Python,
-       C++, or almost any other supported language.
+    * - Nodes
+      - A process that performs a specific task. Nodes are child classes inheriting from the ROS parent ``Node`` class. Each node runs in its own isolated runtime environment and can be written in Python, C++, or almost any other supported language.
 
-   * - Packages
-     - The basic unit of organization in ROS. It contains the minimum amount of code
-       (``package.xml``, ``CMakeLists.txt``, source files) needed to run something.
-       ``colcon build`` uses ``package.xml`` (similar to a ``requirements.txt``)
-       to build the package.
+    * - Packages
+      - The basic unit of organization in ROS. It contains code (``package.xml``, ``CMakeLists.txt``, ``setup.py`` source files) needed to run something.``colcon build`` uses ``package.xml`` (similar to a ``requirements.txt``) to build the package.
 
-   * - Messages
-     - The strongly typed communication “language” (strings, ints, floats, arrays)
-       passed between nodes.
+    * - Messages
+      - The strongly typed communication “language” (strings, ints, floats, arrays)
+        passed between nodes.
 
-   * - Interfaces
-     - The blueprint or format of a message. It defines the programming API for data
-       received/sent via topics or services. ROS provides pre-defined interfaces,
-       but custom ones can be created.
+    * - Interfaces
+      - The blueprint or format of a message. It defines the programming API for data
+        received/sent via topics or services. ROS provides pre-defined interfaces,
+        but custom ones can be created.
 
-   * - Topics
-     - Named, asynchronous communication channels using a Publish–Subscribe model.
-       A node publishes a message to a topic, and all subscribing nodes receive it.
+    * - Topics
+      - Named, asynchronous communication channels using a Publish–Subscribe model.
+        A node publishes a message to a topic, and all subscribing nodes receive it.
 
-   * - Services
-     - Synchronous communication channels using a Request–Response model. A client
-       node sends a request to a server node, which executes a task and returns
-       a response.
+    * - Services
+      - Synchronous communication channels using a Request–Response model. A client
+        node sends a request to a server node, which executes a task and returns
+        a response.
 
-   * - Callbacks
-     - Functions that ROS promises to execute when an event occurs (e.g., message
-       received, timer fired). This keeps ROS 2 code modular.
+    * - Callbacks
+      - Functions that ROS will execute when an event occurs (e.g., message
+        received, timer fired). This keeps ROS 2 code modular.
 
-   * - Timers
-     - Mechanisms integrated with the ROS executor that run a specific callback
-       function at a defined interval (e.g., “run every 10 ms”).
+    * - Timers
+      - Mechanisms integrated with the ROS executor that run a specific callback
+        function at a defined interval (e.g., “run every 10 ms”).
 
-   * - Parameters
-     - Named configuration settings stored within a node (int, float, bool, string,
-       list). They allow behavior changes without altering code and can be set via
-       command line, YAML, or launch files.
+    * - Parameters
+      - Named configuration settings stored within a node (int, float, bool, string,
+        list). They allow behavior changes without altering code and can be set via
+        command line, YAML, or launch files.
 
-   * - Logging
-     - Structured node status output (DEBUG, INFO, WARN, ERROR, FATAL) that replaces
-       raw ``print()`` calls. Logs can be routed to the terminal, files, or
-       ``/rosout`` for centralized filtering and monitoring.
+    * - Logging
+      - Structured node status output (DEBUG, INFO, WARN, ERROR, FATAL) that replaces
+        raw ``print()`` calls. Logs can be routed to the terminal, files, or
+        ``/rosout`` for centralized filtering and monitoring.
 
-   * - twist_mux
-     - A node that subscribes to multiple velocity topics and outputs values based
-       on configured priority (typically handled via a YAML file).
+    * - twist_mux
+      - A node that subscribes to multiple velocity topics and outputs values based
+        on configured priority (typically handled via a YAML file).
 
 2. Coordinate Systems & TF2 (Transformations)
 ---------------------------------------------
 
-Understanding spatial awareness is critical for robot navigation.
-
-* **Link:** A named, physical rigid body part of your robot (e.g., chassis, wheel, sensor mount).
+* **Link:** A named, physical fixed body part of your robot (e.g., chassis, wheel, sensor mount).
 * **Frame:** A local coordinate system attached to a link, complete with its own origin (0,0,0) and directional axes (x,y,z). Note that abstract frames like ``odom`` and ``map`` do not have physical hardware attached.
 * **URDF (Unified Robot Description Format):** An XML file that defines the fixed physical offsets between your robot's frames.
 
 The TF Tree
 ~~~~~~~~~~~
 
-TF2 bridges coordinate systems together, chaining transforms to translate measurements from one frame to another.
+- TF2 bridges coordinate systems together
+- Tt is literally like a tree that connects different branches (links) together
+- It chains transforms to translate measurements from one frame to another
 
 .. code-block:: text
 
-   odom (fixed to world at startup)
-   └── base_link (moving with the robot)
-       ├── lidar_link
-       ├── camera_link
-       ├── wheel_left_link
-       └── wheel_right_link
+  odom (fixed to world at startup)
+  └── base_link (moving with the robot)
+      ├── lidar_link
+      ├── camera_link
+      ├── wheel_left_link
+      └── wheel_right_link
 
 Key TF2 Components
 ~~~~~~~~~~~~~~~~~~
 
-* **odom (Node & Frame):** The base reference frame anchored at the robot's starting position. The ``odom`` node acts as a generic TF2 broadcaster, publishing the transform (position x, y and rotation theta) between ``base_link`` (current position) and ``odom`` (start) to the ``/tf`` topic.
-* **base_link:** The child frame moving with the robot's body. Physical sensors (``lidar_link``) are children of ``base_link``.
+* **odom (Node & Frame):** The base reference frame is anchored at the robot's starting position. The ``odom`` node acts as a generic TF2 broadcaster, publishing the transform (position x, y and rotation theta) between ``base_link`` (current position) and ``odom`` (start) to the ``/tf`` topic.
+* **base_link:** The child frame moving with the robot's body. Physical sensors (``lidar_link``) are children of ``base_link``. Therefore, lidar_link is the grandchild of base_link.
 * **TF2 Library:** Contains broadcasters, a buffer, and listeners. The buffer subscribes to both ``/tf`` (dynamic movement) and ``/tf_static`` (fixed physical offsets).
-* **robot_state_publisher:** Reads the URDF and publishes fixed physical offsets (like ``base_link`` to ``lidar_link``) to ``/tf_static`` once at startup. This optimizes bandwidth by keeping fixed data off the high-frequency ``/tf`` topic.
+* **robot_state_publisher**: It does publish the fixed, non-moving offsets (like base_link to lidar_link) to /tf_static once at startup. It then constantly listens to the angles of the moving joints (wheels), uses the URDF to calculate complex 3D math (Forward Kinematics), and continuously publishes the live coordinates of the moving parts to /tf.
+* **joint_state_publisher**: It publishes those "The left wheel is currently rotated at 45 degrees" messages continuously to a specific topic called /joint_states. On a real robot, the physical motor encoders do this job. When simulating or testing, this node fakes the encoder data.
+* **RViz2**: RViz2 reads the tank.urdf file first so it knows what the physical 3D .stl meshes look like. Then, it listens to the math coming from both /tf (for moving parts) and /tf_static (for fixed parts) to know exactly where in the virtual world to draw those meshes, so that we can visualize it in real-time.
 
-3. Standard Interfaces Reference
---------------------------------
+3. Understanding Packages
+--------------------------
 
-Message interfaces follow the format: ``PackageName/subfolder_type/specific_msg``.
+Understanding packages and its contents.
 
-Primitives (``std_msgs``)
-~~~~~~~~~~~~~~~~~~~~~~~~~
+* ``colcon build``: colcon is like the main universal way of building packages regardless of the type of source files (python or C++)
+* ``ament``: ``ament_python`` or ``ament_cmake`` are build types (specific ways we can build), colcon sees this and understands which ways we want to build our package
+* ``ament_python``: always contains python source files and a config.py files, sometimes containing a setup.cfg
+* ``ament_cmake``: usually contains C++ source files, but also used for "resource-only" packages that hold models, maps, custom messages, or configuration files
 
-*Use for simple prototyping; avoid using as fields in higher-level messages.*
 
-======================================== ==================================================
-Message                                  Use Case
-======================================== ==================================================
-``std_msgs/msg/Bool``                    Binary flags, on/off states
-``std_msgs/msg/Int32``, ``Int64``        Integer sensor readings, counters
-``std_msgs/msg/Float32``, ``Float64``    Raw floating-point values (e.g., voltage)
-``std_msgs/msg/String``                  Debug text, status strings
-``std_msgs/msg/Header``                  Timestamp + frame ID; embedded in most messages
-``std_msgs/msg/Empty``                   Trigger signals with no payload
-======================================== ==================================================
 
-Motion & Spatial (``geometry_msgs``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: xml
 
-*The most commonly used package in mobile robotics.*
+  <!-- Found in the packages.xml file -->
 
-========================================== ==================================================
-Message                                    Use Case
-========================================== ==================================================
-``geometry_msgs/msg/Twist``                Velocity commands (linear + angular); ``/cmd_vel``
-``geometry_msgs/msg/TwistStamped``         ``Twist`` with a timestamp header
-``geometry_msgs/msg/Pose``                 Position (x,y,z) + orientation (quaternion)
-``geometry_msgs/msg/PoseStamped``          ``Pose`` with timestamp + frame; Nav2 goals
-``geometry_msgs/msg/PoseWithCovariance``   Pose with uncertainty matrix; used in localization
-``geometry_msgs/msg/Point``                3D point in space
-``geometry_msgs/msg/Vector3``              3D vector; used inside ``Twist``, ``Accel``, etc.
-``geometry_msgs/msg/Quaternion``           Rotation in quaternion form
-``geometry_msgs/msg/Transform``            Translation + rotation between two frames
-``geometry_msgs/msg/TransformStamped``     ``Transform`` with header; used in TF2
-========================================== ==================================================
+  <!-- For C++ -->
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 
-Sensors & Health (``sensor_msgs`` & ``diagnostic_msgs``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  <!-- For python -->
+  <export>
+  <build_type>ament_python</build_type>
+  </export>
 
-========================================== ===================================================
-Message                                    Use Case
-========================================== ===================================================
-``sensor_msgs/msg/LaserScan``              2D LIDAR scans
-``sensor_msgs/msg/Image``                  Raw camera images
-``sensor_msgs/msg/CompressedImage``        JPEG/PNG compressed images; reduces bandwidth
-``sensor_msgs/msg/CameraInfo``             Camera calibration parameters
-``sensor_msgs/msg/PointCloud2``            3D LIDAR or depth camera point clouds
-``sensor_msgs/msg/Imu``                    Accelerometer + gyroscope data
-``sensor_msgs/msg/Range``                  Single ultrasonic/IR range reading
-``sensor_msgs/msg/BatteryState``           Battery voltage, current, percentage
-``sensor_msgs/msg/JointState``             Joint positions/velocities/efforts; for encoders
-``sensor_msgs/msg/NavSatFix``              GPS coordinates
-``diagnostic_msgs/msg/DiagnosticStatus``   Health report for a single component (OK/WARN/ERR)
-========================================== ===================================================
 
-Navigation (``nav_msgs``)
-~~~~~~~~~~~~~~~~~~~~~~~~~
+1) ``package.xml``
 
-================================ ==============================================
-Message/Service                  Use Case
-================================ ==============================================
-``nav_msgs/msg/Odometry``        Robot pose + velocity from encoders/IMU
-``nav_msgs/msg/OccupancyGrid``   2D map output from SLAM
-``nav_msgs/msg/Path``            Sequence of poses; planned path from Nav2
-``nav_msgs/srv/GetMap``          Service to request the current map
-================================ ==============================================
+- just a ID card and dependency checklist
+- ``<buildtool_depend>`` tells ROS 2 what software is needed to actually compile the package, python (an interpreted language) packages doesn't need this because it doesn't get compiled unlike C++, it simply gets copied over to /install therefore we dont need this, C++ packages explicitly requires this to be stated in packages.xml cos it needs to be compiled into machines binary code
+- ``<exec_depend>`` is called *Execution Dependencies* which is what our launch files depend on when we are running it
+- ``<test_depend>`` are the dependencies we require to test our code, such as ``pytest``, ``flake8``, and ``pep257`` which are all standard Python code linters (tools that check your code for formatting errors)
+- ``<build_type>ament_python</build_type>`` is the tag that ``colcon`` requires to know to look for ``CMakeLists.txt`` or ``config.py`` on how to handle to installation (into /install)
 
-Common Services & System (``std_srvs`` & ``rcl_interfaces``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-======================================= =================================================
-Service/Message                         Use Case
-======================================= =================================================
-``std_srvs/srv/Empty``                  Trigger with no data (e.g., reset, clear costmap)
-``std_srvs/srv/SetBool``                Turn something on/off
-``std_srvs/srv/Trigger``                Fire an action, get back a success flag + message
-``rcl_interfaces/msg/ParameterEvent``   Broadcasts parameter changes across graph
-``rcl_interfaces/srv/GetParameters``    Service to read a node's parameters
-======================================= =================================================
+2) ``CMakeLists.txt``
 
-4. Python Node Templates
-------------------------
+- ``install(DIRECTORY ...)`` This is essentially a "copy-paste" command for the build process. When you run colcon build, ROS 2 doesn't use the files directly from your source code folder. It needs to put them in a central "install space" so the rest of the robot system can find them.
+- ``DESTINATION share/${PROJECT_NAME}/)`` This is where those folders get pasted. In ROS 2, description files, launch files, and models are standardly placed in the share/ directory of the installed package.
+- ``project(...)`` This gives your package a name. It also creates a handy background variable called ${PROJECT_NAME}
 
-A. Publisher Node (``cmd_vel_publisher_node.py``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This template publishes a ``Twist`` message (containing linear and angular ``Vector3`` data) to ``/cmd_vel`` every 0.5 seconds.
+3) ``setup.py``
+
+- ``packages=find_packages(exclude=['test'])`` find packages is a python tool that automatically searches package directory and grabs all the python code so they can be installed
+- ``exclude=['test']`` intentionally ignores test/ folders so that testing scripts don't get installed onto robot
+- ``data_files=[('share/ament_index/resource_index/packages', ['resource/' + package_name]), ('share/' + package_name, ['package.xml']),],`` first tuple puts a blank marker file deep inside ROS2 system. when we type ``ros2 pkg list``, ROS2 seaches this exact folder to know the existing packages, second tuple copies package.xml file into share/rc_car_teleop installation folder so ROS2 can read the dependencies at runtime
+- ``install_requires=['setuptools'], tests_require=['pytest'],`` tells the system it needs ``setuptools`` library to build the package, and the ``pytest`` package to run tests
 
 .. code-block:: python
 
-   import rclpy
-   from rclpy.node import Node
-   from geometry_msgs.msg import Twist
+  entry_points={
+      'console_scripts': [
+          'teleop          = rc_car_teleop.teleop:main',
+          'odometry        = rc_car_teleop.odom:main',
+          'lidar_processor = rc_car_teleop.lidar_processor:main',
+          'yolo            = rc_car_teleop.yolo:main',
+          'camera          = rc_car_teleop.camera:main',
+          'brain           = rc_car_teleop.brain:main',
+      ],
+  },
 
-   class CmdVelPublisher(Node):
-       def __init__(self):
-           # 1. Register node with ROS graph
-           super().__init__('cmd_vel_publisher')
-           
-           # 2. Create publisher: Message Type, Topic Name, Queue Size
-           self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
-           
-           # 3. Create timer callback
-           timer_period = 0.5  
-           self.timer = self.create_timer(timer_period, self.timer_callback)
-           self.i = 0
+- teleop: This is the name of the executable to create. we use it when we run the command: ``ros2 run rc_car_teleop teleop``.
+- rc_car_teleop.teleop:main: This is the path to the code. It tells ROS 2, "Look inside the rc_car_teleop folder, find the teleop.py script, and execute the function called main()."
 
-       def timer_callback(self):
-           msg = Twist()
-           msg.linear.x = 0.1   # Forward speed
-           msg.angular.z = 0.0  # Yaw rotation (positive = counterclockwise)
-           
-           self.publisher_.publish(msg)
-           self.get_logger().info(f"Publishing: linear.x={msg.linear.x}, angular.z={msg.angular.z}")
-           self.i += 1
+4) ``launch.py``
 
-   def main(args=None):
-       rclpy.init(args=args)                      # Init ROS 2 client library
-       cmd_vel_publisher = CmdVelPublisher()      # Instantiate node
-       rclpy.spin(cmd_vel_publisher)              # Enter event loop (blocks until Ctrl-C)
-       cmd_vel_publisher.destroy_node()           # Clean up node
-       rclpy.shutdown()                           # Shut down middleware
+- split into 3 parts: imports, generator function, execution/return
+- allows us to ros2 launch my_package my_launch.py
 
-
-B. Subscriber Node (``cmd_vel_subscriber_node.py``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A subscriber must use the exact same message type (``Twist``) and topic name (``/cmd_vel``) as the publisher to successfully communicate.
+**Full Code Block**
 
 .. code-block:: python
 
-   import rclpy
-   from rclpy.node import Node
-   from geometry_msgs.msg import Twist
+  # ==========================================
+  # PART 1: THE IMPORTS
+  # ==========================================
+  from launch import LaunchDescription
+  from launch_ros.actions import Node
 
-   class CmdVelSubscriber(Node):
-       def __init__(self):
-           super().__init__('cmd_vel_subscriber')
-           
-           # 1. Create subscription: Type, Topic, Callback Function, Queue Size
-           self.subscription = self.create_subscription(
-               Twist,
-               '/cmd_vel',
-               self.cmd_vel_callback,
-               10
-           )
-           self.subscription  # Prevent unused variable warning
+  # ==========================================
+  # PART 2: THE GENERATOR FUNCTION
+  # ==========================================
+  def generate_launch_description():
+    
+    # 1. Define your first node (e.g., the joystick teleop)
+    teleop_node = Node(
+        package='rc_car_teleop',     # The package name (from package.xml)
+        executable='teleop',         # The executable name (from setup.py entry_points)
+        name='joystick_teleop',      # What to call this specific instance of the node
+        output='screen',             # Print the node's output to this terminal
+        parameters=[
+            {'max_speed': 2.5}       # Inject parameters directly!
+        ]
+    )
 
-       def cmd_vel_callback(self, msg: Twist):
-           # 2. Process incoming message data
-           linear_x = msg.linear.x
-           angular_z = msg.angular.z
-           self.get_logger().info(f"Received cmd_vel: linear.x={linear_x}, angular.z={angular_z}")
+    # 2. Define your second node (e.g., the camera)
+    camera_node = Node(
+        package='rc_car_teleop',
+        executable='camera',
+        name='front_camera',
+        output='screen',
+        remappings=[
+            ('/image_raw', '/camera/front/image_raw') # Change topic names on the fly
+        ]
+    )
 
-   def main(args=None):
-       rclpy.init(args=args)
-       cmd_vel_subscriber = CmdVelSubscriber()
-       rclpy.spin(cmd_vel_subscriber)
-       cmd_vel_subscriber.destroy_node()
-       rclpy.shutdown()
+    # ==========================================
+    # PART 3: THE EXECUTION / RETURN
+    # ==========================================
+    # ROS 2 expects this function to return a LaunchDescription object
+    # containing a list of all the actions/nodes you want to start.
+    return LaunchDescription([
+        teleop_node,
+        camera_node
+    ])
 
-   if __name__ == '__main__':
-       main()
 
-
-C. Hardware Node: Camera Image Publisher
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This node integrates OpenCV hardware capture with the ROS ecosystem using ``CvBridge``. Notice the explicit ``Kill()`` method used to release the hardware *after* ROS shuts down.
+**Part 1: imports**
 
 .. code-block:: python
 
-   import numpy
-   import cv2
-   import rclpy
-   from rclpy.node import Node
-   from cv_bridge import CvBridge
-   from sensor_msgs.msg import Image
+  from launch import LaunchDescription
+  from launch_ros.actions import Node
 
-   class ImagePublisher(Node):
-       def __init__(self):
-           super().__init__("image_publisher")
+Always need to import these.
 
-           # 1. OpenCV Camera Configuration
-           self.cap = cv2.VideoCapture(0) # Open /dev/video0
-           fourcc = cv2.VideoWriter_fourcc(*'MJPG') # Reduces USB bandwidth
-           self.cap.set(cv2.CAP_PROP_FOURCC, fourcc)
-           self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-           self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-           self.cap.set(cv2.CAP_PROP_FPS, 30)
 
-           # 2. ROS Publisher & Bridge Initialization
-           self.bridge = CvBridge() # Instantiated once for efficiency 
-           self.publisher_ = self.create_publisher(Image, 'camera/image_raw', 10)
-           
-           # 3. Target 33ms between callbacks for 30 FPS
-           self.timer = self.create_timer(1/30, self.timer_callback)
+**Part 2: generator function**
 
-       def timer_callback(self):
-           ret, frame = self.cap.read() # frame shape: (720, 1280, 3)
-           
-           if not ret: # Guard clause prevents crashes if camera disconnects
-               self.get_logger().warn('Failed to read frame')
-               return
+.. code-block:: python
 
-           # Convert numpy array to ROS Image message (bgr8 is OpenCV default)
-           msg = self.bridge.cv2_to_imgmsg(frame, encoding='bgr8')
-           self.publisher_.publish(msg)
-           self.get_logger().info('Publishing frame')
+  def generate_launch_description():
+    
+    # 1. Define your first node (e.g., the joystick teleop)
+    teleop_node = Node(
+        package='rc_car_teleop',     # The package name (from package.xml)
+        executable='teleop',         # The executable name (from setup.py entry_points)
+        name='joystick_teleop',      # What to call this specific instance of the node
+        output='screen',             # Print the node's output to this terminal
+        parameters=[
+            {'max_speed': 2.5}       # Inject parameters directly!
+        ]
+    )
 
-       def Kill(self):
-           # Safely free /dev/video0 for other processes
-           self.cap.release() 
+    # 2. Define your second node (e.g., the camera)
+    camera_node = Node(
+        package='rc_car_teleop',
+        executable='camera',
+        name='front_camera',
+        output='screen',
+        remappings=[
+            ('/image_raw', '/camera/front/image_raw') # Change topic names on the fly
+        ]
+    )
 
-   def main(args=None):
-       rclpy.init(args=args)
-       img_publisher = ImagePublisher()
-       
-       rclpy.spin(img_publisher)
-       img_publisher.destroy_node()
-       rclpy.shutdown()
-       
-       # CRITICAL: Call custom kill method after ROS shutdown
-       img_publisher.Kill() 
+exact function name is mandatory, when we run ``ros2 launch``, the ros2 system searches the python script specifically for a function called ``generate_launch_description()``. The ``Node`` block references everything from previous files.
 
-   if __name__ == '__main__':
-       main()
+**Part 3: return**
+
+.. code-block:: python
+
+  return LaunchDescription([
+          teleop_node,
+          camera_node
+      ])
+
+bundle all the nodes, scripts, and configs defines into a single list and pass it to ``LaunchDescription([...])``. When this object is returned, ROS2 takes over and starts spinning up the processes.
