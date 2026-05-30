@@ -572,7 +572,8 @@ Figure 23 shows Gazebo setup on my mac (also a pain due to apple's sillicon). Be
 ------------------
 When i tried running the BNO085 IMU, the ROS 2 topic ``/sensors/imu`` appeared, but no data was being published to that topic. I thought it was my firmware issue, because I had to create the fully written BNO085 driver on the pico W built around the SH2 library using I2C. So I used the built-in I2C GPIO pins on the Rasberry Pi 4 for testing. 
 
-Here are some things I did to debug this:
+**Here are some things I did to debug this:**
+
 - swapped SDA/SCL pair in case cables were reversed
 - confirmed 3.29V with multimeter at sensor and a lit up IMU board
 - tried 2 different STEMMA QT cables
@@ -602,3 +603,18 @@ Here are some things I did to debug this:
 - they simply agree on a baud rate (115200)
 - the sensor pushes a fixed-format packet out its TX line on a timer and the Pi listens on its RX line
 - RCV gives Yaw, pitch, roll, linear acc automatic streaming at a fixed rate
+
+29 May 2026 — LIDAR
+--------------------
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid6.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 6: LIDAR spinning</figcaption>
+   </figure>
+
+This took me long enough, but finally I have started setting up the LIDAR and its spinning. Managed to make the LIDAR node work and I was able to see the msg being published on my lidar topic. Next was setting it up so that I can see the point cloud on rviz.
+
