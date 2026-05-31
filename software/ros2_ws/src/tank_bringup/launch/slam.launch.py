@@ -51,12 +51,12 @@ def generate_launch_description():
         ),
 
         Node(
-            package='rc_car_teleop',
-            executable='odometry',
-            name='odometry',
-            output='screen',
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='static_odom_tf',
+            arguments=['0', '0', '0', '0', '0', '0', 'odom', 'base_link'],
         ),
-
+        
         TimerAction(
             period=5.0,
             actions=[Node(

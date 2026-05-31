@@ -27,3 +27,8 @@ slam_toolbox:
     stack_size_to_use: 40000000
 
     enable_interactive_mode: true
+
+    use_scan_matching: true
+    use_scan_barycenter: true
+    minimum_travel_distance: 0.0
+    minimum_travel_heading: 0.0
