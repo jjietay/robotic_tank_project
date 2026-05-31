@@ -55,8 +55,8 @@ class OdometryNode(Node):
         self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
         self.left_ticks = None
         self.right_ticks = None
-        self.wheel_circumference = 0.14          # change accordingly - in metres
-        self._wheel_base = 1                 # change accordingly - in metres
+        self.wheel_circumference = 0.0423          # change accordingly - in metres
+        self._wheel_base = 0.1488                 # change accordingly - in metres
         self.last_left_ticks = None
         self.last_right_ticks = None
         self.x = 0.0
@@ -128,8 +128,8 @@ class OdometryNode(Node):
         elif delta_r < -2**31:
             delta_r += INT32_RANGE
 
-        dist_change_left = (delta_l/4400) * self.wheel_circumference
-        dist_change_right = (delta_r/4400) * self.wheel_circumference
+        dist_change_left = (delta_l/1560) * self.wheel_circumference
+        dist_change_right = (delta_r/1560) * self.wheel_circumference
 
         d_center = (dist_change_left + dist_change_right)/2
         angle_change = (dist_change_right - dist_change_left) / self._wheel_base
@@ -166,6 +166,8 @@ class OdometryNode(Node):
         msg.pose.covariance[35] = 0.01          # yaw variance
         msg.twist.twist.linear.x  = self.vel_linear_x
         msg.twist.twist.angular.z = self.vel_angular_z
+        msg.twist.covariance[0]  = 0.01  # linear x
+        msg.twist.covariance[35] = 0.01  # angular z
 
         self.get_logger().info(f"Current Position --> x: {self.x}, y: {self.y}, theta: {self.theta}")
         self.pub.publish(msg)
