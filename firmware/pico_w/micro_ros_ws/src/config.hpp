@@ -12,8 +12,8 @@
 // ---------------------------------------------------------------------------
 //                              Pin Assignments
 // ---------------------------------------------------------------------------
-constexpr uint ENC_L_A = 16, ENC_L_B = 17;
-constexpr uint ENC_R_A = 18, ENC_R_B = 19;
+constexpr uint ENC_L_A = 18, ENC_L_B = 19;
+constexpr uint ENC_R_A = 20, ENC_R_B = 21;
 
 constexpr uint L_DIR = 0, L_PWM = 8;
 constexpr uint R_DIR = 2, R_PWM = 9;
@@ -33,17 +33,17 @@ constexpr float MOTOR_MIN_DUTY = 0.15f;
 
 // Trim factor for balancing motor strength
 constexpr float LEFT_MOTOR_TRIM = 1.00f;
-constexpr float RIGHT_MOTOR_TRIM = 0.95f;
+constexpr float RIGHT_MOTOR_TRIM = 1.00f;
 
 // ---------------------------------------------------------------------------
 //                       Robot Geometry (in metres)
 // ---------------------------------------------------------------------------
 constexpr float WHEEL_DIAMETER_M = 0.0423f;
-constexpr float WHEEL_BASE_M = 0.1488f; // distance between L & R wheels
+constexpr float WHEEL_BASE_M = 0.135f; // distance between L & R wheels
 constexpr float GEAR_REDUCTION = 30.0f;
 constexpr int   ENCODER_PPR = 13;       // raw pulses per motor rev
-constexpr float ENC_EMA_ALPHA = 0.2f;
-constexpr float V_MAX_MPS = 0.60f;      // max wheel surface speed at full PWM
+constexpr float ENC_EMA_ALPHA = 0.7f;
+constexpr float V_MAX_MPS = 0.75f;      // max wheel surface speed at full PWM
 
 // Minimum controllable speed
 constexpr float V_MIN_MPS = MOTOR_MIN_DUTY * V_MAX_MPS;
@@ -60,10 +60,16 @@ constexpr float DIRECTION_DEADZONE_MPS = 0.02f;
 // ---------------------------------------------------------------------------
 //  Output is duty cycle in [-1, 1], error is in m/s,
 // Feedforward provides ~80% of the duty while PID only corrects residual
-constexpr float KP = 0.8f;
-constexpr float KI = 0.5f;
-constexpr float KD = 0.02f;
-constexpr float PID_OUT_MAX = 0.25f;
+// Left motor PID (weaker motor, needs more aggressive correction)
+constexpr float KP_L = 0.4f;
+constexpr float KI_L = 0.2f;
+constexpr float KD_L = 0.02f;
+
+// Right motor PID (stronger motor, needs gentler correction)
+constexpr float KP_R = 0.4f;
+constexpr float KI_R = 0.2f;
+constexpr float KD_R = 0.02f;
+constexpr float PID_OUT_MAX = 0.15f;
 
 // ---------------------------------------------------------------------------
 //                         Ultrasonic Scheduling

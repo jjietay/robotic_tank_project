@@ -49,22 +49,23 @@ void Motor::set_one_side(uint dir_pin, uint pwm_pin, float duty)
 // Move both motors
 void Motor::move(float duty_left, float duty_right)
 {
+    // Save pre-trim values
+    float raw_left  = duty_left;
+    float raw_right = duty_right;
+
     // this changes level of duty cycle with based on trim factor
     duty_left  *= l_trim;
     duty_right *= r_trim;
 
-    // Deadband compensation helps to ensure min duty of
-    // commanded duty_left and duty_right is not less than 0, and not less than min_duty
-    if (duty_left  > 0.0f && duty_left  < MOTOR_MIN_DUTY)  duty_left  =  MOTOR_MIN_DUTY;
-    if (duty_left  < 0.0f && duty_left  > -MOTOR_MIN_DUTY) duty_left  = -MOTOR_MIN_DUTY;
-    if (duty_right > 0.0f && duty_right < MOTOR_MIN_DUTY)  duty_right =  MOTOR_MIN_DUTY;
-    if (duty_right < 0.0f && duty_right > -MOTOR_MIN_DUTY) duty_right = -MOTOR_MIN_DUTY;
+    // Only apply deadband if original command was meaningful
+    // This prevents deadband from cancelling out trim
+    if (raw_left  > MOTOR_MIN_DUTY)  duty_left  = std::max(duty_left,  MOTOR_MIN_DUTY);
+    if (raw_left  < -MOTOR_MIN_DUTY) duty_left  = std::min(duty_left, -MOTOR_MIN_DUTY);
+    if (raw_right > MOTOR_MIN_DUTY)  duty_right = std::max(duty_right,  MOTOR_MIN_DUTY);
+    if (raw_right < -MOTOR_MIN_DUTY) duty_right = std::min(duty_right, -MOTOR_MIN_DUTY);
 
-    // Flip polarity (if invert is True)
     if (l_invert) duty_left  = -duty_left;
     if (r_invert) duty_right = -duty_right;
-
-    // Send the actual raw PWM to pins to drive motor
     set_one_side(l_dir_pin, l_pwm_pin, duty_left);
     set_one_side(r_dir_pin, r_pwm_pin, duty_right);
 }

@@ -55,8 +55,8 @@ class OdometryNode(Node):
         self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
         self.left_ticks = None
         self.right_ticks = None
-        self.wheel_circumference = 0.0423          # change accordingly - in metres
-        self._wheel_base = 0.1488                 # change accordingly - in metres
+        self.wheel_circumference = 0.1381         # change accordingly - in metres
+        self._wheel_base = 0.135                # change accordingly - in metres
         self.last_left_ticks = None
         self.last_right_ticks = None
         self.x = 0.0

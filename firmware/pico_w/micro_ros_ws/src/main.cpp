@@ -224,8 +224,8 @@ int main()
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
                             /*invert*/ true);
 
-    PID pid_l(KP, KI, KD, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
-    PID pid_r(KP, KI, KD, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
+    PID pid_l(KP_L, KI_L, KD_L, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
+    PID pid_r(KP_R, KI_R, KD_R, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
 
     USRM_FRONT.ShowStatus(); USRM_BACK.ShowStatus();
     USRM_RIGHT.ShowStatus(); USRM_LEFT.ShowStatus();
@@ -404,10 +404,10 @@ int main()
         } else {
             float ff_l = clampf(vel_l / V_MAX_MPS, -1.0f, 1.0f);
             float ff_r = clampf(vel_r / V_MAX_MPS, -1.0f, 1.0f);
-            // duty_l = clampf(ff_l + pid_l.calculate(vel_l, meas_l), -1.0f, 1.0f);
-            // duty_r = clampf(ff_r + pid_r.calculate(vel_r, meas_r), -1.0f, 1.0f);
-            duty_l = ff_l;
-            duty_r = ff_r;
+            duty_l = clampf(ff_l + pid_l.calculate(vel_l, meas_l), -1.0f, 1.0f);
+            duty_r = clampf(ff_r + pid_r.calculate(vel_r, meas_r), -1.0f, 1.0f);
+            // duty_l = 0.3f;
+            // duty_r = 0.3f;
         }
 
         // ===== 6. Drive motors =====

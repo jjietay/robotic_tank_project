@@ -33,7 +33,7 @@ from geometry_msgs.msg import Twist
 # Must be longer than the OS initial key-repeat delay (≈500 ms on macOS).
 HOLD_TIMEOUT_MS = 250.0
 
-WHEEL_BASE_M = 0.1488
+WHEEL_BASE_M = 0.135
 V_MAX_MPS    = 0.25 # slow cruise; raise once stable
 MAX_ANGULAR  = V_MAX_MPS / (WHEEL_BASE_M / 2.0) - 0.20
 
