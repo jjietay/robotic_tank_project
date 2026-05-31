@@ -20,12 +20,12 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'teleop          = rc_car_teleop.teleop:main',
-            'odometry        = rc_car_teleop.odom:main',
-            'lidar_processor = rc_car_teleop.lidar_processor:main',
-            'yolo            = rc_car_teleop.yolo:main',
-            'camera          = rc_car_teleop.camera:main',
-            'brain           = rc_car_teleop.brain:main',
+            'teleop          = rc_car_teleop.robot_core.teleop:main',
+            'odometry        = rc_car_teleop.robot_core.odom:main',
+            'lidar_processor = rc_car_teleop.robot_core.lidar_processor:main',
+            'yolo            = rc_car_teleop.robot_core.yolo:main',
+            'camera          = rc_car_teleop.robot_core.camera:main',
+            'brain           = rc_car_teleop.robot_core.brain:main',
         ],
     },
 )
