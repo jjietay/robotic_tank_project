@@ -16,6 +16,11 @@ def generate_launch_description():
         'config', 'ydlidar.yaml'
     )
 
+    slam_params = os.path.join(
+        get_package_share_directory('tank_bringup'),
+        'config', 'slam_toolbox.yaml'
+    )
+
     return LaunchDescription([
 
         Node(
@@ -49,6 +54,14 @@ def generate_launch_description():
             executable='odometry',
             name='odometry',
             output='screen',
+        ),
+
+        Node(
+            package='slam_toolbox',
+            executable='async_slam_toolbox_node',
+            name='slam_toolbox',
+            output='screen',
+            parameters=[slam_params],
         ),
 
     ])
