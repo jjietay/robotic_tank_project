@@ -8,9 +8,13 @@ def generate_launch_description():
 
     pkg_share = get_package_share_directory('tank_description')
     urdf_path = os.path.join(pkg_share, 'urdf', 'tank.urdf')
-
     with open(urdf_path, 'r') as f:
         robot_description = f.read()
+
+    ydlidar_params = os.path.join(
+        get_package_share_directory('tank_bringup'),
+        'config', 'ydlidar.yaml'
+    )
 
     return LaunchDescription([
 
@@ -19,7 +23,10 @@ def generate_launch_description():
             executable='robot_state_publisher',
             name='robot_state_publisher',
             output='screen',
-            parameters=[{'robot_description': robot_description}]
+            parameters=[{
+                'robot_description': robot_description,
+                'use_sim_time': False
+            }]
         ),
 
         Node(
@@ -28,4 +35,20 @@ def generate_launch_description():
             name='joint_state_publisher',
             output='screen',
         ),
+
+        Node(
+            package='ydlidar_ros2_driver',
+            executable='ydlidar_ros2_driver_node',
+            name='ydlidar_ros2_driver_node',
+            output='screen',
+            parameters=[ydlidar_params],
+        ),
+
+        Node(
+            package='rc_car_teleop',
+            executable='odometry',
+            name='odometry',
+            output='screen',
+        ),
+
     ])

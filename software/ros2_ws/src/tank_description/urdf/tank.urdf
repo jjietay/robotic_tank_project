@@ -215,7 +215,7 @@
         <visual>
         <origin xyz="0.00 0 0" rpy="0 0 3.1416"/>
         <geometry>
-            <mesh filename="package://tank_description/meshes/ydlidar_x3pro.stl"
+            <mesh filename="package://tank_description/meshes/YDLIDAR_X3Pro.stl"
                 scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="blue">
