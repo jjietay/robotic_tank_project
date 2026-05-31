@@ -69,7 +69,7 @@ class OdometryNode(Node):
         self.prev_time = self.get_clock().now()
 
         # Timer runs the maths at 10Hz
-        self.create_timer(0.1, self.UpdateOdometry)
+        self.create_timer(0.05, self.UpdateOdometry)
 
     def tick_callback_left(self, msg: Int32):
         """
@@ -101,6 +101,9 @@ class OdometryNode(Node):
         """
 
         if self.left_ticks is None or self.right_ticks is None:
+            # Publish identity transform so SLAM has something to work with
+            self.Publish(self.get_clock().now())
+            self._publish_tf(self.get_clock().now())
             return                                  # wait until both have arrived
         if self.last_left_ticks is None:
             self.last_left_ticks = self.left_ticks  # initialise from first real values

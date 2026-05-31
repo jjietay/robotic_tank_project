@@ -2,6 +2,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch.actions import TimerAction
 
 
 def generate_launch_description():
@@ -56,12 +57,15 @@ def generate_launch_description():
             output='screen',
         ),
 
-        Node(
-            package='slam_toolbox',
-            executable='async_slam_toolbox_node',
-            name='slam_toolbox',
-            output='screen',
-            parameters=[slam_params],
+        TimerAction(
+            period=5.0,
+            actions=[Node(
+                package='slam_toolbox',
+                executable='async_slam_toolbox_node',
+                name='slam_toolbox',
+                output='screen',
+                parameters=[slam_params],
+            )]
         ),
 
     ])
