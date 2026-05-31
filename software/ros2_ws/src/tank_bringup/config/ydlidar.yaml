@@ -1,16 +1,16 @@
 ydlidar_ros2_driver_node:
   ros__parameters:
     port: /dev/ttyUSB0         
-    baudrate: 230400            # X3 Pro default
+    baudrate: 115200            # X3 Pro default
     lidar_type: 1
-    device_type: 6
-    sample_rate: 5
+    device_type: 0
+    sample_rate: 3
     abnormal_check_count: 4
     fixed_resolution: false
     reversion: false
     inverted: false
     auto_reconnect: true
-    isSingleChannel: false
+    isSingleChannel: true
     intensity: false
     support_motor_dtr: false
     angle_min: -180.0
