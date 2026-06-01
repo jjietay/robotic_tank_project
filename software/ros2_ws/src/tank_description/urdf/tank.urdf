@@ -7,7 +7,7 @@
 
     <link name="base_link">
         <visual>
-        <origin xyz="0 0 0" rpy="3.14 0 3.14"/>
+        <origin xyz="0 0 0" rpy="3.14 0 -1.57"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/new_chassis.stl"
                 scale="0.001 0.001 0.001"/>
@@ -213,7 +213,7 @@
 
     <link name="lidar_link">
         <visual>
-        <origin xyz="0.00 0 0" rpy="0 0 3.1416"/>
+        <origin xyz="0.00 0 0" rpy="0 0 0"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/YDLIDAR_X3Pro.stl"
                 scale="0.001 0.001 0.001"/>
@@ -236,7 +236,7 @@
     <joint name="lidar_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_link"/>
-        <origin xyz="0.05 0 0.03"/>
+        <origin xyz="-0.05 0 0.03"/>
     </joint>
 
 

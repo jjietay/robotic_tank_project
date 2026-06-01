@@ -131,8 +131,8 @@ class OdometryNode(Node):
         elif delta_r < -2**31:
             delta_r += INT32_RANGE
 
-        dist_change_left = (delta_l/1560) * self.wheel_circumference
-        dist_change_right = (delta_r/1560) * self.wheel_circumference
+        dist_change_left = -(delta_l/1560) * self.wheel_circumference
+        dist_change_right = -(delta_r/1560) * self.wheel_circumference
 
         d_center = (dist_change_left + dist_change_right)/2
         angle_change = (dist_change_right - dist_change_left) / self._wheel_base
