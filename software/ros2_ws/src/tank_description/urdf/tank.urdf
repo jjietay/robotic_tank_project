@@ -42,7 +42,7 @@
     <joint name="imu_joint" type="fixed">
         <parent link="base_link"/>
         <child link="imu_link"/>
-        <origin xyz="0.00 0 0.078" rpy="0 0 0"/>
+        <origin xyz="0.00 0 0.078" rpy="0 0 3.14159"/>
     </joint>
 
 
@@ -213,7 +213,7 @@
 
     <link name="lidar_link">
         <visual>
-        <origin xyz="0.00 0 0" rpy="0 0 0"/>
+        <origin xyz="0.00 0 0" rpy="0 0 3.14159"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/YDLIDAR_X3Pro.stl"
                 scale="0.001 0.001 0.001"/>
@@ -236,7 +236,7 @@
     <joint name="lidar_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_link"/>
-        <origin xyz="-0.05 0 0.03"/>
+        <origin xyz="0.05 0 0.03"/>
     </joint>
 
 
