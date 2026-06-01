@@ -9,21 +9,34 @@ ekf_filter_node:
     base_link_frame: base_link
     world_frame: odom
 
-    # Encoder odometry — trust linear velocity, ignore orientation
+    # Encoder odometry — only trust linear velocity (vx), encoders are noisy
     odom0: /odom
-    odom0_config: [false, false, false,   # x, y, z position
-                  false, false, false,   # roll, pitch, yaw
-                  true,  false, false,   # vx, vy, vz
-                  false, false, false,   # vroll, vpitch, vyaw
-                  false, false, false]   # ax, ay, az
+    odom0_config: [false, false, false,   # x, y, z position — don't fuse absolute position
+                   false, false, false,   # roll, pitch, yaw — don't fuse orientation from encoders
+                   true,  false, false,   # vx, vy, vz — only trust forward velocity
+                   false, false, false,   # vroll, vpitch, vyaw — ignore rotational velocity
+                   false, false, false]   # ax, ay, az — ignore acceleration
     odom0_differential: false
+    odom0_pose_rejection_threshold: 2.0
+    odom0_twist_rejection_threshold: 2.0
 
-    # BNO085 IMU — trust orientation (yaw), ignore angular velocity (not available in RVC mode)
+    # Override encoder covariance — encoders are noisy, so we distrust them heavily
+    # Format: 6x6 matrix (x, y, z, roll, pitch, yaw) for twist
+    odom0_twist_covariance_override: [0.5,     0.0,     0.0,     0.0,     0.0,     0.0,     # vx — moderate trust
+                                      0.0,     99999.0, 0.0,     0.0,     0.0,     0.0,     # vy — ignored (tank can't strafe)
+                                      0.0,     0.0,     99999.0, 0.0,     0.0,     0.0,     # vz — ignored (2D robot)
+                                      0.0,     0.0,     0.0,     99999.0, 0.0,     0.0,     # vroll — ignored
+                                      0.0,     0.0,     0.0,     0.0,     99999.0, 0.0,     # vpitch — ignored
+                                      0.0,     0.0,     0.0,     0.0,     0.0,     99999.0] # vyaw — ignored, IMU handles this
+
+    # BNO085 IMU — trust yaw orientation only
+    # angular_velocity removed: I2C mode gives real gyro but we use differential mode
+    # so absolute orientation changes are what matter, not raw angular rate
     imu0: /sensors/imu
-    imu0_config: [false, false, false,   # x, y, z
-                  false, false, true,    # roll, pitch, yaw — only use yaw
-                  false, false, false,   # vx, vy, vz
-                  false, false, true,   # vroll, vpitch, vyaw
-                  false, false, false]   # ax, ay, az
-    imu0_differential: false
+    imu0_config: [false, false, false,   # x, y, z — IMU doesn't know position
+                  false, false, true,    # roll, pitch, yaw — ONLY fuse yaw orientation
+                  false, false, false,   # vx, vy, vz — not available from IMU
+                  false, false, false,   # vroll, vpitch, vyaw — dropped, unreliable at rest
+                  false, false, false]   # ax, ay, az — not fusing acceleration
+    imu0_differential: true             # use yaw CHANGES not absolute yaw (avoids boot-frame mismatch)
     imu0_remove_gravitational_acceleration: true

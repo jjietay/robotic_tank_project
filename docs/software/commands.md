@@ -13,6 +13,9 @@
 ## Run specific nodes
 - ros2 topic echo /sensors/encoders/right_ticks
 
+## Run slam launch for mapping
+ros2 launch tank_bringup slam.launch.py
+
 ## Open RVIZ
 ### (A) MAC
 - conda activate ros2
