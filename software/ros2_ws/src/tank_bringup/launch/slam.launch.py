@@ -22,6 +22,11 @@ def generate_launch_description():
         'config', 'slam_toolbox.yaml'
     )
 
+    ekf_params = os.path.join(
+        get_package_share_directory('tank_bringup'),
+        'config', 'ekf.yaml'
+    )
+
     return LaunchDescription([
 
         Node(
@@ -50,15 +55,37 @@ def generate_launch_description():
             parameters=[ydlidar_params],
         ),
 
+        # BNO085 IMU (UART-RVC mode on /dev/ttyS0)
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='static_odom_tf',
-            arguments=['0', '0', '0', '0', '0', '0', 'odom', 'base_link'],
+            package='rc_car_teleop',
+            executable='bno085_rvc',
+            name='bno085_rvc_node',
+            output='screen',
         ),
-        
+
+        # Encoder odometry — publishes /odom
+        Node(
+            package='rc_car_teleop',
+            executable='odometry',
+            name='odometry',
+            output='screen',
+        ),
+
+        # EKF — fuses /odom + /sensors/imu → /odometry/filtered + odom→base_link TF
         TimerAction(
-            period=5.0,
+            period=3.0,
+            actions=[Node(
+                package='robot_localization',
+                executable='ekf_node',
+                name='ekf_filter_node',
+                output='screen',
+                parameters=[ekf_params],
+            )]
+        ),
+
+        # SLAM — starts after EKF has time to establish TF
+        TimerAction(
+            period=8.0,
             actions=[Node(
                 package='slam_toolbox',
                 executable='async_slam_toolbox_node',

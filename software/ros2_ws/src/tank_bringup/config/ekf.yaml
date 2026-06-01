@@ -1,0 +1,29 @@
+ekf_filter_node:
+  ros__parameters:
+    frequency: 30.0
+    sensor_timeout: 0.1
+    two_d_mode: true
+    publish_tf: true
+
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom
+
+    # Encoder odometry — trust linear velocity, ignore orientation
+    odom0: /odom
+    odom0_config: [false, false, false,   # x, y, z position
+                   false, false, false,   # roll, pitch, yaw
+                   true,  false, false,   # vx, vy, vz
+                   false, false, false,   # vroll, vpitch, vyaw
+                   false, false, false]   # ax, ay, az
+    odom0_differential: false
+
+    # BNO085 IMU — trust orientation (yaw), ignore angular velocity (not available in RVC mode)
+    imu0: /sensors/imu
+    imu0_config: [false, false, false,   # x, y, z
+                  false, false, true,    # roll, pitch, yaw — only use yaw
+                  false, false, false,   # vx, vy, vz
+                  false, false, false,   # vroll, vpitch, vyaw
+                  false, false, false]   # ax, ay, az
+    imu0_differential: false
+    imu0_remove_gravitational_acceleration: true
