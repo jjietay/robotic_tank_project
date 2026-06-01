@@ -7,7 +7,7 @@
 
     <link name="base_link">
         <visual>
-        <origin xyz="0 0 0" rpy="3.14 0 1.57"/>
+        <origin xyz="0.0 0.0 0.0" rpy="3.14159 0.0 1.5708"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/new_chassis.stl"
                 scale="0.001 0.001 0.001"/>
@@ -18,21 +18,20 @@
         </visual>
 
         <collision>
-            <origin xyz="0.0115 0 0.004" rpy="0 0 0"/>
+            <origin xyz="0.0115 0.0 0.004" rpy="0.0 0.0 0.0"/>
             <geometry>
                 <box size="0.1833 0.1776 0.0423"/>
             </geometry>
         </collision>
 
         <inertial>
-            <origin xyz="0.0115 0 0.004" rpy="0 0 0"/>
+            <origin xyz="0.0115 0.0 0.004" rpy="0.0 0.0 0.0"/>
             <mass value="1.02"/>
             <inertia
                 ixx="0.00283" ixy="0.0" ixz="0.0"
                 iyy="0.00301" iyz="0.0" izz="0.00554"/>
         </inertial>
     </link>
-
 
 <!-- ================================================ -->
 <!--                    IMU LINK                      -->
@@ -42,11 +41,8 @@
     <joint name="imu_joint" type="fixed">
         <parent link="base_link"/>
         <child link="imu_link"/>
-        <origin xyz="0.00 0 0.078" rpy="0 0 3.14159"/>
+        <origin xyz="0.000 0.000 0.078" rpy="0.000 0.000 3.14159"/>
     </joint>
-
-
-
 
 <!-- ================================================ -->
 <!--     CHASSIS → PLATFORM STANDOFFS (4 per side)    -->
@@ -63,7 +59,7 @@
     <joint name="standoff_l2_joint" type="fixed">
         <parent link="base_link"/>
         <child link="standoff_l2"/>
-        <origin xyz="-0.067 0.044 0.057"/>
+        <origin xyz="-0.067 0.044 0.057" rpy="0.0 0.0 0.0"/>
     </joint>
 
     <link name="standoff_l1">
@@ -75,11 +71,10 @@
     <joint name="standoff_l1_joint" type="fixed">
         <parent link="base_link"/>
         <child link="standoff_l1"/>
-        <origin xyz="0.015 0.044 0.057"/>
-
+        <origin xyz="0.015 0.044 0.057" rpy="0.0 0.0 0.0"/>
     </joint>
 
-        <link name="standoff_l3">
+    <link name="standoff_l3">
         <visual>
         <geometry><cylinder radius="0.0025" length="0.05"/></geometry>
         <material name="silver"><color rgba="0.15 0.15 0.15 1.0"/></material>
@@ -88,9 +83,8 @@
     <joint name="standoff_l3_joint" type="fixed">
         <parent link="base_link"/>
         <child link="standoff_l3"/>
-        <origin xyz="0.071 0.044 0.057"/>
+        <origin xyz="0.071 0.044 0.057" rpy="0.0 0.0 0.0"/>
     </joint>
-
 
 <!-- ============== RIGHT ================== -->
 
@@ -103,7 +97,7 @@
     <joint name="standoff_r2_joint" type="fixed">
         <parent link="base_link"/>
         <child link="standoff_r2"/>
-        <origin xyz="-0.067 -0.044 0.057"/>
+        <origin xyz="-0.067 -0.044 0.057" rpy="0.0 0.0 0.0"/>
     </joint>
 
     <link name="standoff_r1">
@@ -115,11 +109,10 @@
     <joint name="standoff_r1_joint" type="fixed">
         <parent link="base_link"/>
         <child link="standoff_r1"/>
-        <origin xyz="0.015 -0.044 0.057"/>
-
+        <origin xyz="0.015 -0.044 0.057" rpy="0.0 0.0 0.0"/>
     </joint>
 
-        <link name="standoff_r3">
+    <link name="standoff_r3">
         <visual>
         <geometry><cylinder radius="0.0025" length="0.05"/></geometry>
         <material name="silver"><color rgba="0.15 0.15 0.15 1.0"/></material>
@@ -128,14 +121,12 @@
     <joint name="standoff_r3_joint" type="fixed">
         <parent link="base_link"/>
         <child link="standoff_r3"/>
-        <origin xyz="0.071 -0.044 0.057"/>
+        <origin xyz="0.071 -0.044 0.057" rpy="0.0 0.0 0.0"/>
     </joint>
 
-
-
-    <!-- ================================================ -->
-    <!--                    PLATFORM                      -->
-    <!-- ================================================ -->
+<!-- ================================================ -->
+<!--                    PLATFORM                      -->
+<!-- ================================================ -->
     <link name="platform">
         <visual>
         <geometry>
@@ -149,14 +140,12 @@
     <joint name="platform_joint" type="fixed">
         <parent link="base_link"/>
         <child link="platform"/>
-        <origin xyz="0 0 0.082"/>
+        <origin xyz="0.0 0.0 0.082" rpy="0.0 0.0 0.0"/>
     </joint>
 
-
-
-    <!-- ================================================ -->
-    <!--      PLATFORM → LIDAR STANDOFFS (4 corners)      -->
-    <!-- ================================================ -->
+<!-- ================================================ -->
+<!--      PLATFORM → LIDAR STANDOFFS (4 corners)      -->
+<!-- ================================================ -->
     <link name="lidar_standoff_fl">
         <visual>
         <geometry><cylinder radius="0.002" length="0.026"/></geometry>
@@ -166,7 +155,7 @@
     <joint name="lidar_standoff_fl_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_standoff_fl"/>
-        <origin xyz="0.072 0.032 0.015"/>
+        <origin xyz="0.072 0.032 0.015" rpy="0.0 0.0 0.0"/>
     </joint>
 
     <link name="lidar_standoff_fr">
@@ -178,7 +167,7 @@
     <joint name="lidar_standoff_fr_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_standoff_fr"/>
-        <origin xyz="0.072 -0.032 0.015"/>
+        <origin xyz="0.072 -0.032 0.015" rpy="0.0 0.0 0.0"/>
     </joint>
 
     <link name="lidar_standoff_rl">
@@ -190,7 +179,7 @@
     <joint name="lidar_standoff_rl_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_standoff_rl"/>
-        <origin xyz="0.015 0.025 0.015"/>
+        <origin xyz="0.015 0.025 0.015" rpy="0.0 0.0 0.0"/>
     </joint>
 
     <link name="lidar_standoff_rr">
@@ -202,10 +191,8 @@
     <joint name="lidar_standoff_rr_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_standoff_rr"/>
-        <origin xyz="0.015 -0.025 0.015"/>
+        <origin xyz="0.015 -0.025 0.015" rpy="0.0 0.0 0.0"/>
     </joint>
-
-
 
 <!-- ================================================ -->
 <!--                     LIDAR                        -->
@@ -213,7 +200,7 @@
 
     <link name="lidar_link">
         <visual>
-        <origin xyz="0.00 0 0" rpy="0 0 3.14159"/>
+        <origin xyz="0.000 0.000 0.000" rpy="0.000 0.000 3.14159"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/YDLIDAR_X3Pro.stl"
                 scale="0.001 0.001 0.001"/>
@@ -223,7 +210,6 @@
         </material>
         </visual>
 
-        <!-- Gazebo needs collision + inertial on sensor links -->
         <collision>
             <geometry><cylinder radius="0.035" length="0.03"/></geometry>
         </collision>
@@ -233,14 +219,12 @@
                      iyy="0.00001" iyz="0" izz="0.00001"/>
         </inertial>
     </link>
+    
     <joint name="lidar_joint" type="fixed">
         <parent link="platform"/>
         <child link="lidar_link"/>
-        <origin xyz="0.05 0 0.03"/>
+        <origin xyz="0.050 0.000 0.030" rpy="0.000 0.000 3.14159"/>
     </joint>
-
-
-
 
 <!-- ================================================ -->
 <!--                  DRIVE WHEELS                    -->
@@ -269,10 +253,9 @@
 <joint name="left_drive_joint" type="continuous">
     <parent link="base_link"/>
     <child link="left_drive"/>
-    <origin xyz="-0.0579 0.068 0.001" rpy="-1.5708 0 0"/>
+    <origin xyz="-0.0579 0.068 0.001" rpy="-1.5708 0.0 0.0"/>
     <axis xyz="0 0 1"/>
 </joint>
-
 
 <!-- ============== RIGHT ================== -->
 <link name="right_drive">
@@ -297,11 +280,9 @@
 <joint name="right_drive_joint" type="continuous">
     <parent link="base_link"/>
     <child link="right_drive"/>
-    <origin xyz="0.058 -0.068 0.001" rpy="-1.5708 0 0"/>
+    <origin xyz="0.058 -0.068 0.001" rpy="-1.5708 0.0 0.0"/>
     <axis xyz="0 0 1"/>
 </joint>
-
-
 
 <!-- ================================================ -->
 <!--                 BEARING WHEELS                   -->
@@ -330,7 +311,7 @@
 <joint name="left_bearing_joint" type="continuous">
     <parent link="base_link"/>
     <child link="left_bearing"/>
-    <origin xyz="0.058 0.0686 0.001" rpy="-1.5708 0 0"/>
+    <origin xyz="0.058 0.0686 0.001" rpy="-1.5708 0.0 0.0"/>
     <axis xyz="0 0 1"/>
 </joint>
 
@@ -357,11 +338,9 @@
 <joint name="right_bearing_joint" type="continuous">
     <parent link="base_link"/>
     <child link="right_bearing"/>
-    <origin xyz="-0.058 -0.069 0.001" rpy="-1.5708 0 0"/>
+    <origin xyz="-0.058 -0.069 0.001" rpy="-1.5708 0.0 0.0"/>
     <axis xyz="0 0 1"/>
 </joint>
-
-
 
 <!-- ================================================ -->
 <!--              ULTRASONIC SENSORS                  -->
@@ -370,89 +349,82 @@
 <!-- ============== LEFT ================== -->
 <link name="ultrasonic_left_link">
     <visual>
-        <origin xyz="0 0 0" rpy="4.7124 0 0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="4.7124 0.0 0.0"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/ultrasonic_sensor.stl"
                 scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="dark">
-            <color rgba="1 1 1 1.0"/>
+            <color rgba="1.0 1.0 1.0 1.0"/>
         </material>
     </visual>
 </link>
 <joint name="ultrasonic_left_joint" type="fixed">
     <parent link="base_link"/>
     <child link="ultrasonic_left_link"/>
-    <origin xyz="0.01 0.05 0.042" rpy="0 0 0"/>
+    <origin xyz="0.01 0.05 0.042" rpy="0.0 0.0 0.0"/>
 </joint>
-
 
 <!-- ============== RIGHT ================== -->
 <link name="ultrasonic_right_link">
     <visual>
-        <origin xyz="0 0 0" rpy="4.7124 0 0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="4.7124 0.0 0.0"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/ultrasonic_sensor.stl"
                 scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="dark">
-            <color rgba="1 1 1 1.0"/>
+            <color rgba="1.0 1.0 1.0 1.0"/>
         </material>
     </visual>
 </link>
 <joint name="ultrasonic_right_joint" type="fixed">
     <parent link="base_link"/>
     <child link="ultrasonic_right_link"/>
-    <origin xyz="0.01 -0.05 0.042" rpy="0 0 3.1416"/>
+    <origin xyz="0.01 -0.05 0.042" rpy="0.0 0.0 3.14159"/>
 </joint>
-
 
 <!-- ============== BACK ================== -->
 <link name="ultrasonic_back_link">
     <visual>
-        <origin xyz="0 0 0" rpy="4.7124 0 0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="4.7124 0.0 0.0"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/ultrasonic_sensor.stl"
                 scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="dark">
-            <color rgba="1 1 1 1.0"/>
+            <color rgba="1.0 1.0 1.0 1.0"/>
         </material>
     </visual>
 </link>
 <joint name="ultrasonic_back_joint" type="fixed">
     <parent link="base_link"/>
     <child link="ultrasonic_back_link"/>
-    <origin xyz="-0.085 0.0 0.012" rpy="0 0 1.5708"/>
+    <origin xyz="-0.085 0.0 0.012" rpy="0.0 0.0 1.5708"/>
 </joint>
 
 <!-- ============== FRONT ================== -->
 <link name="ultrasonic_front_link">
     <visual>
-        <origin xyz="0 0 0" rpy="4.7124 0 0"/>
+        <origin xyz="0.0 0.0 0.0" rpy="4.7124 0.0 0.0"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/ultrasonic_sensor.stl"
                 scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="dark">
-            <color rgba="1 1 1 1.0"/>
+            <color rgba="1.0 1.0 1.0 1.0"/>
         </material>
     </visual>
 </link>
 <joint name="ultrasonic_front_joint" type="fixed">
     <parent link="base_link"/>
     <child link="ultrasonic_front_link"/>
-    <origin xyz="0.08 0.0 0.042" rpy="0 0 -1.5708"/>
+    <origin xyz="0.08 0.0 0.042" rpy="0.0 0.0 -1.5708"/>
 </joint>
-
-
 
 <!-- ================================================ -->
 <!--             GAZEBO MATERIAL COLORS               -->
 <!-- ================================================ -->
-<!-- Gazebo ignores URDF <material> tags — these      -->
-<!-- <gazebo> blocks set the visual appearance in sim  -->
-
 <gazebo reference="base_link">
     <material>Gazebo/DarkGrey</material>
 </gazebo>
@@ -491,60 +463,36 @@
     <material>Gazebo/Grey</material>
 </gazebo>
 
-
 <!-- ================================================ -->
 <!--          GAZEBO: DIFFERENTIAL DRIVE PLUGIN       -->
 <!-- ================================================ -->
-<!-- Subscribes to /cmd_vel, publishes /odom and      -->
-<!-- broadcasts odom → base_link TF.                  -->
-<!-- Both drive + bearing wheels are driven so the    -->
-<!-- 4-wheel tank doesn't drag.                       -->
-
 <gazebo>
     <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
-        <!-- Wheel joints — left side -->
         <left_joint>left_drive_joint</left_joint>
         <left_joint>left_bearing_joint</left_joint>
-
-        <!-- Wheel joints — right side -->
         <right_joint>right_drive_joint</right_joint>
         <right_joint>right_bearing_joint</right_joint>
-
-        <!-- Wheel geometry (from URDF) -->
         <wheel_separation>0.136</wheel_separation>
         <wheel_diameter>0.038</wheel_diameter>
-
-        <!-- Limits -->
         <max_wheel_torque>5.0</max_wheel_torque>
         <max_wheel_acceleration>2.0</max_wheel_acceleration>
-
-        <!-- Odometry -->
         <odometry_frame>odom</odometry_frame>
         <robot_base_frame>base_link</robot_base_frame>
         <publish_odom>true</publish_odom>
         <publish_odom_tf>true</publish_odom_tf>
         <publish_wheel_tf>true</publish_wheel_tf>
-
-        <!-- Topics -->
         <command_topic>cmd_vel</command_topic>
         <odometry_topic>odom</odometry_topic>
-
-        <!-- Update rate -->
         <update_rate>100.0</update_rate>
     </plugin>
 </gazebo>
 
-
 <!-- ================================================ -->
 <!--          GAZEBO: LIDAR SENSOR PLUGIN             -->
 <!-- ================================================ -->
-<!-- Simulates the YD LIDAR X3 Pro: 360° scan,       -->
-<!-- ~8m range, publishes sensor_msgs/LaserScan       -->
-<!-- on /scan — same topic SLAM Toolbox expects.      -->
-
 <gazebo reference="lidar_link">
     <sensor type="ray" name="lidar_sensor">
-        <pose>0 0 0 0 0 0</pose>
+        <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
         <always_on>true</always_on>
         <update_rate>6.0</update_rate>
         <visualize>true</visualize>
@@ -578,27 +526,23 @@
     </sensor>
 </gazebo>
 
-
 <!-- ================================================ -->
 <!--           GAZEBO: IMU SENSOR PLUGIN              -->
 <!-- ================================================ -->
-<!-- Publishes sensor_msgs/Imu on /sensors/imu —      -->
-<!-- same topic your real firmware publishes.          -->
-
 <gazebo reference="imu_link">
     <sensor type="imu" name="imu_sensor">
         <always_on>true</always_on>
         <update_rate>50.0</update_rate>
         <imu>
             <angular_velocity>
-                <x><noise type="gaussian"><mean>0</mean><stddev>0.0005</stddev></noise></x>
-                <y><noise type="gaussian"><mean>0</mean><stddev>0.0005</stddev></noise></y>
-                <z><noise type="gaussian"><mean>0</mean><stddev>0.0005</stddev></noise></z>
+                <x><noise type="gaussian"><mean>0.0</mean><stddev>0.0005</stddev></noise></x>
+                <y><noise type="gaussian"><mean>0.0</mean><stddev>0.0005</stddev></noise></y>
+                <z><noise type="gaussian"><mean>0.0</mean><stddev>0.0005</stddev></noise></z>
             </angular_velocity>
             <linear_acceleration>
-                <x><noise type="gaussian"><mean>0</mean><stddev>0.005</stddev></noise></x>
-                <y><noise type="gaussian"><mean>0</mean><stddev>0.005</stddev></noise></y>
-                <z><noise type="gaussian"><mean>0</mean><stddev>0.005</stddev></noise></z>
+                <x><noise type="gaussian"><mean>0.0</mean><stddev>0.005</stddev></noise></x>
+                <y><noise type="gaussian"><mean>0.0</mean><stddev>0.005</stddev></noise></y>
+                <z><noise type="gaussian"><mean>0.0</mean><stddev>0.005</stddev></noise></z>
             </linear_acceleration>
         </imu>
         <plugin name="imu_plugin" filename="libgazebo_ros_imu_sensor.so">
@@ -610,6 +554,5 @@
         </plugin>
     </sensor>
 </gazebo>
-
 
 </robot>
