@@ -55,11 +55,11 @@ def generate_launch_description():
             parameters=[ydlidar_params],
         ),
 
-        # BNO085 IMU (UART-RVC mode on /dev/ttyS0)
+        # BNO085 IMU (I2C mode on /dev/ttyS0)
         Node(
             package='rc_car_teleop',
-            executable='bno085_rvc',
-            name='bno085_rvc_node',
+            executable='bno085_i2c',
+            name='bno085_i2c_node',
             output='screen',
         ),
 

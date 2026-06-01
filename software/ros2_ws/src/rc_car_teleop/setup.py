@@ -22,7 +22,7 @@ setup(
         'console_scripts': [
             'teleop          = rc_car_teleop.teleop:main',
             'odometry        = rc_car_teleop.robot_core.odom:main',
-            'bno085_rvc      = rc_car_teleop.robot_core.bno085_rvc_node:main',
+            'bno085_i2c      = rc_car_teleop.robot_core.bno085_i2c_node:main',
             'lidar_processor = rc_car_teleop.robot_core.lidar_processor:main',
             'yolo            = rc_car_teleop.robot_core.yolo:main',
             'camera          = rc_car_teleop.robot_core.camera:main',

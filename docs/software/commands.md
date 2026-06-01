@@ -37,3 +37,14 @@
 - sudo picotool reboot -f -u
 - sudo picotool load ~/pico_micro_ros.uf2 -f
 - sudo picotool reboot
+
+
+## TMUX
+-tmux ls (find existing windows)
+-tmux new -As NAME (create permanent new window)
+-Ctrl b % (split left and right panes)
+-Ctrl b “ (split up and down panes)
+-Ctrl b o (switch between panes)
+-Ctrl b x (kill pane)
+-Ctrl b : “select-layout tiled” (equally spaced panes)
+
