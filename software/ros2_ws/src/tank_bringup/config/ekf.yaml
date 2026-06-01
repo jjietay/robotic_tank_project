@@ -38,5 +38,5 @@ ekf_filter_node:
                   false, false, false,   # vx, vy, vz — not available from IMU
                   false, false, false,   # vroll, vpitch, vyaw — dropped, unreliable at rest
                   false, false, false]   # ax, ay, az — not fusing acceleration
-    imu0_differential: false             # use yaw CHANGES not absolute yaw (avoids boot-frame mismatch)
+    imu0_differential: true             # use yaw CHANGES not absolute yaw (avoids boot-frame mismatch)
     imu0_remove_gravitational_acceleration: true

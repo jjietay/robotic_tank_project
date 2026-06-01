@@ -103,7 +103,7 @@ class OdometryNode(Node):
         if self.left_ticks is None or self.right_ticks is None:
             # Publish identity transform so SLAM has something to work with
             self.Publish(self.get_clock().now())
-            self._publish_tf(self.get_clock().now())
+            # self._publish_tf(self.get_clock().now())
             return                                  # wait until both have arrived
         if self.last_left_ticks is None:
             self.last_left_ticks = self.left_ticks  # initialise from first real values
@@ -131,8 +131,8 @@ class OdometryNode(Node):
         elif delta_r < -2**31:
             delta_r += INT32_RANGE
 
-        dist_change_left = -(delta_l/1560) * self.wheel_circumference
-        dist_change_right = -(delta_r/1560) * self.wheel_circumference
+        dist_change_left = (delta_l/1560) * self.wheel_circumference
+        dist_change_right = (delta_r/1560) * self.wheel_circumference
 
         d_center = (dist_change_left + dist_change_right)/2
         angle_change = (dist_change_right - dist_change_left) / self._wheel_base
@@ -149,7 +149,7 @@ class OdometryNode(Node):
         self.last_right_ticks = self.right_ticks
         self.prev_time = now
         self.Publish(now)
-        self._publish_tf(now) 
+        # self._publish_tf(now) 
     
     # publishes to /odom --> publishes to /odom (for Nav2's EKF / robot_localization)
     def Publish(self, stamp):
