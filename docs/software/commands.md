@@ -51,3 +51,37 @@ ros2 launch tank_bringup slam.launch.py
 -Ctrl b x (kill pane)
 -Ctrl b : “select-layout tiled” (equally spaced panes)
 
+
+
+
+# =========== TESTING SENSORS BEFORE STARTING =============
+# ── 1. Are all sensor topics alive? ──
+# Expected: left/right ticks ~100 Hz, IMU ~50 Hz, odom ~30-50 Hz, filtered ~30 Hz, scan ~6-8 Hz
+ros2 topic hz /sensors/encoders/left_ticks --window 20
+ros2 topic hz /sensors/encoders/right_ticks --window 20
+ros2 topic hz /sensors/imu --window 20
+ros2 topic hz /odom --window 20
+ros2 topic hz /odometry/filtered --window 20
+ros2 topic hz /scan --window 20
+
+# ── 2. Is the EKF the SOLE owner of odom → base_link? ──
+# Expected: exactly ONE broadcaster, from ekf_filter_node
+ros2 run tf2_ros tf2_monitor odom base_link
+
+# ── 3. Does the TF actually exist? ──
+# Expected: valid translation + rotation, not "does not exist"
+ros2 run tf2_ros tf2_echo odom base_link
+
+# ── 4. Quick IMU sanity check (robot stationary on flat surface) ──
+# Expected: orientation should be near identity (w≈1.0, x/y/z≈0),
+#           gyro should be near 0, linear_accel should be near 0
+ros2 topic echo /sensors/imu --once
+
+# ── 5. EKF diagnostic — is it actually fusing BOTH inputs? ──
+# This prints what the EKF is receiving and processing
+ros2 topic echo /diagnostics --once
+
+
+# ================== MORE INFO ABOUT TOPIC, HOW MANY SUBSCRIBERS OR PUBLISHING ================
+ros2 topic info /odom --verbose
+ros2 topic info /sensors/imu --verbose
