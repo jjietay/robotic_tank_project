@@ -8,16 +8,14 @@ while building the autonomous tank.
 
 Background
 ----------
+From the two years into uni, I realised I wasn't actually learning the things I cared about. AI and robotics. None of that was coming from lectures. So I decided to just go build something on my own.
 
-For the past 2 years of University, we had to study for a lot of math and physics subjects. I studied really hard, took exams and then called it a day. But in Y3S2 (during my internship at ST Engineering), I realised that the modules taken in Y1-2 did not exactly prepare me enough for what I might face in the future. Therefore, I needed to take matters in my own hands and actually learn meaningful things that will help me in expanding my knowledge pool and also in my future career. 
 
-I knew I wanted to do something related to robotics. That's why I thought about a robotic car.
+In Y3S2 (during my internship at ST Engineering), I realised that past 2 years in Uni did not exactly prepare me enough for what I might face in the future. Especially with my interest in AI and Robotics, I needed to take matters in my own hands and actually learn meaningful things that will help me in expanding my knowledge pool and also in my future career. 
 
-However, after interning at ST Engineering, I wanted to incorporate computer vision into my project. This project is a good precursor to my FYP which is incoporating Vision Language Action in robotic systems, as it gives me a good understanding of Robotic systems are how they work in the software, middleware and hardware levels.
+I figured if I could build something real using sensors, SLAM, Nav2, I'd come out the other side actually understanding robotics. Moreover, with my VLA-based FYP for robotics systems in my final year, having this hands-on foundation felt important to me.
 
-I believe understanding the fundamentals of Electronic sensors like the HC-SR04, LIDARS, SLAM, ROS2, Nav2, will certainly give me a basic grasp in early days of robotics, certainly helping me with navigating modern robotics with VLA implementation for my FYP.
-
-Therefore, I decided to make Self-driving Robotic Car.
+I decided to build a self-driving tank. Why a tank you may ask. If I'm being honest, part of it is that I've been fascinated by tanks since I was a kid (spent abit too much time playing world of tanks), so building one felt like the obvious choice. But beyond the nerdy appeal, I also knew that actually building something physical was the only way I'd retain any of this. I needed something I could break, fix, and learn from.
 
 ----
 
@@ -33,7 +31,7 @@ After researching and consulting AI what I should purchase, I spend nearly a cra
 
    Figure 1: Before building version 1
 
-When the kit in Figure 1 came, I was eager to build it. I followed some YouTube Tutorial on it and started building. I learnt how to write a simple micropython script and then make it such that it recieves the velocity commands over USB to my RPI4. I avoided touching ROS2 to reduce complexity and ensure hardware, wiring is also correct.
+When the kit in Figure 1 came, I couldn't wait to start. I followed some YouTube Tutorial on it and started building. I learnt how to write a simple micropython script and then make it such that it recieves the velocity commands over USB to my RPI4. I've heard that ROS was a pain to set up, so I deliberately kept it out of the picture, so I can focus in ensuring hardware and my python script is correct.
 
 .. figure:: ../_images/reflections_img2.jpg
    :alt: After building
@@ -104,7 +102,7 @@ When the new soldering iron came, I soldered on new pair of wires onto the motor
 26 Mar 26 — Improved Chassis, or is it?
 -----------------------------------------
 
-When I fitted the my bigger powerbank, everything changed. The whole system got heavier, and my cheap TT motors are struggling to move the car. When moving forward or backwards, it worked fine. But when it was tank turning left or right, it didn't budge. This is because the TT motors are not producing enough torque force to overcome the static friction.
+When I fitted the my bigger powerbank, everything changed. The whole system got heavier, and my cheap TT motors were struggling to move the car. When moving forward or backwards, it worked fine. But when it was tank turning left or right, it didn't budge. This is because the TT motors are not producing enough torque force to overcome the static friction.
 
 
 .. figure:: ../_images/reflections_img5-.png
@@ -243,7 +241,7 @@ Additionally, the existing H-bridge proved to be quite inefficient, dissipating 
 16 Apr 26 — Motor Mismatch + LIDAR's custom fit
 -------------------------------------------------
 
-When the motor came, I eagerly tried to yoink it in place. But to my surprise, it didn't fit. I checked the shaft dimensions before purchasing, but turned out the old motor I was using had a different sizing from the spec sheet found online.
+When the motor came, I eagerly tried to yoink it in place. But to my surprise, it didn't fit. I did check the shaft dimensions before purchasing, but turned out the old motor I was using had a different sizing from the spec sheet found online.
 
 .. figure:: ../_images/reflections_img8.png
    :alt: Before building
@@ -325,7 +323,7 @@ I decided to get some new ultrasonic sensors and then decided to plan out the sc
    :width: 1000px
    :align: center
 
-   Figure 12: Finished Hardware
+   Figure 12: Fritzing Schematics
 
 Figure 12 shows the schematics that I have created using Fritzing (an open-soruce application). It shows my main electronics used for connections. Since this is just prototyping, I am using a half sized breadboard and jumper wires for my wiring.
 
@@ -482,7 +480,7 @@ Video 5 represents a clanking sound when shaking the right motor after removing 
 
    Figure 21: Motor Close Up
 
-Figure 21 shows the motor when I removed the gear cover. I didn't see anything odd, just poor lubrication. When I shake the motor I could still hear the clanging, and I knew it was something to do with the interal windings of the actual motor itself. But I decided not to pursue this any further and just purchase new motors (with spares cos I can't afford waiting 1.5 weeks whenever this happens).
+Figure 21 shows the motor when I removed the gear cover. I didn't see anything odd, just poor lubrication. When I shake the motor I could still hear the clanging, and I knew it was something to do with the interal windings of the actual motor itself. But I decided not to pursue this any further and just purchase new motors (with spares cos I can't afford waiting another 1.5 weeks whenever this happens).
 
 23 May 2026 — RViz & Gazebo
 ---------------------------
@@ -494,28 +492,7 @@ Figure 21 shows the motor when I removed the gear cover. I didn't see anything o
 
    Figure 22: RViz
 
-Figure 22 shows my RViz model. Managed to set it up on my mac with much difficulty (thanks to apple sillicon). Below shows the steps I took to set it up.
-
-
-**On the Mac:**
-
-1) Installed ROS 2 Humble via conda robostack (``conda install -c robostack-staging ros-humble-desktop``)
-2) Built tank_description locally on Mac (``colcon build --packages-select tank_description``) so RViz can find the STL mesh files, because RViz resolves package:// paths locally
-3) Set ``AMENT_PREFIX_PATH`` in ``~/.zshrc`` to include both the conda env and the local tank_description install folder:
-
-.. code-block:: bash
-
-   export AMENT_PREFIX_PATH=/Users/jj/robotic_tank_project/software/ros2_ws/install/tank_description:/opt/homebrew/Caskroom/miniforge/base/envs/ros2
-
-4) Launched RViz, set Fixed Frame to base_link, added RobotModel display, set Description Topic to /robot_description and the robot model renders using topics from the Pi over WiFi
-
-**On the PI:**
-
-1) Created tank_description package with URDF (tank.urdf) containing all links such as chassis, wheels, ultrasonic sensors, LIDAR, IMU, platform, standoffs, with STL meshes referenced via ``package://tank_description/meshes/``
-
-2) Created a display.launch.py that launches ``robot_state_publisher`` (publishes ``/robot_description`` and ``/tf`` from the URDF) and ``joint_state_publisher`` (publishes ``/joint_states`` for non-fixed joints like wheels)
-
-3) launched with ros2 launch tank_description display.launch.py
+Figure 22 shows my RViz model. Managed to set it up on my mac with much difficulty (thanks to apple sillicon).
 
 .. figure:: ../_images/reflections_img23.png
    :alt: Before building
@@ -524,49 +501,7 @@ Figure 22 shows my RViz model. Managed to set it up on my mac with much difficul
 
    Figure 23: Gazebo
 
-Figure 23 shows Gazebo setup on my mac (also a pain due to apple's sillicon). Below shows the steps I took to set it up.
-
-
-**Installing SLAM Toolbox (on Mac):**
-
-1) Added the RoboStack staging channel (contains new/less stable packages) to the conda environment:
-
-.. code-block:: bash
-
-   conda config --env --add channels robostack-staging
-
-2) Installed slam_toolbox from the staging channel:
-
-.. code-block:: bash
-
-   conda install robostack-staging::ros-humble-slam-toolbox
-
-**Installing Gazebo Harmonic (on Mac):**
-
-1) Tapped the OSRF simulation Homebrew repository:
-
-.. code-block:: bash
-
-   brew tap osrf/simulation
-
-2) Installed Gz Harmonic (downloaded ~1GB of dependencies as pre-built bottles):
-
-.. code-block:: bash
-
-   brew install gz-harmonic
-
-3) Launched Gazebo using two terminals (macOS limitation where server and GUI must run separately):
-
-.. code-block:: bash
-
-   # Terminal 1
-   gz sim -s empty.sdf
-
-   # Terminal 2
-   gz sim -g
-
-4) Confirmed working — Gazebo GUI opened with empty world (ground plane, sun, entity tree visible)
-
+Figure 23 shows Gazebo setup on my mac (also a pain due to apple's sillicon). 
 
 29 May 2026 — IMU
 ------------------
@@ -604,6 +539,12 @@ When i tried running the BNO085 IMU, the ROS 2 topic ``/sensors/imu`` appeared, 
 - the sensor pushes a fixed-format packet out its TX line on a timer and the Pi listens on its RX line
 - RCV gives Yaw, pitch, roll, linear acc automatic streaming at a fixed rate
 
+**I found an alternative (Software bit-banged I2C on rpi4)**
+
+- Eventually I came back and got I2C working on the rpi4
+- Im using a software bit-banged I2C bus on a free GPIO pair instead of the hardware I2C peripheral (which im been using)
+- Bit-banging means the Pi manually toggles the pins in software, which correctly honours clock stretching because I'm in full control of the timing
+
 29 May 2026 — LIDAR
 --------------------
 .. raw:: html
@@ -616,5 +557,67 @@ When i tried running the BNO085 IMU, the ROS 2 topic ``/sensors/imu`` appeared, 
    <figcaption style="color: gray; margin-top: 0.8em;">Video 6: LIDAR spinning</figcaption>
    </figure>
 
-This took me long enough, but finally I have started setting up the LIDAR and its spinning. Managed to make the LIDAR node work and I was able to see the msg being published on my lidar topic. Next was setting it up so that I can see the point cloud on rviz.
+This took me long enough, but finally I have started setting up the LIDAR and its spinning. Managed to make the LIDAR node work and I was able to see the msg being published on my lidar topic. Next was setting it up so that I can see the laser scan on rviz.
+
+
+30 May 2026 — RViz2
+--------------------
+
+.. figure:: ../_images/reflections_img24.png
+   :alt: Before building
+   :width: 500px
+   :align: center
+
+   Figure 24: lidar scans in rviz
+
+Figure 24 shows my live lidar scans in my living room while my tank is stationary. The amount of satisfaction and dopamine I got from reaching this and actually seeing my lidar scan cannot be described by words. Month of grinding hardware, firmware and finally it paid off. Now I understand laying that base hardware foundation for any product/project is so important to ensure the later stages won't fall short. 
+
+.. figure:: ../_images/reflections_img25.png
+   :alt: Before building
+   :width: 900px
+   :align: center
+
+   Figure 25: added map in rviz
+
+Figure 25 shows my live lidar scans + my map in my living room, while stationary too.
+
+
+.. figure:: ../_images/reflections_img26.png
+   :alt: Before building
+   :width: 900px
+   :align: center
+
+   Figure 26: alot of drift
+
+In Figure 26, I was just driving around my living room, and it shows the drift between lidar and map. I noticed that when I move forwards in real life, the tank moved backwards in RViz. This was very odd. I went to check the axis and i realised that the red axis (+x) was facing backwards in RViz.This didn't make sense because I checked my urdf file and there was no problem.
+
+.. figure:: ../_images/reflections_img27.png
+   :alt: Before building
+   :width: 900px
+   :align: center
+
+   Figure 27: fixed axis
+
+Figure 27 shows the problem finally fixed. The red axis which represents the positive x direction is finally pointing in the same direction as in real life. Even though the problem occured just a few lines before, I actually spent a whole gruesome day trying to debug... running through my codebase and finding anything that is causing this issue. I went through my urdf joint origins, checked my mesh files orientation, verified tf tree in rviz, re-examined how ``robot_state_publisher`` was broadcasting transforms. The whole time the answer was sitting right there. The embarrassing error was that I didn't include a 0.000 in my rpy variable ``Rotation: in RPY (degree) [0.000, -0.000, 180.000]``. This made me realised that I need to pay more attention to the little details.
+
+.. figure:: ../_images/reflections_img28.png
+   :alt: Before building
+   :width: 900px
+   :align: center
+
+   Figure 28: drift
+
+Figure 28 shows another problem of drift. I verified that ``/odom``, ``/scan``, and ``sensors/imu`` were all actively publishing using ``ros2 topic hz``, and confirmed the EKF was outputting /odometry/filtered. I also suspected that my odom was not doing so well, at this point I tuned the EKF to weight odometry more heavily for linear velocity, since my IMU integration tends to drift on that axis. 
+
+I also understand that my LIDAR may be giving poor results due to the characteristics of my living room, such as many dark coloured objects (sofa, piano), which abosrbs infrared light rather than reflecting it back, so the LIDAR struggles to detct them reliably. On top of that, my living room has long flat walls with no distinctive features, which makes it hard for the scan-matcher to localise accurately. I also found another issue where, my map doesn't show the rear of my bin even after moving behind it.
+
+.. figure:: ../_images/reflections_img29.png
+   :alt: Before building
+   :width: 900px
+   :align: center
+
+   Figure 29: Before (left) and After (right) of mapping a smaller area
+
+Figure 29 shows the before and after of mapping a smaller area i created. I realised that this drastically helps with the mapping of rear of objects, since the rear of the bin is now properly shown as a fully round object. However, the drift is still a problem.
+
 
