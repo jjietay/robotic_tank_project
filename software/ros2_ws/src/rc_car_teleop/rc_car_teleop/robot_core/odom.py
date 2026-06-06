@@ -96,7 +96,7 @@ class OdometryNode(Node):
             delta_X:        schange in ticks from then and now
             INT32_RANGE:    represents the full range of Int32 values (-2,147,483,648 to 2,147,483,647)
             wraparound:     this helps to wrap around so we don't get negative tick values
-            4400:           encoder ticks per rev == encoder_pulses_per_rev (PPR -> 11) * gear_ratio (100:1) * quadrature
+            5764:           encoder ticks per rev == encoder_pulses_per_rev (PPR -> 11) * gear_ratio (131:1) * quadrature (4)
             now:            this represents current time that is passed to functions Publish and _publish_tf as timestamps
         """
 
@@ -131,8 +131,8 @@ class OdometryNode(Node):
         elif delta_r < -2**31:
             delta_r += INT32_RANGE
 
-        dist_change_left = (delta_l/1560) * self.wheel_circumference
-        dist_change_right = (delta_r/1560) * self.wheel_circumference
+        dist_change_left = (delta_l/5764) * self.wheel_circumference
+        dist_change_right = (delta_r/5764) * self.wheel_circumference
 
         d_center = (dist_change_left + dist_change_right)/2
         angle_change = (dist_change_right - dist_change_left) / self._wheel_base

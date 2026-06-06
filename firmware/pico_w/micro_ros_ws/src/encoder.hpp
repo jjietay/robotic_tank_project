@@ -43,7 +43,7 @@ public:
             uint _pin_a, uint _pin_b,
             float _reduction_ratio,
             float _diameter_m,
-            int _ppr = 13,
+            int _ppr = 11,
             bool _invert = false);
 
     int get_count(); // number of ticks       

@@ -8,42 +8,34 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-# Point at the same micro-ROS library used by the main build
-set(MICROROS_LIB_DIR     ${CMAKE_CURRENT_LIST_DIR}/../src/libmicroros)
-set(MICROROS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../src/libmicroros/include)
-
-link_directories(${MICROROS_LIB_DIR})
-
-add_executable(tank_debug
-    main.cpp
-    ../src/motor.cpp
-    ../src/encoder.cpp
-    ../src/pid.cpp
-    ../src/pico_uart_transport.c
-)
-
-target_link_libraries(tank_debug
-    pico_stdlib
-    hardware_pwm
-    hardware_gpio
-    hardware_sync
-    microros
-)
-
-target_include_directories(tank_debug PUBLIC
-    ../src
-    ${MICROROS_INCLUDE_DIR}
-)
-
 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffunction-sections -fdata-sections")
 
-target_compile_definitions(tank_debug PRIVATE
-    PICO_UART_ENABLE_CRLF_SUPPORT=0
-    PICO_STDIO_ENABLE_CRLF_SUPPORT=0
-    PICO_STDIO_DEFAULT_CRLF=0
-)
+# Shared sources/settings for both standalone (no micro-ROS) debug binaries.
+function(add_debug_target target srcfile)
+    add_executable(${target}
+        ${srcfile}
+        ../src/motor.cpp
+        ../src/encoder.cpp
+    )
+    target_link_libraries(${target}
+        pico_stdlib
+        hardware_pwm
+        hardware_gpio
+        hardware_sync
+    )
+    target_include_directories(${target} PUBLIC ../src)
+    target_compile_definitions(${target} PRIVATE
+        PICO_STDIO_ENABLE_CRLF_SUPPORT=0
+        PICO_STDIO_DEFAULT_CRLF=0
+    )
+    pico_enable_stdio_usb(${target} 1)
+    pico_enable_stdio_uart(${target} 0)
+    pico_add_extra_outputs(${target})
+endfunction()
 
-pico_enable_stdio_usb(tank_debug 1)
-pico_enable_stdio_uart(tank_debug 0)
-pico_add_extra_outputs(tank_debug)
+# Minimum-PWM sweep
+add_debug_target(tank_debug         main.cpp)
+
+# Maximum-velocity test
+add_debug_target(tank_debug_maxvel  main1.cpp)

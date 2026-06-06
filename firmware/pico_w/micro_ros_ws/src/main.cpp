@@ -7,8 +7,7 @@
 //      ultrasonic  — HC-SR04 distance (metres)
 //      motor       — Cytron MDD10A driver
 //      encoder     — quadrature hall encoder (tick counter + get_vel)
-//      main.cpp    — micro-ROS and the 100 Hz control loop (CORE 0)
-//      imu         — BNO085 orientation, gyro, linear-accel (CORE 1)
+//      main.cpp    — micro-ROS and the 100 Hz control loop
 //
 //   Control mode: Closed loop — feedforward + PID velocity control
 //    Feedforward: duty = vel / V_MAX_MPS  (handles ~80% of the work)
@@ -17,8 +16,6 @@
 
 #include "pico/stdlib.h"
 #include "pico/time.h"
-#include "pico/multicore.h"
-#include "pico/mutex.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -36,7 +33,6 @@ extern "C" {
 #include <std_msgs/msg/int32.h>
 #include <geometry_msgs/msg/twist.h>
 #include <sensor_msgs/msg/range.h>
-#include <sensor_msgs/msg/imu.h>
 #include <rosidl_runtime_c/string_functions.h>
 
 #include "config.hpp"
@@ -44,7 +40,6 @@ extern "C" {
 #include "motor.hpp"
 #include "encoder.hpp"
 #include "pid.hpp"
-#include "imu.hpp"
 
 #define RCCHECK(fn) { rcl_ret_t rc = (fn); \
     if (rc != RCL_RET_OK) { printf("RCL error %ld at %s:%d\n", rc, __FILE__, __LINE__); } }
@@ -56,12 +51,10 @@ extern "C" {
 rcl_subscription_t cmd_vel_sub;
 rcl_publisher_t usrm_front_pub, usrm_back_pub, usrm_left_pub, usrm_right_pub;
 rcl_publisher_t enc_left_pub, enc_right_pub;
-rcl_publisher_t imu_pub;
 
 geometry_msgs__msg__Twist cmd_vel_msg;
 sensor_msgs__msg__Range usrm_front_msg, usrm_back_msg, usrm_left_msg, usrm_right_msg;
 std_msgs__msg__Int32 enc_left_msg, enc_right_msg;
-sensor_msgs__msg__Imu imu_msg;
 
 rclc_executor_t executor;
 rclc_support_t  support;
@@ -74,34 +67,6 @@ rcl_node_t node;
 float target_vel_l_mps = 0.0f;
 float target_vel_r_mps = 0.0f;
 uint64_t last_cmd_vel_time_us = 0;
-
-// ---------------------------------------------------------------------------
-//                  Shared state — IMU (Core 1 → Core 0)
-// ---------------------------------------------------------------------------
-//  Core 1 runs sh2_service() in a tight loop and copies the IMU readings
-//  into g_imu_snap under g_imu_mutex.  Core 0 grabs an atomic snapshot of
-//  the struct under the same mutex at IMU publish time.
-//
-//  The mutex is held for ~50 cycles (one struct copy), so cross-core
-//  contention is negligible even at 2 kHz polling on core 1.
-// ---------------------------------------------------------------------------
-struct ImuSnapshot {
-    float qi, qj, qk, qr;     // rotation vector (quaternion)
-    float gx, gy, gz;         // calibrated gyroscope (rad/s)
-    float ax, ay, az;         // linear acceleration (m/s², gravity removed)
-};
-
-static ImuSnapshot g_imu_snap = {0.0f, 0.0f, 0.0f, 1.0f,   // identity quat
-                                0.0f, 0.0f, 0.0f,
-                                0.0f, 0.0f, 0.0f};
-
-static mutex_t        g_imu_mutex;
-static volatile bool  g_imu_ready = false;   // set by core 1 once SH2 is up
-
-//  IMU instance lives at file scope so core 1 can reach it.  Constructor
-//  only assigns members (no HW access), so it is safe to default-construct
-//  here; init() runs on core 1.
-static IMU IMU_SENSOR("IMU", "ON", i2c0, IMU_SDA, IMU_SCL);
 
 // ---------------------------------------------------------------------------
 //                           cmd_vel callback
@@ -148,54 +113,6 @@ static inline float clampf(float x, float lo, float hi)
 }
 
 // ---------------------------------------------------------------------------
-//                            Core 1 entry point
-// ---------------------------------------------------------------------------
-//  Core 1 owns the IMU exclusively:
-//    1. Initialise I2C + SH2 transport (also runs sh2_open on this core).
-//    2. Spin pumping sh2_service() and copying decoded values into the
-//       shared snapshot under g_imu_mutex.
-//
-//  Polling at ~2 kHz (sleep 500 µs) is far faster than the 100 Hz IMU
-//  report rate, so we never miss a packet, and the core is idle the rest
-//  of the time so power draw stays low.
-//
-//  If init() fails, core 1 enters a quiet idle loop — core 0 will see
-//  g_imu_ready == false and simply skip IMU publishing.
-// ---------------------------------------------------------------------------
-static void core1_entry()
-{
-    if (!IMU_SENSOR.init()) {
-        printf("[core1] IMU init failed — IMU publish will be skipped\n");
-        while (true) {
-            tight_loop_contents();
-        }
-    }
-    IMU_SENSOR.ShowStatus();
-    g_imu_ready = true;
-
-    while (true) {
-        IMU_SENSOR.update();    // pumps sh2_service() — may block briefly on I2C
-
-        // Copy decoded values into the shared snapshot.  Mutex is held only
-        // long enough to copy 10 floats — well under a microsecond.
-        mutex_enter_blocking(&g_imu_mutex);
-        g_imu_snap.qi = IMU_SENSOR.getQuatI();
-        g_imu_snap.qj = IMU_SENSOR.getQuatJ();
-        g_imu_snap.qk = IMU_SENSOR.getQuatK();
-        g_imu_snap.qr = IMU_SENSOR.getQuatReal();
-        g_imu_snap.gx = IMU_SENSOR.getGyroX();
-        g_imu_snap.gy = IMU_SENSOR.getGyroY();
-        g_imu_snap.gz = IMU_SENSOR.getGyroZ();
-        g_imu_snap.ax = IMU_SENSOR.getLinAccelX();
-        g_imu_snap.ay = IMU_SENSOR.getLinAccelY();
-        g_imu_snap.az = IMU_SENSOR.getLinAccelZ();
-        mutex_exit(&g_imu_mutex);
-
-        sleep_us(500);          // ~2 kHz service rate, plenty for 100 Hz IMU
-    }
-}
-
-// ---------------------------------------------------------------------------
 //                                   main
 // ---------------------------------------------------------------------------
 int main()
@@ -232,14 +149,7 @@ int main()
     MOTOR.ShowStatus();
     LEFT_ENCODER.ShowStatus(); RIGHT_ENCODER.ShowStatus();
 
-    // ---- Launch core 1 (IMU loop) ----------------------------------------
-    // Done BEFORE micro-ROS init so the IMU is already producing data by
-    // the time the first control tick runs.  The handshake is purely the
-    // g_imu_ready flag — we don't block waiting for it.
-    mutex_init(&g_imu_mutex);
-    multicore_launch_core1(core1_entry);
-
-    // ---- micro-ROS init (core 0) ----
+    // ---- micro-ROS init ----
     rmw_uros_set_custom_transport(
         true, NULL,
         pico_serial_transport_open,  pico_serial_transport_close,
@@ -272,9 +182,6 @@ int main()
     rclc_publisher_init_default(&enc_right_pub, &node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
         "/sensors/encoders/right_ticks");
-    rclc_publisher_init_default(&imu_pub, &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
-        "/sensors/imu");
 
     init_range_msg(&usrm_front_msg, 0, 0.26f, 0.02f, 4.00f);
     init_range_msg(&usrm_back_msg,  0, 0.26f, 0.02f, 4.00f);
@@ -285,7 +192,6 @@ int main()
     rosidl_runtime_c__String__assign(&usrm_back_msg.header.frame_id,  "ultrasonic_back_link");
     rosidl_runtime_c__String__assign(&usrm_left_msg.header.frame_id,  "ultrasonic_left_link");
     rosidl_runtime_c__String__assign(&usrm_right_msg.header.frame_id, "ultrasonic_right_link");
-    rosidl_runtime_c__String__assign(&imu_msg.header.frame_id, "imu_link");
 
     rclc_executor_init(&executor, &support.context, 1, &allocator);
     rclc_executor_add_subscription(
@@ -299,7 +205,6 @@ int main()
     // -----------------------------------------------------------------------
     uint8_t  usrm_index = 0;
     uint8_t  usrm_div_counter = 0;
-    uint8_t  imu_div_counter = 0;
 
     constexpr uint64_t LOOP_PERIOD_US = 10000ULL;  // 100 Hz = 10 ms
 
@@ -340,28 +245,6 @@ int main()
             usrm_index = (usrm_index + 1) % 4;
         }
         usrm_div_counter = (usrm_div_counter + 1) % USRM_DIVIDER;
-
-        // ===== 2b. IMU runs on core 1 — just snapshot and publish here =====
-        if (imu_div_counter == 0 && g_imu_ready) {
-            ImuSnapshot snap;
-            mutex_enter_blocking(&g_imu_mutex);
-            snap = g_imu_snap;                  // tiny struct copy under lock
-            mutex_exit(&g_imu_mutex);
-
-            imu_msg.orientation.x         = snap.qi;
-            imu_msg.orientation.y         = snap.qj;
-            imu_msg.orientation.z         = snap.qk;
-            imu_msg.orientation.w         = snap.qr;
-            imu_msg.angular_velocity.x    = snap.gx;
-            imu_msg.angular_velocity.y    = snap.gy;
-            imu_msg.angular_velocity.z    = snap.gz;
-            imu_msg.linear_acceleration.x = snap.ax;
-            imu_msg.linear_acceleration.y = snap.ay;
-            imu_msg.linear_acceleration.z = snap.az;
-            set_msg_stamp(&imu_msg.header);
-            RCCHECK(rcl_publish(&imu_pub, &imu_msg, NULL));
-        }
-        imu_div_counter = (imu_div_counter + 1) % IMU_DIVIDER;
 
         // ===== 3. Snapshot setpoint + cmd_vel watchdog =====
         //  IMPORTANT: compare against time_us_64() (current time), NOT
