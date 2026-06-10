@@ -31,7 +31,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
 # Must be longer than the OS initial key-repeat delay (≈500 ms on macOS).
-HOLD_TIMEOUT_MS = 525.0
+HOLD_TIMEOUT_MS = 500.0
 
 WHEEL_BASE_M = 0.135
 V_MAX_MPS    = 0.175
@@ -129,10 +129,10 @@ class TeleopNode(Node):
                     self._set_active('W',  V_MAX_MPS,  0.0)
                 elif key in ('s', 'S'):
                     self._set_active('S', -V_MAX_MPS,  0.0)
-                elif key in ('a', 'A'):
-                    self._set_active('A',  0.0,  MAX_ANGULAR)
                 elif key in ('d', 'D'):
-                    self._set_active('D',  0.0, -MAX_ANGULAR)
+                    self._set_active('D',  0.0,  MAX_ANGULAR)   # changed due to wiring
+                elif key in ('a', 'A'):
+                    self._set_active('A',  0.0, -MAX_ANGULAR)   # changed due to wiring
                 elif key == ' ':
                     self._set_active('X',  0.0,  0.0)
                 elif key in ('q', 'Q'):

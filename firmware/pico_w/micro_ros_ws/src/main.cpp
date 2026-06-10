@@ -290,8 +290,8 @@ int main()
             // duty_l = clampf(ff_l + pid_l.calculate(vel_l, meas_l), -1.0f, 1.0f); FOR PID LOOP
             // duty_r = clampf(ff_r + pid_r.calculate(vel_r, meas_r), -1.0f, 1.0f); FOR PID LOOP
             
-            duty_l = ff_l   // just pass feedforward directly to duty
-            duty_r = ff_r
+            duty_l = ff_l;   // just pass feedforward directly to duty
+            duty_r = ff_r;
             
             // duty_l = 0.3f;
             // duty_r = 0.3f;
