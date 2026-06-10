@@ -34,7 +34,7 @@ from geometry_msgs.msg import Twist
 HOLD_TIMEOUT_MS = 525.0
 
 WHEEL_BASE_M = 0.135
-V_MAX_MPS    = 0.10 # placeholder — measure true max via debug main1.cpp, then set
+V_MAX_MPS    = 0.175
 MAX_ANGULAR  = V_MAX_MPS / (WHEEL_BASE_M / 2.0) - 0.20
 
 

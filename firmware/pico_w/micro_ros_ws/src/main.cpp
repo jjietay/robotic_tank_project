@@ -127,19 +127,19 @@ int main()
     Ultrasonic USRM_LEFT ("Left",  "ON", USRM_LEFT_TRIG,  USRM_LEFT_ECHO );
 
     Motor      MOTOR("MOTORS", "ON", L_DIR, L_PWM, R_DIR, R_PWM,
-                    /*invert_left*/  true,
-                    /*invert_right*/ true,
+                    /*invert_left*/  false,
+                    /*invert_right*/ false,
                     /*trim_left*/    LEFT_MOTOR_TRIM,
                     /*trim_right*/   RIGHT_MOTOR_TRIM);
 
     Encoder    LEFT_ENCODER ("L_ENC", "ON",
                             ENC_L_A, ENC_L_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                            /*invert*/ false);
+                            /*invert*/ true);
     Encoder    RIGHT_ENCODER("R_ENC", "ON",
                             ENC_R_A, ENC_R_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                            /*invert*/ true);
+                            /*invert*/ false);
 
     PID pid_l(KP_L, KI_L, KD_L, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
     PID pid_r(KP_R, KI_R, KD_R, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
@@ -287,8 +287,12 @@ int main()
         } else {
             float ff_l = clampf(vel_l / V_MAX_MPS, -1.0f, 1.0f);
             float ff_r = clampf(vel_r / V_MAX_MPS, -1.0f, 1.0f);
-            duty_l = clampf(ff_l + pid_l.calculate(vel_l, meas_l), -1.0f, 1.0f);
-            duty_r = clampf(ff_r + pid_r.calculate(vel_r, meas_r), -1.0f, 1.0f);
+            // duty_l = clampf(ff_l + pid_l.calculate(vel_l, meas_l), -1.0f, 1.0f); FOR PID LOOP
+            // duty_r = clampf(ff_r + pid_r.calculate(vel_r, meas_r), -1.0f, 1.0f); FOR PID LOOP
+            
+            duty_l = ff_l   // just pass feedforward directly to duty
+            duty_r = ff_r
+            
             // duty_l = 0.3f;
             // duty_r = 0.3f;
         }

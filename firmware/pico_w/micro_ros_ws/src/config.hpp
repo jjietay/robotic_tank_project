@@ -43,7 +43,7 @@ constexpr float WHEEL_BASE_M = 0.135f; // distance between L & R wheels
 constexpr float GEAR_REDUCTION = 131.0f; // JBG31-520-12V-76RPM gearbox
 constexpr int   ENCODER_PPR = 11;       // raw pulses per motor rev
 constexpr float ENC_EMA_ALPHA = 0.7f;
-constexpr float V_MAX_MPS = 0.75f;      // max wheel surface speed at full PWM
+constexpr float V_MAX_MPS = 0.175f;      // max wheel surface speed at full PWM
 
 // Minimum controllable speed
 constexpr float V_MIN_MPS = MOTOR_MIN_DUTY * V_MAX_MPS;

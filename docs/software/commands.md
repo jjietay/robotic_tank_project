@@ -32,6 +32,7 @@ ros2 launch tank_bringup slam.launch.py
 ## Build Mkdocs
 - mkdocs serve --dev-addr localhost:8001
 
+
 ## uf2 file from mac to rpi4
 ### (A) MAC
 - scp /Users/jj/robotic_tank_project/firmware/pico_w/micro_ros_ws/build/pico_micro_ros.uf2 jj@192.168.10.37:~/
