@@ -172,7 +172,7 @@ class OdometryNode(Node):
         msg.twist.covariance[0]  = 0.01  # linear x
         msg.twist.covariance[35] = 0.01  # angular z
 
-        self.get_logger().info(f"Current Position --> x: {self.x}, y: {self.y}, theta: {self.theta}")
+        # self.get_logger().info(f"Current Position --> x: {self.x}, y: {self.y}, theta: {self.theta}")
         self.pub.publish(msg)
 
     # For TF Tree

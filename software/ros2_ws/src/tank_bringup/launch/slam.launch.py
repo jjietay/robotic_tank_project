@@ -88,7 +88,7 @@ def generate_launch_description():
             period=8.0,
             actions=[Node(
                 package='slam_toolbox',
-                executable='async_slam_toolbox_node',
+                executable='sync_slam_toolbox_node',
                 name='slam_toolbox',
                 output='screen',
                 parameters=[slam_params],
