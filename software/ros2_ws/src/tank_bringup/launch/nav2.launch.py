@@ -64,14 +64,8 @@ def generate_launch_description():
             output='screen',
         ),
 
-        # ── Teleop (publishes to /teleop/cmd_vel for twist_mux) ─────
-
-        Node(
-            package='rc_car_teleop',
-            executable='teleop',
-            name='teleop',
-            output='screen',
-        ),
+        # ── Teleop — run separately in its own terminal (needs TTY) ──
+        # ros2 run rc_car_teleop teleop
 
         # ── Twist Mux — arbitrates teleop (P100) > nav2 (P50) ──────
 
