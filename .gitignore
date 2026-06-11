@@ -42,3 +42,6 @@ picotool-src/
 
 _local_setup_util_sh.py
 _local_setup_util_ps1.py
+
+docs/software/commands.md
+firmware/pico_w/micro_ros_ws/src/web_teleop.html
