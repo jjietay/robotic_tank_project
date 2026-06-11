@@ -73,7 +73,7 @@ planner_server:
     use_sim_time: false
     planner_plugins: ["GridBased"]
     GridBased:
-      plugin: "nav2_navfn_planner::NavfnPlanner"
+      plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5           # goal tolerance in metres
       use_astar: true
       allow_unknown: false
@@ -180,7 +180,7 @@ local_costmap:
       robot_footprint: "[[0.10, 0.09], [0.10, -0.09], [-0.10, -0.09], [-0.10, 0.09]]"
       plugins: ["obstacle_layer", "inflation_layer"]
       obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleCostmapPlugin"
+        plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
         observation_sources: scan
         scan:
@@ -194,7 +194,7 @@ local_costmap:
           obstacle_max_range: 5.0
           obstacle_min_range: 0.12
       inflation_layer:
-        plugin: "nav2_costmap_2d::InflationCostmapPlugin"
+        plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         inflation_radius: 0.30      # 30 cm clearance — conservative
 
@@ -212,7 +212,7 @@ global_costmap:
       track_unknown_space: false
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       static_layer:
-        plugin: "nav2_costmap_2d::StaticCostmapPlugin"
+        plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: true
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleCostmapPlugin"
