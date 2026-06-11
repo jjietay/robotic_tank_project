@@ -101,7 +101,7 @@ def generate_launch_description():
 
         # Map server — loads your saved map
         TimerAction(
-            period=5.0,
+            period=8.0,
             actions=[Node(
                 package='nav2_map_server',
                 executable='map_server',
@@ -116,7 +116,7 @@ def generate_launch_description():
 
         # AMCL — particle-filter localization on the saved map
         TimerAction(
-            period=5.0,
+            period=8.0,
             actions=[Node(
                 package='nav2_amcl',
                 executable='amcl',
@@ -128,7 +128,7 @@ def generate_launch_description():
 
         # Planner server — global path planning (A*)
         TimerAction(
-            period=8.0,
+            period=12.0,
             actions=[Node(
                 package='nav2_planner',
                 executable='planner_server',
@@ -138,10 +138,10 @@ def generate_launch_description():
             )],
         ),
 
-        # Controller server — local trajectory tracking (DWB)
+        # Controller server — Regulated Pure Pursuit
         # Remapped: output goes to /nav2/cmd_vel → twist_mux → /cmd_vel
         TimerAction(
-            period=8.0,
+            period=12.0,
             actions=[Node(
                 package='nav2_controller',
                 executable='controller_server',
@@ -154,7 +154,7 @@ def generate_launch_description():
 
         # Behavior server — recovery behaviors (spin, back up, wait)
         TimerAction(
-            period=8.0,
+            period=12.0,
             actions=[Node(
                 package='nav2_behaviors',
                 executable='behavior_server',
@@ -167,7 +167,7 @@ def generate_launch_description():
 
         # BT navigator — coordinates planning + control + recovery
         TimerAction(
-            period=10.0,
+            period=15.0,
             actions=[Node(
                 package='nav2_bt_navigator',
                 executable='bt_navigator',
@@ -178,8 +178,9 @@ def generate_launch_description():
         ),
 
         # Lifecycle manager — brings all Nav2 nodes through their lifecycle
+        # Must start AFTER all Nav2 nodes are up — RPi4 needs extra time
         TimerAction(
-            period=12.0,
+            period=20.0,
             actions=[Node(
                 package='nav2_lifecycle_manager',
                 executable='lifecycle_manager',
