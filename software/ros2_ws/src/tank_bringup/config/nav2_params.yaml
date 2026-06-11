@@ -151,11 +151,11 @@ behavior_server:
     cycle_frequency: 10.0
     behavior_plugins: ["spin", "backup", "wait"]
     spin:
-      plugin: "nav2_behaviors::Spin"
+      plugin: "nav2_behaviors/Spin"
     backup:
-      plugin: "nav2_behaviors::BackUp"
+      plugin: "nav2_behaviors/BackUp"
     wait:
-      plugin: "nav2_behaviors::Wait"
+      plugin: "nav2_behaviors/Wait"
 
 # ==========================================================================
 #  Costmaps
@@ -215,7 +215,7 @@ global_costmap:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: true
       obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleCostmapPlugin"
+        plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
         observation_sources: scan
         scan:
@@ -229,6 +229,6 @@ global_costmap:
           obstacle_max_range: 5.0
           obstacle_min_range: 0.12
       inflation_layer:
-        plugin: "nav2_costmap_2d::InflationCostmapPlugin"
+        plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         inflation_radius: 0.30
