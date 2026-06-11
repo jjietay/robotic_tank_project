@@ -200,7 +200,7 @@
 
     <link name="lidar_link">
         <visual>
-        <origin xyz="0.000 0.000 0.000" rpy="0.000 0.000 3.14159"/>
+        <origin xyz="0.000 0.000 0.000" rpy="0.000 0.000 0.000"/>
         <geometry>
             <mesh filename="package://tank_description/meshes/YDLIDAR_X3Pro.stl"
                 scale="0.001 0.001 0.001"/>

@@ -41,3 +41,5 @@ slam_toolbox:
 
     loop_search_maximum_distance: 3.0
     do_loop_closing: true
+    
+    minimum_laser_range: 0.1   # add this line — match the X3 Pro's minimum range
