@@ -177,10 +177,7 @@ local_costmap:
       resolution: 0.05
       # Rectangular footprint: [[front-left], [front-right], [back-right], [back-left]]
       # MEASURE YOUR TANK and update these values (metres from base_link centre)
-      robot_footprint: [[ 0.10,  0.09],
-                         [ 0.10, -0.09],
-                         [-0.10, -0.09],
-                         [-0.10,  0.09]]
+      robot_footprint: "[[0.10, 0.09], [0.10, -0.09], [-0.10, -0.09], [-0.10, 0.09]]"
       plugins: ["obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleCostmapPlugin"
@@ -210,10 +207,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       # Rectangular footprint — same as local costmap
-      robot_footprint: [[ 0.10,  0.09],
-                         [ 0.10, -0.09],
-                         [-0.10, -0.09],
-                         [-0.10,  0.09]]
+      robot_footprint: "[[0.10, 0.09], [0.10, -0.09], [-0.10, -0.09], [-0.10, 0.09]]"
       resolution: 0.05
       track_unknown_space: false
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
