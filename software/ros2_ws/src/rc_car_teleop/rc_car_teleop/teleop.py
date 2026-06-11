@@ -61,7 +61,7 @@ def read_key(fd):
 class TeleopNode(Node):
     def __init__(self):
         super().__init__('teleop')
-        self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.cmd_pub = self.create_publisher(Twist, '/teleop/cmd_vel', 10)
 
         # Active command state — published every tick until hold-timeout clears it.
         self.active_linear  = 0.0

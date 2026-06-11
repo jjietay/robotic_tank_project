@@ -7,7 +7,12 @@ twist_mux:
         timeout: 0.5               # if no message for 0.5s, this input goes inactive
         priority: 100              # highest priority — human overrides everything
 
-      - name: autonomous           # your brain node
+      - name: nav2                 # Nav2 autonomous navigation
+        topic: /nav2/cmd_vel       # Nav2 controller_server publishes here (remapped)
+        timeout: 0.5               # go inactive if Nav2 stops publishing
+        priority: 50               # medium priority — teleop overrides Nav2
+
+      - name: autonomous           # your brain node (future custom autonomy)
         topic: /brain/cmd_vel      # your brain node publishes here
         timeout: 0.5               # go inactive if brain stops publishing
         priority: 10               # lowest priority — human always wins

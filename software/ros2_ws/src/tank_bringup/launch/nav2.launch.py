@@ -14,14 +14,15 @@ def generate_launch_description():
 
     bringup_share = get_package_share_directory('tank_bringup')
 
-    ydlidar_params = os.path.join(bringup_share, 'config', 'ydlidar.yaml')
-    ekf_params     = os.path.join(bringup_share, 'config', 'ekf.yaml')
-    nav2_params    = os.path.join(bringup_share, 'config', 'nav2_params.yaml')
-    map_yaml       = '/home/jj/my_map.yaml'
+    ydlidar_params    = os.path.join(bringup_share, 'config', 'ydlidar.yaml')
+    ekf_params        = os.path.join(bringup_share, 'config', 'ekf.yaml')
+    nav2_params       = os.path.join(bringup_share, 'config', 'nav2_params.yaml')
+    twist_mux_config  = os.path.join(bringup_share, 'config', 'twist_mux.yaml')
+    map_yaml          = '/home/jj/my_map.yaml'
 
     return LaunchDescription([
 
-        # ── Base robot stack (same as slam.launch.py) ────────────────────
+        # ── Base robot stack ────────────────────────────────────────────
 
         Node(
             package='robot_state_publisher',
@@ -63,7 +64,28 @@ def generate_launch_description():
             output='screen',
         ),
 
-        # EKF — fuses /odom + /sensors/imu → /odometry/filtered + odom→base_link TF
+        # ── Teleop (publishes to /teleop/cmd_vel for twist_mux) ─────
+
+        Node(
+            package='rc_car_teleop',
+            executable='teleop',
+            name='teleop',
+            output='screen',
+        ),
+
+        # ── Twist Mux — arbitrates teleop (P100) > nav2 (P50) ──────
+
+        Node(
+            package='twist_mux',
+            executable='twist_mux',
+            name='twist_mux',
+            output='screen',
+            parameters=[twist_mux_config],
+            remappings=[('cmd_vel_out', '/cmd_vel')],
+        ),
+
+        # ── EKF — fuses /odom + /sensors/imu → /odometry/filtered ──
+
         TimerAction(
             period=3.0,
             actions=[Node(
@@ -75,7 +97,7 @@ def generate_launch_description():
             )],
         ),
 
-        # ── Nav2 stack (replaces SLAM Toolbox) ──────────────────────────
+        # ── Nav2 stack ──────────────────────────────────────────────
 
         # Map server — loads your saved map
         TimerAction(
@@ -117,6 +139,7 @@ def generate_launch_description():
         ),
 
         # Controller server — local trajectory tracking (DWB)
+        # Remapped: output goes to /nav2/cmd_vel → twist_mux → /cmd_vel
         TimerAction(
             period=8.0,
             actions=[Node(
@@ -125,6 +148,7 @@ def generate_launch_description():
                 name='controller_server',
                 output='screen',
                 parameters=[nav2_params],
+                remappings=[('cmd_vel', '/nav2/cmd_vel')],
             )],
         ),
 
@@ -137,6 +161,7 @@ def generate_launch_description():
                 name='behavior_server',
                 output='screen',
                 parameters=[nav2_params],
+                remappings=[('cmd_vel', '/nav2/cmd_vel')],
             )],
         ),
 
