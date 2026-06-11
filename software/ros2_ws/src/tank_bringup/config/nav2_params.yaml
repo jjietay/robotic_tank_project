@@ -125,28 +125,34 @@ controller_server:
       # -- Trajectory generation --
       vx_samples: 10
       vy_samples: 1                  # no lateral motion
-      vtheta_samples: 20
+      vtheta_samples: 10
       sim_time: 1.5                  # simulate 1.5s ahead
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.5
       short_circuit_trajectory_evaluation: true
-      # -- Scoring (keep defaults, tweak if it misbehaves) --
+      # -- Scoring (tuned for slow diff-drive tank) --
       critics:
         - RotateToGoal
         - Oscillation
         - BaseObstacle
+        - PreferForward
         - GoalAlign
         - PathAlign
         - PathDist
         - GoalDist
-      PathAlign.scale: 32.0
-      GoalAlign.scale: 24.0
+      PreferForward.penalty: 1.0
+      PreferForward.scale: 10.0
+      PathAlign.scale: 24.0
+      PathAlign.forward_point_distance: 0.1
+      GoalAlign.scale: 20.0
+      GoalAlign.forward_point_distance: 0.1
       PathDist.scale: 32.0
       GoalDist.scale: 24.0
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
+      Oscillation.scale: 1.0
 
 behavior_server:
   ros__parameters:
