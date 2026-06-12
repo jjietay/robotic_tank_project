@@ -1,18 +1,15 @@
 twist_mux:
   ros__parameters:
     topics:
-
-      - name: teleop
+      teleop:
         topic: /teleop/cmd_vel
         timeout: 0.5
         priority: 100
-
-      - name: nav2
+      nav2:
         topic: /nav2/cmd_vel
         timeout: 0.5
         priority: 50
-
-      - name: autonomous
+      autonomous:
         topic: /brain/cmd_vel
         timeout: 0.5
         priority: 10
