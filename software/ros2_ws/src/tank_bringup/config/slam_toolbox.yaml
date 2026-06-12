@@ -35,9 +35,8 @@ slam_toolbox:
     minimum_travel_heading: 0.15
 
     # Reduce search window so matcher can't jump far
-    correlation_search_space_dimension: 0.3    # default 0.5 — smaller search area
+    correlation_search_space_dimension: 0.5    # default 0.5
     correlation_search_space_resolution: 0.01  # default 0.01
-    fine_search_angle_offset: 0.003
 
     loop_search_maximum_distance: 3.0
     do_loop_closing: true
