@@ -159,7 +159,18 @@ def generate_launch_description():
             )],
         ),
 
+        # Goal pose relay — zeros timestamp to fix TF extrapolation error
+        # Foxglove → /goal_pose → relay → /goal_pose_relayed → bt_navigator
+        # See: https://github.com/ros-planning/navigation2/issues/3075
+        Node(
+            package='rc_car_teleop',
+            executable='goal_pose_relay',
+            name='goal_pose_relay',
+            output='screen',
+        ),
+
         # BT navigator — coordinates planning + control + recovery
+        # Remapped: reads goals from /goal_pose_relayed (with zeroed timestamps)
         TimerAction(
             period=15.0,
             actions=[Node(
@@ -168,6 +179,7 @@ def generate_launch_description():
                 name='bt_navigator',
                 output='screen',
                 parameters=[nav2_params],
+                remappings=[('/goal_pose', '/goal_pose_relayed')],
             )],
         ),
 

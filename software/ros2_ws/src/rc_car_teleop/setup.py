@@ -27,6 +27,7 @@ setup(
             'yolo            = rc_car_teleop.robot_core.yolo:main',
             'camera          = rc_car_teleop.robot_core.camera:main',
             'brain           = rc_car_teleop.robot_core.brain:main',
+            'goal_pose_relay = rc_car_teleop.goal_pose_relay:main',
         ],
     },
 )
