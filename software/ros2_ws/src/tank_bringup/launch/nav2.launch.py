@@ -133,7 +133,7 @@ def generate_launch_description():
         ),
 
         # Controller server — Regulated Pure Pursuit
-        # Remapped: output goes to /nav2/cmd_vel → twist_mux → /cmd_vel
+        # Output goes to /cmd_vel_raw → velocity_smoother → /nav2/cmd_vel → twist_mux
         TimerAction(
             period=12.0,
             actions=[Node(
@@ -142,7 +142,23 @@ def generate_launch_description():
                 name='controller_server',
                 output='screen',
                 parameters=[nav2_params],
-                remappings=[('cmd_vel', '/nav2/cmd_vel')],
+                remappings=[('cmd_vel', '/cmd_vel_raw')],
+            )],
+        ),
+
+        # Velocity smoother — smooths jittery controller output
+        TimerAction(
+            period=12.0,
+            actions=[Node(
+                package='nav2_velocity_smoother',
+                executable='velocity_smoother',
+                name='velocity_smoother',
+                output='screen',
+                parameters=[nav2_params],
+                remappings=[
+                    ('cmd_vel', '/cmd_vel_raw'),
+                    ('cmd_vel_smoothed', '/nav2/cmd_vel'),
+                ],
             )],
         ),
 
@@ -200,6 +216,7 @@ def generate_launch_description():
                         'amcl',
                         'planner_server',
                         'controller_server',
+                        'velocity_smoother',
                         'behavior_server',
                         'bt_navigator',
                     ],
