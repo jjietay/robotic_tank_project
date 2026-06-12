@@ -107,6 +107,8 @@ bt_navigator:
 planner_server:
   ros__parameters:
     use_sim_time: false
+    expected_planner_frequency: 5.0
+    transform_tolerance: 5.0     # CRITICAL: allow stale goal timestamps during recovery cycles (fixes TF extrapolation error on slow RPi4)
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
@@ -138,7 +140,7 @@ controller_server:
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       # -- Speed limits --
-      desired_linear_vel: 0.12           # cruise speed (slightly under max 0.14)
+      desired_linear_vel: 0.06           # halved — user reported too fast
       lookahead_dist: 0.3                # how far ahead on the path to aim
       min_lookahead_dist: 0.15
       max_lookahead_dist: 0.6
@@ -213,8 +215,8 @@ local_costmap:
           obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.30      # 30 cm clearance — conservative
+        cost_scaling_factor: 5.0    # steeper falloff — keeps robot further from walls
+        inflation_radius: 0.45      # 45 cm — prevents squeezing through tight gaps
 
 global_costmap:
   global_costmap:
@@ -248,5 +250,5 @@ global_costmap:
           obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0
-        inflation_radius: 0.30
+        cost_scaling_factor: 5.0    # steeper falloff — keeps robot further from walls
+        inflation_radius: 0.45      # 45 cm — prevents squeezing through tight gaps
