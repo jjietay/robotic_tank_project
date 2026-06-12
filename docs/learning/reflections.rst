@@ -3,10 +3,12 @@ Reflections
 
 See also: :doc:`ROS 2 Notes <ros2>`
 
-This is a long reflection, if you wanna just skip to major periods just before the final results, click one of these dates in the right corner table of dates:
 
-- 30 May 2026: RViz2 
-- 7 June 2026: Nav2
+.. note::
+   This is a long reflection, if you wanna just skip to major periods just before the final results, click one of these dates in the right corner table of dates:
+
+   - 30 May 2026 --> RViz2 
+   - 7 June 2026 --> Nav2
 
 
 A personal log of difficulties faced, solutions found, and lessons learned
@@ -14,12 +16,9 @@ while building the autonomous tank.
 
 Background
 ----------
-From the two years into uni, I realised I wasn't actually learning the things I cared about. AI and robotics. None of that was coming from lectures. So I decided to just go build something on my own.
+From the two years into uni, I realised I wasn't actually learning the things I was interested in which are AI and robotics. I have always wondered how do robots "think". After learning about neural networks and transformers, I realise I wanted to build a robot. Also, uni didn't teach me any of these. Moreover, I needed to take matters in my own hands and actually learn this such that it will help me in expanding my knowledge pool and also in my future career. 
 
-
-In Y3S2 (during my internship at ST Engineering), I realised that past 2 years in Uni did not exactly prepare me enough for what I might face in the future. Especially with my interest in AI and Robotics, I needed to take matters in my own hands and actually learn meaningful things that will help me in expanding my knowledge pool and also in my future career. 
-
-I figured if I could build something real using sensors, SLAM, Nav2, I'd come out the other side actually understanding robotics. Moreover, with my VLA-based FYP for robotics systems in my final year, having this hands-on foundation felt important to me.
+I figured if I could build something real using sensors, SLAM, Nav2, and actually have a working autonomous robot that I fully understand how its done, then I'd come out the other side actually understanding robotics. Moreover, with my VLA-based FYP for robotics systems in my final year, having this hands-on foundation felt important to me.
 
 I decided to build a self-driving tank. Why a tank you may ask. If I'm being honest, part of it is that I've been fascinated by tanks since I was a kid (spent abit too much time playing world of tanks), so building one felt like the obvious choice. But beyond the nerdy appeal, I also knew that actually building something physical was the only way I'd retain any of this. I needed something I could break, fix, and learn from.
 
