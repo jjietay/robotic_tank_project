@@ -159,8 +159,8 @@ controller_server:
       regulated_linear_scaling_min_speed: 0.05  # must exceed motor deadzone
       # -- Rotation behavior --
       allow_reversing: false
-      max_angular_accel: 3.2            # ramp fast past motor deadzone (first cmd @ 10Hz = 0.32 rad/s)
-      rotate_to_heading_min_angle: 0.5   # ~29 deg — only rotate in place if error > this
+      max_angular_accel: 1.6            # moderate ramp — above deadzone but won't overshoot
+      rotate_to_heading_min_angle: 6.29  # effectively disabled — never rotate in place, correct heading while driving
       max_robot_pose_search_dist: 1.5
 
 behavior_server:
