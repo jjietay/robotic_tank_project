@@ -18,7 +18,7 @@ def generate_launch_description():
     ekf_params        = os.path.join(bringup_share, 'config', 'ekf.yaml')
     nav2_params       = os.path.join(bringup_share, 'config', 'nav2_params.yaml')
     twist_mux_config  = os.path.join(bringup_share, 'config', 'twist_mux.yaml')
-    map_yaml          = '/home/jj/my_map.yaml'
+    map_yaml          = '/home/jj/robotic_tank_project/maps/my_map.yaml'
 
     return LaunchDescription([
 
