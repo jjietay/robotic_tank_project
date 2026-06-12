@@ -3,6 +3,12 @@ Reflections
 
 See also: :doc:`ROS 2 Notes <ros2>`
 
+This is a long reflection, if you wanna just skip to major periods just before the final results, click one of these dates in the right corner table of dates:
+
+- 30 May 2026: RViz2 
+- 7 June 2026: Nav2
+
+
 A personal log of difficulties faced, solutions found, and lessons learned
 while building the autonomous tank.
 
@@ -620,4 +626,231 @@ I also understand that my LIDAR may be giving poor results due to the characteri
 
 Figure 29 shows the before and after of mapping a smaller area i created. I realised that this drastically helps with the mapping of rear of objects, since the rear of the bin is now properly shown as a fully round object. However, the drift is still a problem.
 
+5 June 2026 — Fixing Drift
+---------------------------
 
+This drift issue is a problem. I changed maps many times and remapped them but the laser scan was always drifting. After many hours of debugging, here's what I found.
+
+1) EKF Config File (``ekf.yaml``)
+
+   - i disabled ``odom0 yaw`` which is encoder's angular velocity
+   - because my robot is tracked, the tracks will slip when doing turns
+   - adding on my tracks are plastic... so the slippage will be really bad cos the grip with the floor is really bad
+   - therefore we ignore the angular velocity
+   - our encoders now handle the linear velocity
+   - my BNO085 gyro now handles all the rotation
+   - I also ensured that ``imu0_differential: false`` is set
+   - this drastically improved my drift over time since the rotation vector already has magnetometer correction baked in
+   - this was because BNO085 already has its own proprietery sensor fusion
+
+2) ``odom`` to ``base_link`` transform
+
+   - my oodm and EKF was both trying to publish
+   - I had to comment out the ``self._publish_tf(now)`` in my odom node
+   - TF chain was stabilized
+   - But because of this error, SLAM Toolbox fell to using pure scan matching which accumulates error overtime
+
+3) Odometry wheelbase calibration
+
+   - I realised after reading some random online forum that for tracked vehicles, the wheelbase is larger than the physical track to track distance
+   - Therefore I had to perform the rotation test
+
+4) IMU Heading Zeroing
+
+   - my BNO085 boots with whatever heading it powers up in
+   - it doesnt zero it, which means IMU booted facing -47 degrees and then my EKF will start with this offset
+   - my ``bno085_i2c_node.py`` recorrds the first valid quartenion's yaw and applies the inverse as an offset to all subsequent readings so yaw will always start with 0
+
+.. figure:: ../_images/reflections_img30.png
+   :alt: Before building
+   :width: 900px
+   :align: center
+
+   Figure 30: Laser scans matching the walls after running around mapping the new map
+
+Figure 30 shows the final result of a fully mapped out map with lidar scans still sticking to the walls after driving around.
+
+
+.. figure:: ../_images/reflections_img100-.png
+   :alt: Before building
+   :width: 400px
+   :align: center
+
+Also forgot to include my live setup.
+
+
+6 June 2026 — DDS Issues + Mapping
+-----------------------------------
+
+I was initially using fastDDS which is default for ROS 2 Humble. However, im using Pi as the robot, and my M2 mac for viz. FastDDS wasn't reliable with multi-machine discovery over WiFi and maybe its a skill issue, but this issue is known on reddit and also ROS community.
+
+The community recommended CylconeDDS so i switched and I could see improvements. But after some sessions, the same issues happened again. At this point I feel like its a Robostack issue (m2 mac problems). I was thinking it was something to do with protocol level incompatibilities since rpi4's cylcloneDDS was apt installed, but mac's one was robotstack built so it was still kinda sus.
+
+So I decided to use Foxglove Bridge. It worked wonders that's all i can say. No more issues of not finding the ROS topics anymore. The rpi4 runs a websocket server that exposes all the ROS topics over a standard wesocket protocol. On mac, I connect foxglove studio to ws://123.123.123.123:1234 using foxglove websocket protocol.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid7-.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 7: Mapping</figcaption>
+   </figure>
+
+This is my mapping in Foxglove UI.
+
+
+7 June 2026 — Nav2
+---------------------------
+
+.. figure:: ../_images/reflections_img31.png
+   :alt: Before building
+   :width: 900px
+   :align: center
+
+   Figure 31: Nav2 setup in Foxglove
+
+Figure 31 shows my setup. The first issue i faced was when i selected my goal pose and i saw the planned path. When the robot rotated, only the map would stay in place while the robot and both the goal pose and planned path would rotate together with the robot. This didn't make sense because the goal pose and planned path should be fixed to the map. 
+
+.. figure:: ../_images/reflections_img32.png
+   :alt: Before building
+   :width: 900px
+   :align: center
+
+   Figure 32: Nav2 setup in Foxglove
+
+This was fixed by changing fixed frame AND display frame to map. Only fixed frame to map didn't work.
+
+8 June 2026 — Past biting you
+------------------------------
+
+This was a massive issue, spent days fixing. Btw the timeline is abit off i spent many days fixing bugs between those timeline days. Please watch this video to understand the issue. The robot is the video is already trying autonomous navigation.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid8.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 8: Fast forwarded video of Robot failing to turn the correct direction in Nav2</figcaption>
+   </figure>
+
+   This is a new remapped map so it looks slightly different. But now u can see that i selected the goal pose and the planned path is supposed to let the robot turn right, but it turned left instead. I finally found the issue after hours of debugging. I looked at my imu to make sure its pointing the right way, checking if CW rotation produced positive yaw in my topic and it did. Had to verify the differntial drive math... implementation hell. After debugging, the issue was my motor pin swapped. Hardware came back from the past to haunt me... All along my teleop node wasn't following the ROS-convention commands. However, Nav2 was sending the right commands. After swapping the motor and encoder pins in my pico firmware code and rebuilding and reflashing, it finally worked.
+
+Another issue was my robot kept jittering, like move stop move stop at a very high frequency. I later found out its because i had my teleop node on on my phone which the ``/cmd_vel`` kept bouncing between my static (no) command and the Nav2's continuous command. It worked once i switched my teleop off.
+
+14 June 2026 - Completed Project
+--------------------------------
+
+Finally, what I wanted to achieve, I acheived. I strcture this in terms of nav from point A to B, and then B back to A. B back to A takes longer because of the starting pose which has a heading towards the wall so it needs to u turn (a tough part for nav).
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid11.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 9: A to B (Attempt 1)</figcaption>
+   </figure>
+
+Video 9 shows successful navigation from point A to point B in Nav2 (attempt 1). Notice there is slowing down near the 2 pillars.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid10.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 10: A to B (Attempt 1 - LIVE)</figcaption>
+   </figure>
+
+Video 10 shows the same footage but live version of Video 9, from A to B (attempt 1). Same no slowing at the 2 pillars.
+
+Below is attempt 2 from A to B.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid9-.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 11: A to B (Attempt 2)</figcaption>
+   </figure>
+
+Video 11 shows successful navigation from point A to point B in Nav2 (attempt 2). Notice how it slows down near the pillars.
+
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid12.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 12: A to B (Attempt 2 - LIVE)</figcaption>
+   </figure>
+
+Video 12 shows successful navigation from point A to point B in Nav2 (attempt 2). Likewise, you can see how it slows down near the pillars. This is because of I used ``use_regulated_linear_velocity_scaling: true`` in my ``nav2_params.yaml`` in my regulated pure pursuit.
+
+Lets look at the B to A motion.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid15.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 13: B to A (Attempt 1)</figcaption>
+   </figure>
+
+Video 13 shows successful navigation from point B to point A but it took really long for it to get out. 
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid14.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 14: B to A (Attempt 1 - LIVE)</figcaption>
+   </figure>
+
+Video 14 shows the same point B to A as video 13 but live, and u can see how it really moves and "thinks" to get out of the sticky situation. I find this so intriguing.
+
+
+Now move on to after optimization.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid16.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 15: B to A (Attempt 2)</figcaption>
+   </figure>
+
+Video 15 shows successful navigation from point B to point A and it took way lesser time to get out. 
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls style="display: block; margin: auto;">
+      <source src="../_static/reflections_vid17.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 16: B to A (Attempt 2 - LIVE)</figcaption>
+   </figure>
+
+Video 16 shows the same point B to A as video 13 but live. You can see how it got out of the situation quicker and in a different way. This is because of a particular change i made in config, which was ``movement_time_allowance:``, this is a progress checker timeout where robot must fail to make progress for 20 seconds before Nav2 triggers recovery behaviours like spin and backup which was exactly what we can see.
+
+Conclusion
+-----------
+
+This journey was surely a long one. I managed to learn so much, from basic coding C++, python, to Robotics fundamentals, ROS 2, navigation, slam, electronics, hardware even 3d printing and designing my own model computer networks stuff like dds udp tcp, it was surely a fruitful one indeed. Now I will be focusing on VLA since thats where my FYP and current trend is heading for Modern Robotics. This gave me a glimpse of what the mature age of "old-school" robotics was like, at least for autonomous navigation and localization. On to the next chapter!
