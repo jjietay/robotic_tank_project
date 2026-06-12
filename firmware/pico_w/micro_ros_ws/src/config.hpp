@@ -12,11 +12,11 @@
 // ---------------------------------------------------------------------------
 //                              Pin Assignments
 // ---------------------------------------------------------------------------
-constexpr uint ENC_L_A = 18, ENC_L_B = 19;
-constexpr uint ENC_R_A = 20, ENC_R_B = 21;
+constexpr uint ENC_L_A = 20, ENC_L_B = 21;
+constexpr uint ENC_R_A = 18, ENC_R_B = 19;
 
-constexpr uint L_DIR = 0, L_PWM = 8;
-constexpr uint R_DIR = 2, R_PWM = 9;
+constexpr uint L_DIR = 2, L_PWM = 9;
+constexpr uint R_DIR = 0, R_PWM = 8;
 
 constexpr uint USRM_FRONT_TRIG = 10, USRM_FRONT_ECHO = 11;
 constexpr uint USRM_BACK_TRIG = 14, USRM_BACK_ECHO = 15;
