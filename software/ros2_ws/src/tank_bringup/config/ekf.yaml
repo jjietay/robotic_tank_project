@@ -39,5 +39,5 @@ ekf_filter_node:
                   false, false, false,   # vx, vy, vz — not available from IMU
                   false, false, true,   # vroll, vpitch, vyaw — dropped, unreliable at rest
                   false, false, false]   # ax, ay, az — not fusing acceleration
-    imu0_differential: true              # use yaw CHANGES not absolute yaw (avoids 180° offset from imu_link mounting)
+    imu0_differential: false             # use absolute yaw — URDF imu_link 180° rotation handles mount offset via TF
     imu0_remove_gravitational_acceleration: true
