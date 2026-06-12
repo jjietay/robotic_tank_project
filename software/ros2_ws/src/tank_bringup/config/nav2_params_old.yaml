@@ -1,19 +1,23 @@
 # ==========================================================================
-#  Nav2 parameters — Autonomous Tank (minimal config)
+#  Nav2 parameters — Autonomous Tank
 #
-#  Robot: tracked differential drive, ~20cm × 18cm, max 0.14 m/s
+#  Robot: tracked differential drive, can spin in place
+#  Footprint: ~20cm long × ~18cm wide (MEASURE AND ADJUST)
+#  Max speed: 0.14 m/s (measured max wheel speed at full PWM)
 # ==========================================================================
 
 amcl:
   ros__parameters:
     use_sim_time: false
+    # -- Particle filter --
     min_particles: 500
     max_particles: 2000
-    alpha1: 0.2
-    alpha2: 0.2
-    alpha3: 0.2
-    alpha4: 0.2
-    alpha5: 0.2
+    alpha1: 0.2          # rotation noise from rotation (tracked = high)
+    alpha2: 0.2          # rotation noise from translation
+    alpha3: 0.2          # translation noise from translation
+    alpha4: 0.2          # translation noise from rotation
+    alpha5: 0.2          # translation noise (omnidirectional — irrelevant for diff drive)
+    # -- Laser model --
     laser_model_type: likelihood_field
     laser_max_range: 12.0
     laser_min_range: 0.12
@@ -21,16 +25,20 @@ amcl:
     z_hit: 0.95
     z_rand: 0.05
     sigma_hit: 0.2
-    update_min_a: 0.2
-    update_min_d: 0.1
+    # -- Update thresholds --
+    update_min_a: 0.2    # radians of rotation before particle update
+    update_min_d: 0.1    # metres of translation before particle update
     resample_interval: 1
+    # -- Frames --
     base_frame_id: base_link
     global_frame_id: map
     odom_frame_id: odom
     scan_topic: /scan
     tf_broadcast: true
     transform_tolerance: 0.5
+    # -- Motion model (required for diff-drive) --
     robot_model_type: "nav2_amcl::DifferentialMotionModel"
+    # -- Recovery --
     recovery_alpha_slow: 0.001
     recovery_alpha_fast: 0.1
     set_initial_pose: true
@@ -47,8 +55,10 @@ bt_navigator:
     odom_topic: /odometry/filtered
     bt_loop_duration: 10
     default_server_timeout: 20
+    # Explicit paths to Nav2 behavior trees (empty string caused "Empty Tree" error)
     default_nav_to_pose_bt_xml: "/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml"
     default_nav_through_poses_bt_xml: "/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml"
+    # Full plugin list from official Nav2 Humble nav2_params.yaml
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -102,18 +112,18 @@ planner_server:
   ros__parameters:
     use_sim_time: false
     expected_planner_frequency: 5.0
-    transform_tolerance: 5.0
+    transform_tolerance: 5.0     # CRITICAL: allow stale goal timestamps during recovery cycles (fixes TF extrapolation error on slow RPi4)
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.5
+      tolerance: 0.5           # goal tolerance in metres
       use_astar: true
       allow_unknown: false
 
 controller_server:
   ros__parameters:
     use_sim_time: false
-    controller_frequency: 10.0
+    controller_frequency: 10.0       # 10 Hz is plenty for 0.14 m/s
     min_x_velocity_threshold: 0.001
     min_theta_velocity_threshold: 0.01
     progress_checker_plugins: ["progress_checker"]
@@ -123,32 +133,38 @@ controller_server:
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.05
-      movement_time_allowance: 20.0
+      movement_time_allowance: 20.0    # generous — tank is slow
 
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.15
-      yaw_goal_tolerance: 0.4
+      xy_goal_tolerance: 0.15          # 15 cm — good enough for a first run
+      yaw_goal_tolerance: 0.4           # ~23 degrees — don't obsess over final heading
       stateful: true
 
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.09
-      lookahead_dist: 0.4
-      min_lookahead_dist: 0.3
-      max_lookahead_dist: 0.7
-      lookahead_time: 1.5
-      rotate_to_heading_angular_vel: 0.3
+      # -- Speed limits --
+      desired_linear_vel: 0.09           # between crawl (0.05) and slow (0.09) teleop speeds
+      lookahead_dist: 0.3                # how far ahead on the path to aim
+      min_lookahead_dist: 0.15
+      max_lookahead_dist: 0.6
+      lookahead_time: 1.5                # lookahead = max(min_lookahead, vel * lookahead_time)
+      rotate_to_heading_angular_vel: 0.5 # rad/s for in-place rotation
       transform_tolerance: 0.5
-      use_velocity_scaled_lookahead_dist: false
-      min_approach_linear_velocity: 0.05
+      use_velocity_scaled_lookahead_dist: true
+      min_approach_linear_velocity: 0.05 # must exceed motor deadzone
       approach_velocity_scaling_dist: 0.3
-      use_collision_detection: false
-      use_regulated_linear_velocity_scaling: false
+      use_collision_detection: true
+      max_allowed_time_to_collision_up_to_carrot: 1.0
+      # -- Regulated speeds near obstacles & curves --
+      use_regulated_linear_velocity_scaling: true
       use_cost_regulated_linear_velocity_scaling: false
+      regulated_linear_scaling_min_radius: 0.4
+      regulated_linear_scaling_min_speed: 0.05  # must exceed motor deadzone
+      # -- Rotation behavior --
       allow_reversing: false
-      max_angular_accel: 1.0
-      rotate_to_heading_min_angle: 0.5
+      max_angular_accel: 1.6            # moderate ramp — above deadzone but won't overshoot
+      rotate_to_heading_min_angle: 6.29  # effectively disabled — never rotate in place, correct heading while driving
       max_robot_pose_search_dist: 1.5
 
 behavior_server:
@@ -168,6 +184,8 @@ behavior_server:
 # ==========================================================================
 #  Costmaps
 # ==========================================================================
+# IMPORTANT: Measure your tank's footprint (length × width) and update
+# the robot_footprint below. Current estimate: 20cm × 18cm.
 
 local_costmap:
   local_costmap:
@@ -181,6 +199,8 @@ local_costmap:
       width: 3
       height: 3
       resolution: 0.05
+      # Rectangular footprint: [[front-left], [front-right], [back-right], [back-left]]
+      # MEASURE YOUR TANK and update these values (metres from base_link centre)
       robot_footprint: "[[0.10, 0.09], [0.10, -0.09], [-0.10, -0.09], [-0.10, 0.09]]"
       plugins: ["obstacle_layer", "inflation_layer"]
       obstacle_layer:
@@ -199,8 +219,8 @@ local_costmap:
           obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0
-        inflation_radius: 0.15
+        cost_scaling_factor: 3.0    # moderate falloff — allows straighter paths
+        inflation_radius: 0.20      # 20 cm — reasonable buffer for tight space
 
 global_costmap:
   global_costmap:
@@ -210,6 +230,7 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
+      # Rectangular footprint — same as local costmap
       robot_footprint: "[[0.10, 0.09], [0.10, -0.09], [-0.10, -0.09], [-0.10, 0.09]]"
       resolution: 0.05
       track_unknown_space: false
@@ -219,5 +240,5 @@ global_costmap:
         map_subscribe_transient_local: true
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0
-        inflation_radius: 0.15
+        cost_scaling_factor: 3.0    # moderate falloff — allows straighter paths
+        inflation_radius: 0.20      # 20 cm — reasonable buffer for tight space
