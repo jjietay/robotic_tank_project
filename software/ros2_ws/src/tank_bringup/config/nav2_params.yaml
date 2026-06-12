@@ -140,7 +140,7 @@ controller_server:
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       # -- Speed limits --
-      desired_linear_vel: 0.06           # halved — user reported too fast
+      desired_linear_vel: 0.09           # between crawl (0.05) and slow (0.09) teleop speeds
       lookahead_dist: 0.3                # how far ahead on the path to aim
       min_lookahead_dist: 0.15
       max_lookahead_dist: 0.6
