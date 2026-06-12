@@ -135,11 +135,11 @@ int main()
     Encoder    LEFT_ENCODER ("L_ENC", "ON",
                             ENC_L_A, ENC_L_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                            /*invert*/ true);
+                            /*invert*/ false);
     Encoder    RIGHT_ENCODER("R_ENC", "ON",
                             ENC_R_A, ENC_R_B,
                             GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                            /*invert*/ false);
+                            /*invert*/ true);
 
     PID pid_l(KP_L, KI_L, KD_L, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
     PID pid_r(KP_R, KI_R, KD_R, -PID_OUT_MAX, PID_OUT_MAX, 0.3f);
