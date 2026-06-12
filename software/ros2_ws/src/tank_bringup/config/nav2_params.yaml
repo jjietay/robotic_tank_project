@@ -41,7 +41,11 @@ amcl:
     # -- Recovery --
     recovery_alpha_slow: 0.001
     recovery_alpha_fast: 0.1
-    set_initial_pose: false    # you'll set initial pose in RViz manually
+    set_initial_pose: true
+    initial_pose_x: 0.0
+    initial_pose_y: 0.0
+    initial_pose_z: 0.0
+    initial_pose_yaw: 0.0
 
 bt_navigator:
   ros__parameters:
@@ -216,7 +220,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 5.0    # steeper falloff — keeps robot further from walls
-        inflation_radius: 0.45      # 45 cm — prevents squeezing through tight gaps
+        inflation_radius: 0.20      # 20 cm — reasonable buffer for tight space
 
 global_costmap:
   global_costmap:
@@ -251,4 +255,4 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 5.0    # steeper falloff — keeps robot further from walls
-        inflation_radius: 0.45      # 45 cm — prevents squeezing through tight gaps
+        inflation_radius: 0.20      # 20 cm — reasonable buffer for tight space
