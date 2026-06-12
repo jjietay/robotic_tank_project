@@ -101,10 +101,7 @@ class OdometryNode(Node):
         """
 
         if self.left_ticks is None or self.right_ticks is None:
-            # Publish identity transform so SLAM has something to work with
-            self.Publish(self.get_clock().now())
-            # self._publish_tf(self.get_clock().now())
-            return                                  # wait until both have arrived
+            return                                  # wait until both encoders have reported — don't publish identity with low covariance
         if self.last_left_ticks is None:
             self.last_left_ticks = self.left_ticks  # initialise from first real values
             self.last_right_ticks = self.right_ticks

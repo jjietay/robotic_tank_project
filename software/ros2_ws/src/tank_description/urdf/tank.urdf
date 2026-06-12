@@ -42,7 +42,7 @@
     <joint name="imu_joint" type="fixed">
         <parent link="base_link"/>
         <child link="imu_link"/>
-        <origin xyz="0.000 0.000 0.078" rpy="0.000 0.000 3.14159"/>  <!-- IMU is physically mounted 180° rotated -->
+        <origin xyz="0.000 0.000 0.078" rpy="0.000 0.000 0.000"/>  <!-- No rotation: differential mode handles 180° mount offset -->
     </joint>
 
 
