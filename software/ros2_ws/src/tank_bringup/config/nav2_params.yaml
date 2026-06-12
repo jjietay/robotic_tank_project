@@ -148,7 +148,7 @@ controller_server:
       rotate_to_heading_angular_vel: 0.5 # rad/s for in-place rotation
       transform_tolerance: 0.5
       use_velocity_scaled_lookahead_dist: true
-      min_approach_linear_velocity: 0.03 # slow crawl near goal
+      min_approach_linear_velocity: 0.05 # must exceed motor deadzone
       approach_velocity_scaling_dist: 0.3
       use_collision_detection: true
       max_allowed_time_to_collision_up_to_carrot: 1.0
@@ -156,10 +156,10 @@ controller_server:
       use_regulated_linear_velocity_scaling: true
       use_cost_regulated_linear_velocity_scaling: false
       regulated_linear_scaling_min_radius: 0.4
-      regulated_linear_scaling_min_speed: 0.03
+      regulated_linear_scaling_min_speed: 0.05  # must exceed motor deadzone
       # -- Rotation behavior --
       allow_reversing: false
-      max_angular_accel: 0.8
+      max_angular_accel: 3.2            # ramp fast past motor deadzone (first cmd @ 10Hz = 0.32 rad/s)
       rotate_to_heading_min_angle: 0.5   # ~29 deg — only rotate in place if error > this
       max_robot_pose_search_dist: 1.5
 
