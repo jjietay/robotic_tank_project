@@ -46,7 +46,7 @@ def generate_launch_description():
             package='ydlidar_ros2_driver',
             executable='ydlidar_ros2_driver_node',
             name='ydlidar_ros2_driver_node',
-            output='screen',
+            output='log',              # suppress "Real points > fixed points" warnings from terminal
             parameters=[ydlidar_params],
         ),
 
