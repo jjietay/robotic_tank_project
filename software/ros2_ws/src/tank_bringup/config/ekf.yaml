@@ -39,5 +39,5 @@ ekf_filter_node:
                   false, false, false,   # vx, vy, vz — not available from IMU
                   false, false, false,  # vroll, vpitch, vyaw — disabled: BNO085 orientation already fuses gyro internally
                   false, false, false]   # ax, ay, az — not fusing acceleration
-    imu0_differential: true              # use yaw CHANGES not absolute yaw (avoids 180° offset from boot heading)
+    imu0_differential: false             # use absolute yaw — BNO085 ROTATION_VECTOR is magnetometer-corrected and won't drift
     imu0_remove_gravitational_acceleration: true
