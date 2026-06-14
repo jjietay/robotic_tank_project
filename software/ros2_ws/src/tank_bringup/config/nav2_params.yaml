@@ -263,8 +263,8 @@ local_costmap:
           obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0    # moderate falloff — allows straighter paths
-        inflation_radius: 0.12      
+        cost_scaling_factor: 2.0    # moderate falloff — allows straighter paths
+        inflation_radius: 0.35      
 global_costmap:
   global_costmap:
     ros__parameters:
@@ -273,15 +273,28 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      # Rectangular footprint — same as local costmap
       robot_footprint: "[[0.155, 0.09], [0.155, -0.09], [-0.155, -0.09], [-0.155, 0.09]]"
       resolution: 0.05
       track_unknown_space: false
-      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]  # order matters
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: true
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: true
+          marking: true
+          data_type: "LaserScan"
+          raytrace_max_range: 8.0
+          raytrace_min_range: 0.12
+          obstacle_max_range: 5.0
+          obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0    # moderate falloff — allows straighter paths
-        inflation_radius: 0.12      
+        cost_scaling_factor: 2.0    # was 3.0 — wider berth for the replan experiment
+        inflation_radius: 0.35      # was 0.12 — visibly wider arc
