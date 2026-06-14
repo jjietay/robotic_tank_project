@@ -1,18 +1,3 @@
-// ---------------------------------------------------------------------------
-//                       debug/main1.cpp  —  Maximum-velocity test
-// ---------------------------------------------------------------------------
-//  Standalone (no micro-ROS).  Power the Pico W, wait ~5 s for the USB serial
-//  to enumerate, then it runs automatically.
-//
-//  Purpose: measure the top wheel surface speed at full PWM.  It drives both
-//  motors forward at duty = 1.0, lets them spin up, then samples the encoder
-//  velocities and prints them.  The largest steady-state value is your
-//  V_MAX_MPS.
-//
-//  WARNING: this runs the motors at FULL speed.  Put the robot on blocks /
-//  lift the wheels so it doesn't drive away.
-// ---------------------------------------------------------------------------
-
 #include "pico/stdlib.h"
 #include "pico/time.h"
 #include <stdio.h>
@@ -21,39 +6,37 @@
 #include "motor.hpp"
 #include "encoder.hpp"
 
-// ---- Test parameters ------------------------------------------------------
-static constexpr float    FULL_DUTY     = 1.0f;   // full PWM
-static constexpr uint32_t SPINUP_MS     = 2000;   // let it reach steady speed
-static constexpr uint32_t MEASURE_MS    = 3000;   // sampling window
-static constexpr uint32_t SAMPLE_EVERY  = 100;    // print every 100 ms
+static constexpr float    FULL_DUTY     = 1.0f;
+static constexpr uint32_t SPINUP_MS     = 2000;
+static constexpr uint32_t MEASURE_MS    = 3000;
+static constexpr uint32_t SAMPLE_EVERY  = 100;
 
 int main()
 {
     stdio_init_all();
-    sleep_ms(5000);   // give USB serial time to connect before we start
+    sleep_ms(5000);
 
     Motor motor("Motors", "ON",
                 L_DIR, L_PWM, R_DIR, R_PWM,
-                /*invert_left*/  true,
-                /*invert_right*/ true,
+                  true,
+                 true,
                 LEFT_MOTOR_TRIM,
                 RIGHT_MOTOR_TRIM);
 
     Encoder enc_l("L_ENC", "ON",
                   ENC_L_A, ENC_L_B,
                   GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                  /*invert*/ false);
+                   false);
     Encoder enc_r("R_ENC", "ON",
                   ENC_R_A, ENC_R_B,
                   GEAR_REDUCTION, WHEEL_DIAMETER_M, ENCODER_PPR,
-                  /*invert*/ true);
+                   true);
 
     printf("Maximum-velocity test: driving full duty for spin-up...\n");
     printf("Largest steady-state vel is your V_MAX_MPS.\n\n");
 
     motor.move(FULL_DUTY, FULL_DUTY);
 
-    // ---- Spin-up: keep servicing get_vel() so the EMA tracks the ramp ----
     uint64_t t_end = time_us_64() + (uint64_t)SPINUP_MS * 1000ULL;
     while (time_us_64() < t_end) {
         enc_l.get_vel();
@@ -61,7 +44,6 @@ int main()
         sleep_ms(10);
     }
 
-    // ---- Measurement window: sample and track the peak per side ----
     float max_l = 0.0f, max_r = 0.0f;
     uint32_t elapsed = 0;
     while (elapsed < MEASURE_MS) {

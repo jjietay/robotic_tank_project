@@ -1,19 +1,10 @@
 #!/usr/bin/env python3
-# ---------------------------------------------------------------------------
-#        bno085_i2c_node.py  —  BNO085 I2C → sensor_msgs/Imu
-# ---------------------------------------------------------------------------
-#  Reads quaternion, gyroscope, and linear acceleration from the BNO085
-#  over I2C (software bit-banged bus on /dev/i2c-4) and publishes
-#  sensor_msgs/Imu on /sensors/imu.
-#
-#  Unlike UART-RVC mode, I2C gives us calibrated gyroscope data, which
-#  is critical for EKF sensor fusion.
-#
-#  Heading zeroing: The first valid quaternion is recorded as the yaw
-#  offset. All subsequent quaternions are rotated by the inverse of this
-#  offset so yaw always starts at 0 on every boot, regardless of the
-#  BNO085's arbitrary boot-time heading reference.
-# ---------------------------------------------------------------------------
+"""BNO085 IMU node over I2C.
+
+Reads orientation, angular velocity, and linear acceleration from a BNO085 IMU
+over I2C and publishes them as ``sensor_msgs/msg/Imu`` on ``/sensors/imu``. The
+first reading is used to zero the heading, so yaw starts at zero on every boot.
+"""
 
 import time
 import math
@@ -32,7 +23,7 @@ from sensor_msgs.msg import Imu
 
 
 def quaternion_multiply(q1, q2):
-    """Multiply two quaternions (x, y, z, w)."""
+    """Multiply two quaternions given as (x, y, z, w)."""
     x1, y1, z1, w1 = q1
     x2, y2, z2, w2 = q2
     return (
@@ -44,18 +35,31 @@ def quaternion_multiply(q1, q2):
 
 
 def yaw_from_quaternion(x, y, z, w):
-    """Extract yaw (rotation about Z axis) from quaternion."""
+    """Return the yaw angle in radians from a quaternion."""
     return math.atan2(2.0 * (w*z + x*y), 1.0 - 2.0 * (y*y + z*z))
 
 
 def yaw_offset_quaternion(yaw):
-    """Build a quaternion representing a pure yaw rotation of -yaw (the inverse offset)."""
+    """Return a quaternion that rotates by the negative of the given yaw."""
     half = -yaw / 2.0
     return (0.0, 0.0, math.sin(half), math.cos(half))
 
 
 class BNO085I2CNode(Node):
+    """ROS 2 node that publishes BNO085 IMU data read over I2C.
+
+    Publishes:
+        ``/sensors/imu`` (sensor_msgs/msg/Imu): orientation, angular velocity,
+        and linear acceleration.
+
+    Parameters:
+        i2c_bus (int): I2C bus number. Default 4.
+        frame_id (str): frame id for the IMU messages. Default ``imu_link``.
+        publish_rate (double): publish rate in Hz. Default 50.
+    """
+
     def __init__(self):
+        """Open the IMU on I2C, enable the reports, and start the timer."""
         super().__init__('bno085_i2c')
 
         self.declare_parameter('i2c_bus', 4)
@@ -84,9 +88,8 @@ class BNO085I2CNode(Node):
         self.imu.enable_feature(BNO_REPORT_ROTATION_VECTOR)
         self.imu.enable_feature(BNO_REPORT_GYROSCOPE)
         self.imu.enable_feature(BNO_REPORT_LINEAR_ACCELERATION)
-        self.get_logger().info('BNO085 I2C connected — 3 reports enabled.')
+        self.get_logger().info('BNO085 I2C connected, 3 reports enabled.')
 
-        # Heading zero: set on first valid quaternion read
         self._yaw_offset_q = None
 
         self.imu_pub = self.create_publisher(Imu, '/sensors/imu', 10)
@@ -99,6 +102,7 @@ class BNO085I2CNode(Node):
         )
 
     def timer_callback(self):
+        """Read one IMU sample, apply the heading offset, and publish it."""
         try:
             quat  = self.imu.quaternion
             gyro  = self.imu.gyro
@@ -114,25 +118,21 @@ class BNO085I2CNode(Node):
         if quat is None or gyro is None or accel is None:
             return
 
-        # quat from adafruit is (i, j, k, real) → (x, y, z, w)
         x, y, z, w = quat[0], quat[1], quat[2], quat[3]
 
-        # --- Heading zeroing ---
         if self._yaw_offset_q is None:
             boot_yaw = yaw_from_quaternion(x, y, z, w)
             self._yaw_offset_q = yaw_offset_quaternion(boot_yaw)
             self.get_logger().info(
-                f'IMU heading zeroed — boot yaw was {math.degrees(boot_yaw):.1f}°'
+                f'IMU heading zeroed, boot yaw was {math.degrees(boot_yaw):.1f}°'
             )
 
-        # Apply yaw offset: q_corrected = offset * q_raw
         cx, cy, cz, cw = quaternion_multiply(self._yaw_offset_q, (x, y, z, w))
 
         msg = Imu()
         msg.header.stamp    = self.get_clock().now().to_msg()
         msg.header.frame_id = self.frame_id
 
-        # Orientation (yaw-zeroed rotation vector)
         msg.orientation.x = cx
         msg.orientation.y = cy
         msg.orientation.z = cz
@@ -141,7 +141,6 @@ class BNO085I2CNode(Node):
         msg.orientation_covariance[4] = 0.01
         msg.orientation_covariance[8] = 0.01
 
-        # Angular velocity (calibrated gyroscope, rad/s)
         msg.angular_velocity.x = gyro[0]
         msg.angular_velocity.y = gyro[1]
         msg.angular_velocity.z = gyro[2]
@@ -149,7 +148,6 @@ class BNO085I2CNode(Node):
         msg.angular_velocity_covariance[4] = 0.001
         msg.angular_velocity_covariance[8] = 0.001
 
-        # Linear acceleration (gravity removed by BNO085, m/s²)
         msg.linear_acceleration.x = accel[0]
         msg.linear_acceleration.y = accel[1]
         msg.linear_acceleration.z = accel[2]
@@ -160,10 +158,12 @@ class BNO085I2CNode(Node):
         self.imu_pub.publish(msg)
 
     def destroy_node(self):
+        """Destroy the node."""
         super().destroy_node()
 
 
 def main(args=None):
+    """Start the BNO085 I2C node and spin until interrupted."""
     rclpy.init(args=args)
     node = BNO085I2CNode()
     try:

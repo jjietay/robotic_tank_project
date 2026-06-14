@@ -55,7 +55,6 @@ def generate_launch_description():
             parameters=[ydlidar_params],
         ),
 
-        # BNO085 IMU (I2C mode on /dev/ttyS0)
         Node(
             package='rc_car_teleop',
             executable='bno085_i2c',
@@ -63,7 +62,6 @@ def generate_launch_description():
             output='screen',
         ),
 
-        # Encoder odometry — publishes /odom
         Node(
             package='rc_car_teleop',
             executable='odometry',
@@ -71,7 +69,6 @@ def generate_launch_description():
             output='screen',
         ),
 
-        # EKF — fuses /odom + /sensors/imu → /odometry/filtered + odom→base_link TF
         TimerAction(
             period=3.0,
             actions=[Node(
@@ -83,7 +80,6 @@ def generate_launch_description():
             )]
         ),
 
-        # SLAM — starts after EKF has time to establish TF
         TimerAction(
             period=8.0,
             actions=[Node(

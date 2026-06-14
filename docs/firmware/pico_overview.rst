@@ -6,29 +6,22 @@ See also: :doc:`main.cpp <main_cpp>`
 Purpose
 -------
 
-The Pico W firmware handles low-level hardware control that is better suited
-to a microcontroller than the Raspberry Pi 4.
+Pico W takes care of the hardware.
 
-In this project, the Pico W is responsible for:
+The Pico W is responsible for:
 
-- Motor actuation through the Cytron motor driver.
-- Wheel encoder handling through GPIO interrupts.
-- Ultrasonic distance measurement.
-- micro-ROS communication with the ROS 2 system on the Raspberry Pi 4.
+- Driving the motors through the Cytron motor driver
+- Reading the wheel encoders using GPIO interrupts
+- Measuring distance with the ultrasonic sensors
+- Talking to the ROS 2 system on the Raspberry Pi over micro ROS
 
-Role in the system
-------------------
 
-The Pico W acts as a real-time hardware interface layer. It receives motion
-commands from ROS 2, applies low-level motor control, and publishes sensor
-feedback such as ultrasonic ranges and encoder tick counts.
+Topics
+------
 
-Topics handled
---------------
+The firmware uses these ROS topics:
 
-The firmware currently interacts with these ROS interfaces:
-
-- ``/cmd_vel`` for incoming motion commands.
+- ``/cmd_vel`` for the incoming motion command
 - ``/sensors/ultrasonic/usrm_front``
 - ``/sensors/ultrasonic/usrm_back``
 - ``/sensors/ultrasonic/usrm_left``
@@ -36,9 +29,8 @@ The firmware currently interacts with these ROS interfaces:
 - ``/sensors/encoders/left_ticks``
 - ``/sensors/encoders/right_ticks``
 
-Design notes
-------------
+Layout
+------
 
-This firmware combines embedded GPIO/PWM logic with micro-ROS messaging in a
-single ``main.cpp`` file. Over time, this can be refactored into clearer
-modules.
+All of the firmware are in one ``main.cpp`` file + a small set of classes,
+motors, encoders, ultrasonic sensors, and PID controller. Shared settings such as pins, robot size, and gains are in ``config.hpp``.

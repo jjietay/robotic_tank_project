@@ -4,10 +4,9 @@
 #include "hardware/pwm.h"
 #include <cmath>
 
-// Initialization
 void Motor::setup_pwm(uint pin)
 {
-    // Initialization of pins
+
     gpio_set_function(pin, GPIO_FUNC_PWM);
     uint slice = pwm_gpio_to_slice_num(pin);
     pwm_set_wrap(slice, PWM_TOP);
@@ -15,7 +14,6 @@ void Motor::setup_pwm(uint pin)
     pwm_set_enabled(slice, true);
 }
 
-// Constructor
 Motor::Motor(std::string name_, std::string status_,
             uint l_dir, uint l_pwm, uint r_dir, uint r_pwm,
             bool invert_left, bool invert_right,
@@ -32,33 +30,26 @@ Motor::Motor(std::string name_, std::string status_,
     setup_pwm(r_pwm_pin);
 }
 
-// Set 1 motor
 void Motor::set_one_side(uint dir_pin, uint pwm_pin, float duty)
 {
-    // Keep max and min duty cycle within [-1, 1]
+
     if (duty >  1.0f) duty =  1.0f;
     if (duty < -1.0f) duty = -1.0f;
 
-    // If duty is +ve, means forward, we pull dir_pin to high
     gpio_put(dir_pin, duty >= 0.0f ? 1 : 0);
-    
-    // Set raw PWM to particular pwm_pin
+
     pwm_set_gpio_level(pwm_pin, (uint16_t)(std::fabs(duty) * (float)PWM_TOP));
 }
 
-// Move both motors
 void Motor::move(float duty_left, float duty_right)
 {
-    // Save pre-trim values
+
     float raw_left  = duty_left;
     float raw_right = duty_right;
 
-    // this changes level of duty cycle with based on trim factor
     duty_left  *= l_trim;
     duty_right *= r_trim;
 
-    // Only apply deadband if original command was meaningful
-    // This prevents deadband from cancelling out trim
     if (raw_left  > MOTOR_MIN_DUTY)  duty_left  = std::max(duty_left,  MOTOR_MIN_DUTY);
     if (raw_left  < -MOTOR_MIN_DUTY) duty_left  = std::min(duty_left, -MOTOR_MIN_DUTY);
     if (raw_right > MOTOR_MIN_DUTY)  duty_right = std::max(duty_right,  MOTOR_MIN_DUTY);
@@ -70,10 +61,9 @@ void Motor::move(float duty_left, float duty_right)
     set_one_side(r_dir_pin, r_pwm_pin, duty_right);
 }
 
-// Stopping function
 void Motor::stop()
 {
-    // Stop both motors
+
     set_one_side(l_dir_pin, l_pwm_pin, 0.0f);
     set_one_side(r_dir_pin, r_pwm_pin, 0.0f);
 }

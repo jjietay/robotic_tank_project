@@ -16,7 +16,7 @@
     <!-- Physics engine -->
     <plugin filename="ignition-gazebo-physics-system"
             name="ignition::gazebo::systems::Physics"/>
-    <!-- Sensor rendering (LIDAR, IMU, camera) -->
+    <!-- Sensor rendering (LIDAR, IMU) -->
     <plugin filename="ignition-gazebo-sensors-system"
             name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre2</render_engine>

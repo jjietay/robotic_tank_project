@@ -1,167 +1,65 @@
-Ultrasonic Sensor (HC-SR04)
-===========================
+Ultrasonic Sensor
+=================
 
 See also: :doc:`main.cpp <main_cpp>`
 
 Purpose
 -------
 
-The ``Ultrasonic`` class wraps one HC-SR04-style ultrasonic sensor.
-Each sensor instance manages one trigger pin and one echo pin, fires
-distance measurements on demand, and stores the result for the main
-loop to read.
+The ``Ultrasonic`` class drives one ultrasonic distance sensor. Each sensor has
+a trigger pin and an echo pin. The class fires a reading on demand and returns
+the distance in metres.
 
-Physical Overview
------------------
+How the sensor works
+--------------------
 
-The HC-SR04 module contains two cylindrical transducers side by side:
-
-- **Transmitter** — converts an electrical pulse into a 40 kHz ultrasonic sound burst (inaudible to humans).
-- **Receiver** — listens for that burst after it bounces off an object and converts it back into an electrical signal.
-
-The sensor measures distances from approximately **2 cm to 400 cm**
-with an accuracy of ±3 mm.
-
-A simplified layout:
-
-.. code-block:: text
-
-        ┌───────────────────── HC-SR04 Module ─────────────────────┐
-        │                                                          │
-        │        [ TX ]                             [ RX ]         │
-        │          ↑                                 ↑             │
-        │       Transmit                            Receive        │
-        │         burst                              echo          │
-        └──────────────────────────────────────────────────────────┘
-
-            TRIG  ─────►  Fire burst
-            ECHO  ◄─────  Pulse width encodes round-trip time
-
-How It Works
-------------
-**1) Timing diagram:**
+The sensor has a transmitter and a receiver. It sends out a short burst of sound
+above the range of human hearing, then listens for the echo that bounces back
+off an object. The time the echo takes to return tells you the distance.
 
 .. image:: ../_images/ultrasonic_img1.png
-    :alt: A leading B
+    :alt: Ultrasonic timing
     :width: 500px
     :align: center
 
-**2) Distance measurement follows four steps:**
+A reading has four parts:
 
-1. **Trigger pulse:** the microcontroller pulls the ``TRIG`` pin HIGH for at least 10 µs, then LOW. This tells the sensor to fire.
-2. **Burst transmission:** the sensor automatically sends out an 8-cycle burst of 40 kHz sound waves through the transmitter.
-3. **Echo listening:** the ``ECHO`` pin goes HIGH immediately after the burst is sent. The sensor waits for the reflected sound to return.
-4. **Echo received:** when the reflected burst arrives at the receiver, the ``ECHO`` pin goes LOW. The duration the pin stayed HIGH is the round-trip travel time of the sound.
+1. The trigger pin is pulled HIGH for a short pulse, then LOW. This tells the
+   sensor to fire.
+2. The sensor sends out the burst of sound.
+3. The echo pin goes HIGH while the sensor waits for the sound to come back.
+4. When the echo returns, the echo pin goes LOW. The time the echo pin stayed
+   HIGH is the round trip time of the sound.
 
+Working out the distance
+------------------------
 
-.. note::
-
-    If no object is detected within range, the sensor times out and pulls ``ECHO`` LOW after approximately 38 ms. The code treats this as a special error value.
-
-
-Distance Calculation
---------------------
-
-Once the echo pulse duration is measured, distance is calculated using:
+Once the echo time is known, the distance is:
 
 .. math::
 
     d = \frac{t \times v_s}{2}
 
-where:
+where ``t`` is the echo time in seconds and ``v_s`` is the speed of sound, about
+346 metres per second at room temperature. The result is halved because the
+sound travels to the object and back, so the echo time covers twice the
+distance. In this code the result is returned in metres.
 
-- :math:`t` is the echo pulse duration in seconds,
-- :math:`v_s` is the speed of sound (≈ 346 m/s at 25 °C in this implementation),
-- the result is divided by **2** because the sound travels to the object
-  *and back*, so the measured time covers twice the actual distance.
+The update method
+-----------------
 
-In this codebase the result is converted to centimetres:
+``update()`` fires the sensor and waits for the echo. It is a blocking call, so
+it holds the processor until the echo returns or a timeout is reached. The
+timeout is about 38 milliseconds. The return values are:
 
-.. code-block:: cpp
+- ``-1.0`` when the echo never starts, which means no object or a wiring fault
+- ``-2.0`` when the echo starts but never ends, which can happen when an object
+  is far too close
+- any positive value, which is a valid distance in metres
 
-   float dt = (float)(fall - rise) * 1e-6f;           // pulse duration in seconds
-   last_distance = (dt * sound_vel / 2.0f) * 100.0f;  // convert metres → centimetres
-
-Implementation Notes
+Firing one at a time
 --------------------
 
-**1) Blocking measurement**
-
-The ``update()`` method is **blocking** — it actively waits (busy-loops)
-for the echo pin to go HIGH, then waits again for it to go LOW.
-Each call can hold the CPU for up to 38 ms if no object is present.
-
-Timeout guards are included for both waits::
-
-   if (time_us_64() - t0 > 38000ULL) { last_distance = -1.0f; return; }  // no echo start
-   if (time_us_64() - rise > 38000ULL) { last_distance = -2.0f; return; } // no echo end
-
-Return values:
-
-- ``-1.0`` — echo never started (no object or sensor fault).
-- ``-2.0`` — echo started but never ended (object too close or sensor fault).
-- Any positive value — valid distance in centimetres.
-
-**2) Staggered firing**
-
-All four sensors are fired once per loop tick using a rotating index
-(``usrm_index`` in ``main()``). This avoids *crosstalk*, where one
-sensor's burst is accidentally received by a neighbouring sensor's
-receiver before it fires its own burst. This ensures only one sensor
-is actively transmitting at any given tick.
-
-Visualising staggered firing within the main loop:
-
-.. code-block:: text
-
-   Loop ticks:   0      1      2      3      4      5      ...
-                 |      |      |      |      |      |
-   Sensor used:  Front  Back   Right  Left   Front  Back   ...
-
-
-**3) Blocking vs. non-blocking tradeoff**
-
-.. list-table::
-    :header-rows: 1
-    :widths: 20 40 40
-
-    *   - Approach
-        - Advantages
-        - Disadvantages
-    *   - Blocking (current)
-        - Simple, easy to debug, no state machine needed
-        - Stalls the CPU for up to 38 ms; limits loop rate
-    *   - Non-blocking (IRQ-based)
-        - CPU free while waiting; scales to many sensors
-        - More complex; requires careful interrupt management
-
-Design intuition
-~~~~~~~~~~~~~~~~
-
-.. admonition:: Why blocking is "good enough" here
-
-    The tank runs a simple control loop on the Pico and
-    the heavy decision-making happens on the Raspberry Pi.
-    A 10 ms loop with four staggered sensors is acceptable,
-    and the clarity of a blocking implementation makes it
-    easier to debug hardware issues. If you later need
-    higher-frequency control or more sensors, you can
-    refactor to a non-blocking, interrupt-driven design.
-
-Class Reference
----------------
-
-.. cpp:class:: Ultrasonic : public Electronics
-
-    Wraps a single HC-SR04 ultrasonic sensor.
-
-.. cpp:function:: float update()
-
-    Fires the sensor and returns the measured distance in centimetres.
-    Blocks for up to 38 ms. Returns ``-1.0`` on start timeout,
-    ``-2.0`` on end timeout.
-
-.. cpp:function:: float get_distance() const
-
-    Returns the most recently stored measurement without firing the
-    sensor again.
+In the main loop only one sensor fires per cycle, using a rotating index. Since
+each reading can block for a while, spacing them out keeps the loop timing
+steady and stops one sensor from hearing another sensor burst.

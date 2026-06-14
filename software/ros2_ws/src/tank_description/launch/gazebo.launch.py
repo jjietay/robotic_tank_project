@@ -22,7 +22,6 @@ def generate_launch_description():
     with open(urdf_file, 'r') as f:
         robot_description = f.read()
 
-    # ---- Start Gazebo with empty world ----
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -32,7 +31,6 @@ def generate_launch_description():
         )
     )
 
-    # ---- Publish robot description + TF tree ----
     robot_state_pub = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -40,14 +38,13 @@ def generate_launch_description():
         output='screen'
     )
 
-    # ---- Spawn the tank into Gazebo ----
     spawn_entity = Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
         arguments=[
             '-topic', 'robot_description',
             '-entity', 'my_tank',
-            '-z', '0.05',       # spawn slightly above ground so it drops cleanly
+            '-z', '0.05',
         ],
         output='screen'
     )

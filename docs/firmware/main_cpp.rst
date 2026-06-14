@@ -1,40 +1,42 @@
 main.cpp
-======================
+========
 
 See also: :doc:`Pico Overview <pico_overview>`
 
 Purpose
 -------
 
-This page documents the main Pico W firmware file. The file combines hardware
-drivers, helper functions, micro-ROS communication, and the main execution loop.
+``main.cpp`` sets up the hardware, sets up the
+micro ROS link, and then runs the control loop that keeps the tank moving.
 
-Responsibilities
-----------------
+What it does
+------------
 
-``main.cpp`` is responsible for:
+- Sets up GPIO, PWM, timing, and interrupts
+- Builds the four ultrasonic sensors, the motor driver, the two encoders, and
+  the two PID controllers
+- Sets up the micro ROS node, the ``/cmd_vel`` subscriber, and the publishers
+- Reads ``/cmd_vel`` and turns it into a target speed for each track
+- Publishes ultrasonic ranges and encoder ticks back to ROS 2
+- Runs the control loop at 100 Hz
 
-- Initialising GPIO, PWM, timing, and interrupts.
-- Managing ultrasonic distance sensors.
-- Reading wheel encoder counts.
-- Driving the motor controller.
-- Handling ``/cmd_vel`` subscription callbacks.
-- Publishing ultrasonic and encoder data to ROS 2.
-- Running the main control loop on the Pico W.
+Structure
+---------
 
-High-level structure
---------------------
+The file is split into a few parts:
 
-At a high level, the file is organised into:
-
-- **Electronics base class** - shared name/status for hardware components.
-- :doc:`Ultrasonic <ultrasonic>` - blocking measurement with timeout and last-distance cache.
-- :doc:`Motor <motor>` - Cytron driver wrapper, direction and PWM control helpers.
-- :doc:`Encoder <encoder>` - quadrature counting via interrupts and count access.
-- :doc:`PID <pid>` - simple controller with clamped integral term.
-- :doc:`micro-ROS globals and callback <microros>` - subscriber, publishers, executor, and ``cmd_vel`` callback.
-- :doc:`Helper functions <helper>` - deadband, range message initialisation, and timestamp handling.
-- :doc:`main() Loop <main_loop>` - startup, ROS wiring, and repeated control loop execution.
+- The :doc:`Electronics <main_cpp>` base class gives every hardware class a name
+  and a status
+- :doc:`Ultrasonic <ultrasonic>` measures distance with a timeout
+- :doc:`Motor <motor>` drives the Cytron motor driver
+- :doc:`Encoder <encoder>` counts wheel ticks using interrupts and works out
+  wheel speed
+- :doc:`PID <pid>` corrects the wheel speed
+- :doc:`micro ROS <microros>` holds the subscriber, the publishers, and the
+  command callback
+- :doc:`Helper functions <helper>` set up range messages, stamp messages, and
+  clamp values
+- :doc:`main() Loop <main_loop>` runs the repeating control cycle
 
 Related components
 ------------------

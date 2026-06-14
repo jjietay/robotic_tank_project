@@ -6,7 +6,6 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    # --- 1. Get the URDF ---
     pkg_share = get_package_share_directory('tank_description')
     urdf_path = os.path.join(pkg_share, 'urdf', 'tank.urdf')
     with open(urdf_path, 'r') as f:
@@ -26,9 +25,6 @@ def generate_launch_description():
 
     return LaunchDescription([
 
-        # --- 2. TF Tree ---
-        # robot_state_publisher
-        # Hint: same as display.launch.py but add use_sim_time: False
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
@@ -41,20 +37,15 @@ def generate_launch_description():
         ),
 
 
-        # --- 3. Sensing ---
-        # ydlidar driver
-        # Hint: check your ydlidar package name and executable name
         Node(
             package = 'ydlidar_ros2_driver',
             executable = 'ydlidar_ros2_driver_node',
             name = 'ydlidar_ros2_driver_node',
-            output = 'log',              # suppress "Real points > fixed points" warnings from terminal
+            output = 'log',
             parameters=[ydlidar_params],
         ),
 
 
-        # --- 4. Thinking ---
-        # odometry node
         Node(
             package='rc_car_teleop',
             executable='odometry',
@@ -62,7 +53,6 @@ def generate_launch_description():
             output='screen',
         ),
 
-        # lidar_processor node
         Node(
             package='rc_car_teleop',
             executable='lidar_processor',
@@ -71,7 +61,6 @@ def generate_launch_description():
         ),
 
 
-        # brain node
         Node(
             package='rc_car_teleop',
             executable='brain',
@@ -80,29 +69,16 @@ def generate_launch_description():
         ),
 
 
-        # yolo node
-        Node(
-            package='rc_car_teleop',
-            executable='yolo',
-            name='yolo',
-            output='screen',
-        ),
-
-
-
-        # --- 5. Arbitration ---
-        # twist_mux
         Node(
             package='twist_mux',
             executable='twist_mux',
             name='twist_mux',
             output='screen',
-            parameters=[twist_mux_config],      # pass the yaml path directly
-            remappings=[('cmd_vel_out', '/cmd_vel')]   # twist_mux output → pico's topic
+            parameters=[twist_mux_config],
+            remappings=[('cmd_vel_out', '/cmd_vel')]
         ),
 
 
-        # --- 6. Teleop ---
         Node(
             package='rc_car_teleop',
             executable='teleop',

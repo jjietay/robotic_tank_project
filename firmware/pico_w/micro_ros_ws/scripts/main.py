@@ -19,29 +19,26 @@ class Electronics:
         print(f"{self.name} disconnected.")
 
 
-# NOTE: Quadrature Incremental Magnetic Encoder
 class Encoder(Electronics):
-    _PPR = 11   # Pulses per revolution - the number of possible highs and lows per rev PER PIN !!
+    _PPR = 11
 
     def __init__(self, name, status, _pin_a, _pin_b, _reduction_ratio = 1, _diameter=4.7):
         super().__init__(name, status)
-        # Pull up holds the pins at HIGH when no signal is present, this is to prevent floating inputs
         self._pin_a = Pin(_pin_a, Pin.IN, Pin.PULL_UP)
         self._pin_b = Pin(_pin_b, Pin.IN, Pin.PULL_UP)
 
         self._reduction_ratio = _reduction_ratio
-        self._diameter = _diameter # 4.7cm
+        self._diameter = _diameter
         self._circumference = 2 * 3.141592653589793 * (_diameter/2)
-        self._cpr_motor = 4 * self._PPR     # Counts per revolution OF SHAFT measures the highs and lows on both A and B (QUADRATURE)
-        self._cpr_output = self._cpr_motor * self._reduction_ratio # Counts per revolution OF WHEEL measured with the highs and lows of both A and B
+        self._cpr_motor = 4 * self._PPR
+        self._cpr_output = self._cpr_motor * self._reduction_ratio
 
-        # State variables
         self.count = 0
         self._last_count = 0
         self._last_time = time.ticks_us()
 
-        self._pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._callback_a)     # Whenever pin rising or falling, stop all tasks first and run _callback_a function 
-        self._pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._callback_b)      # Whenever pin rising or falling, stop all tasks first and run _callback_b function 
+        self._pin_a.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._callback_a)
+        self._pin_b.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self._callback_b)
 
     def _callback_a(self, _pin_a):         
         a = _pin_a.value()
@@ -68,11 +65,11 @@ class Encoder(Electronics):
         if time_diff <= 0:
             return 0.0
         
-        time_diff = time_diff * 1e-6                                # convert from micro seconds to seconds    
+        time_diff = time_diff * 1e-6
         vel = self._get_distance_delta() / time_diff
-        self._last_time = _now_time                                 # reset
+        self._last_time = _now_time
         self._last_count = self.count
-        return vel                                                  # in cm/s
+        return vel
     
     "Helper Method (Private Method) to calculate distance change since last velocity check."
     def _get_distance_delta(self):
@@ -85,32 +82,32 @@ class Ultrasonic(Electronics):
         super().__init__(name, status)
         self.trigger_pin = Pin(trigger_pin, Pin.OUT)
         self.echo_pin = Pin(echo_pin, Pin.IN)
-        self.sound_vel = sound_vel          # 340m/s
+        self.sound_vel = sound_vel
     
     def distance(self):
-        self.trigger_pin.low()              # send 0 to ultrasonic sensor
-        time.sleep_us(2)                    # sleep for 2 microseconds
-        self.trigger_pin.high()             # send 1 to ultrasonic sensor
-        time.sleep_us(10)                   # 10us for input (into sensor) to register
+        self.trigger_pin.low()
+        time.sleep_us(2)
+        self.trigger_pin.high()
+        time.sleep_us(10)
         self.trigger_pin.low()
 
         timeout = time.ticks_us()
-        while not self.echo_pin.value():    # if ECHO is 0 (False) ---> not ECHO is 1 (True)
+        while not self.echo_pin.value():
             if time.ticks_diff(time.ticks_us(), timeout) > 38000:
-                return None                     # sensor not responding
+                return None
             
-        time1 = time.ticks_us()             # Start Stopwatch
+        time1 = time.ticks_us()
         while self.echo_pin.value():
             if time.ticks_diff(time.ticks_us(), timeout) > 38000:
                 return "out of range"
             
-        time2 = time.ticks_us()             # Stop Stopwatch
+        time2 = time.ticks_us()
         diff = time.ticks_diff(time2, time1)
-        if diff > 38000:                    # If out of range
+        if diff > 38000:
             return "out of range"
         else:
             dist = (diff * 1e-6 * self.sound_vel / 2) * 100
-            return dist     # in cm
+            return dist
 
 
 "This is for Cytron MDD10A ---> which only requires direction pin and pwm pin per motor"
@@ -158,23 +155,21 @@ class Motor(Electronics):     # TAKES IN (0.2, 0.4) from RPI4
         self.r_pwm.freq(freq)
 
     def _set(self, dir_pin, pwm_pin, speed):            
-        speed = max(-1.0, min(1.0, speed))              # Clamp speed within -1 to 1
+        speed = max(-1.0, min(1.0, speed))
         
         if speed > 0:   
-            dir_pin.value(1)                            # Set direction (Forward)
+            dir_pin.value(1)
         elif speed < 0: 
-            dir_pin.value(0)                            # Set direction (Reverse)
+            dir_pin.value(0)
         else:           
-            dir_pin.value(0)                            # Direction doesn't matter if speed is 0
+            dir_pin.value(0)
             
-        pwm_pin.duty_u16(int(abs(speed) * 65535))       # 0 - 65535 (DUTY CYCLE)
+        pwm_pin.duty_u16(int(abs(speed) * 65535))
 
-    # Simply combines both left and right together for teleop control
     def move(self, left, right):
         self._set(self.l_dir, self.l_pwm, left)
         self._set(self.r_dir, self.r_pwm, right)
 
-    # THIS IS FOR FIXED MOVEMENTS
     def forward(self):          self.move( DRIVE_DUTY,  DRIVE_DUTY)
     def backward(self):         self.move(-DRIVE_DUTY, -DRIVE_DUTY)
     def tank_turn_left(self):   self.move( TURN_DUTY, -TURN_DUTY)
@@ -194,7 +189,7 @@ class PID:
 
     def calculate(self, setpoint, current_value):
         current_time = time.ticks_us()
-        dt = time.ticks_diff(current_time, self.last_time) / 1000000 # Convert ms to seconds
+        dt = time.ticks_diff(current_time, self.last_time) / 1000000
 
         if dt <= 0.0:
             dt = 0.01
@@ -214,7 +209,6 @@ class PID:
         return output
 
 
-# INITIALIZING COMPONENTS
 USRM_T = Ultrasonic("TL", "ON", trigger_pin=6, echo_pin=7)
 USRM_B = Ultrasonic("TR", "ON", trigger_pin=10, echo_pin=11) 
 USRM_R = Ultrasonic("BL", "ON", trigger_pin=12, echo_pin=13)
@@ -239,39 +233,32 @@ poller.register(sys.stdin, select.POLLIN)
 target_vel_l = 0.0
 target_vel_r = 0.0
 
-# MAIN LOOP
 while True:
-    # Check for immediate serial commands
-    if poller.poll(0):  # 0 ---> do not wait
+    if poller.poll(0):
         data = sys.stdin.readline().strip()
         if data:
-            # receives "(20.0, 20.0)" ---> "(left_motor_speed, right_motor_speed)"
             try:
                 target_vel_l, target_vel_r = map(float, data.strip("()").split(","))
                 print(f"New targets: {target_vel_l}, {target_vel_r}")
             except:
                 print("ERROR: Invalid serial data.")
     
-    # CHECK USRM SENSOR
     dist = [
         USRM_T.distance(), USRM_L.distance(),
         USRM_B.distance(), USRM_R.distance()
     ]
     for element in dist:
-        if isinstance(element, (int, float)) and element < 3:     # if distance from crash is 3cm away, STOP the vehicle
+        if isinstance(element, (int, float)) and element < 3:
             target_vel_l = 0.0
             target_vel_r = 0.0
             break
 
-    # Get current velocities
     current_velocity_l = LEFT_ENCODER.get_vel()
     current_velocity_r = RIGHT_ENCODER.get_vel()
     
-    # PID to get new velocities
     vel_l = LEFT_PID.calculate(target_vel_l, current_velocity_l)
     vel_r = RIGHT_PID.calculate(target_vel_r, current_velocity_r)
 
-    # SET new velocities
     MOTOR.move(vel_l, vel_r)
 
     time.sleep(0.01)

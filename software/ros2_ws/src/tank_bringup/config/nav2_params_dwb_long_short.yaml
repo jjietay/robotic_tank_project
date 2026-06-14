@@ -1,5 +1,5 @@
 # ==========================================================================
-#  Nav2 parameters — Autonomous Tank
+#  Nav2 parameters, Autonomous Tank
 #
 #  Robot: tracked differential drive, can spin in place
 #  Footprint: ~31cm long × ~18cm wide (MEASURE AND ADJUST)
@@ -16,7 +16,7 @@ amcl:
     alpha2: 0.2          # rotation noise from translation
     alpha3: 0.2          # translation noise from translation
     alpha4: 0.2          # translation noise from rotation
-    alpha5: 0.2          # translation noise (omnidirectional — irrelevant for diff drive)
+    alpha5: 0.2          # translation noise (omnidirectional, irrelevant for diff drive)
     # -- Laser model --
     laser_model_type: likelihood_field
     laser_max_range: 12.0
@@ -174,7 +174,7 @@ controller_server:
       transform_tolerance: 0.5
 
       # -- Diff-drive kinematics --
-      # (no holonomic motion — vy locked to 0 above)
+      # (no holonomic motion, vy locked to 0 above)
 
       # -- Critics (the scoring functions that produce avoidance) --
       critics:
@@ -187,7 +187,7 @@ controller_server:
         - "GoalDist"
 
       # critic weights
-      BaseObstacle.scale: 0.15        # obstacle avoidance strength — raise to avoid harder
+      BaseObstacle.scale: 0.15        # obstacle avoidance strength, raise to avoid harder
       PathAlign.scale: 16.0           # stay aligned with global path
       PathAlign.forward_point_distance: 0.10
       GoalAlign.scale: 16.0
@@ -262,7 +262,7 @@ local_costmap:
           obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0    # moderate falloff — allows straighter paths
+        cost_scaling_factor: 3.0    # moderate falloff, allows straighter paths
         inflation_radius: 0.15      
 global_costmap:
   global_costmap:
@@ -281,5 +281,5 @@ global_costmap:
         map_subscribe_transient_local: true
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0    # was 3.0 — wider berth for the replan experiment
-        inflation_radius: 0.20      # was 0.12 — visibly wider arc
+        cost_scaling_factor: 2.0    # was 3.0, wider berth for the replan experiment
+        inflation_radius: 0.20      # was 0.12, visibly wider arc

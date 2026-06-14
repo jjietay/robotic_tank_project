@@ -1,10 +1,3 @@
-// ---------------------------------------------------------------------------
-//                       electronics.hpp  —  Base device class
-// ---------------------------------------------------------------------------
-//  Common interface for every peripheral on the robot.  Header-only because
-//  it is tiny and used purely as a base class.
-// ---------------------------------------------------------------------------
-
 #pragma once
 #include <string>
 #include <utility>

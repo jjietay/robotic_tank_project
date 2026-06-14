@@ -1,19 +1,28 @@
 ROS 2 Overview
 ==============
 
-This section gives a high-level overview of the ROS 2 software
-architecture used in the tank project.
+This page gives a short overview of the ROS 2 software that runs on the
+Raspberry Pi 4. The Raspberry Pi handles sensing, state estimation, mapping,
+navigation, and the commands that drive the tank. The Pico W handles the low
+level motor and sensor work and talks to the Pi over a serial micro ROS link.
 
-High-Level Architecture
------------------------
+The system is made up of a few groups of nodes.
 
-At a high level, the tank’s ROS 2 system is organised into:
+Sensing
+    The Pico W publishes wheel encoder ticks and ultrasonic ranges. The lidar
+    driver publishes laser scans on ``/scan``. The BNO085 IMU node publishes
+    orientation and motion on ``/sensors/imu``.
 
-- **Perception nodes** for reading sensors (LIDAR, ultrasonics, encoders,
-  camera) and publishing standard ROS 2 messages.
-- **State-estimation and TF nodes** for computing odometry, managing frames
-  (``map``, ``odom``, ``base_link``), and keeping the robot’s pose consistent.
-- **Control and decision nodes** (the “brain”) that take sensor data and
-  goals, then publish velocity commands on ``/cmd_vel``.
-- **Utility nodes** such as logging, parameter management, and tools like
-  ``twist_mux`` that arbitrate between multiple command sources.
+State estimation
+    The odometry node turns encoder ticks into a pose estimate on ``/odom``.
+    The EKF from robot_localization fuses ``/odom`` and ``/sensors/imu`` into a
+    smoother estimate and broadcasts the ``odom`` to ``base_link`` transform.
+
+Mapping and navigation
+    SLAM Toolbox builds a map from the laser scans. Nav2 plans a path to a goal
+    and follows it, sending velocity commands for the tank to follow.
+
+Commands
+    More than one source can ask the tank to move. Teleop sends keyboard
+    commands and Nav2 sends its own commands. The twist_mux node picks one
+    based on priority and forwards it as ``/cmd_vel``, which the Pico W reads.

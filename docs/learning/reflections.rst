@@ -24,7 +24,7 @@ I decided to build a self-driving tank. Why a tank you may ask. If I'm being hon
 
 ----
 
-26 Feb 26 — Start of Project
+26 Feb 26 - Start of Project
 ------------------------------
 
 After researching and consulting AI what I should purchase, I spend nearly a crazy ~$200 out of my own pocket to purchase the items that included Rasberry Pi 4, Pico W, Pi Camera Module 2, YDLidar X3 Pro, basic arduino car kit (included with motors), H bridge, 18560 batteries.
@@ -81,7 +81,7 @@ Video 1 above shows my car finally moving, controlled via my keyboard, WASD.
 
 ----
 
-12 Mar 26 — 1st Real Difficulty
+12 Mar 26 - 1st Real Difficulty
 --------------------------------
 
 .. figure:: ../_images/reflections_img3.png
@@ -104,7 +104,7 @@ From Figure 4, you can tell that I was using a really cheap soldering iron and t
 
 When the new soldering iron came, I soldered on new pair of wires onto the motor flaps and everything worked. I knew the next steps were to add my LIDAR and bigger portable onto my car.
 
-26 Mar 26 — Improved Chassis, or is it?
+26 Mar 26 - Improved Chassis, or is it?
 -----------------------------------------
 
 When I fitted the my bigger powerbank, everything changed. The whole system got heavier, and my cheap TT motors were struggling to move the car. When moving forward or backwards, it worked fine. But when it was tank turning left or right, it didn't budge. This is because the TT motors are not producing enough torque force to overcome the static friction.
@@ -164,7 +164,7 @@ The specifications of both are displayed in the table below.
 
 Figure 6 shows the final product after building. Notice the rasberry camera module 2 installed. I tested it by streaming live feed and viewing it on my macbook via VLC player. I noticed that the camera FOV is small. This might impact the robot's ability to see things at corners of the image. Therefore, I have decided to get another camera that have a greater FOV.
 
-9 Apr 26 — Camera problems
+9 Apr 26 - Camera problems
 ---------------------------
 
 .. list-table::
@@ -203,7 +203,7 @@ When I got the OV5647, I tried it and observed a larger FOV. However, when it to
 
 Figure 7 shows my destroyed CSI. I looked up online and realised that the CSI is notorious for getting damaged. I could replace the whole CSI piece and solder on a new one, or I could get a USB camera. I didn't take the risk, and bought a USB camera with similar FOV. 
 
-9 Apr 26 — Lack of Encoder & Motor Driver Upgrade
+9 Apr 26 - Lack of Encoder & Motor Driver Upgrade
 ---------------------------------------------------
 
 I began researching more into SLAM, and realised that I need an encoder for my wheel so that I can calculate the odometry for my base_link.
@@ -243,7 +243,7 @@ JBG37-520 uses AB-phase Quadrature Hall Encoders. The encoder outputs 11 Pulses 
 
 Additionally, the existing H-bridge proved to be quite inefficient, dissipating a significant amount of energy as heat, with a voltage drop of nearly 2V across it. To address this, I sourced the Cytron MDD10A Dual Channel 10A DC Motor Driver, which uses a fully NMOS H-Bridge design to achieve significantly lower voltage drop and improved efficiency.
 
-16 Apr 26 — Motor Mismatch + LIDAR's custom fit
+16 Apr 26 - Motor Mismatch + LIDAR's custom fit
 -------------------------------------------------
 
 When the motor came, I eagerly tried to yoink it in place. But to my surprise, it didn't fit. I did check the shaft dimensions before purchasing, but turned out the old motor I was using had a different sizing from the spec sheet found online.
@@ -264,7 +264,7 @@ To fix this, I have decided to customize my chassis by:
 1) **3D printing** my own custom chassis with custom coupler
 2) Mounting my LIDAR on custom **acrylic**
 
-27 Apr 26 — Acrylic
+27 Apr 26 - Acrylic
 -----------------------
 
 For acrlyic, my main goal is just to drill holes so that I can fit my LIDAR. 
@@ -278,7 +278,7 @@ For acrlyic, my main goal is just to drill holes so that I can fit my LIDAR.
 
 Figure 9 shows how it looked like.
 
-20 Apr 26 — 3D Prints
+20 Apr 26 - 3D Prints
 -----------------------
 
 As for the 3D printing, I saw this as an opportunity for me to learn 3D design, and I downloaded Autodesk Fusion. I spent the first few hours watching youtube tutorials and then I got started.
@@ -303,7 +303,7 @@ Figure 11 shows the details of the designs. The motor housing is intentionally p
 
 Some issues faced with this design was that the shaft turned while the coupler stayed in place. This made me learn about tolerances and how we have to account for that. Also, the length of coupler was not accurate. This meant that my drive wheel and supporting wheel were not aligned with respect to the track. Therefore, I had to re-measure and print a few more with (slight) differing lengths.
 
-26 Apr 26 — How I learn coding/ROS 2
+26 Apr 26 - How I learn coding/ROS 2
 --------------------------------------
 .. figure:: ../_images/reflections_img_holy_trinity.png
    :alt: Before building
@@ -318,7 +318,7 @@ My process was as such. First I used AI to teach me the relevant concepts. I wil
 
 Also, I chose python for my codebase for RPI4 because its easier. When the full pipeline works, I might explore C++.
 
-27 Apr 26 — Minor Upgrades: Ultrasonic Sensors and Electrical Schematics
+27 Apr 26 - Minor Upgrades: Ultrasonic Sensors and Electrical Schematics
 -------------------------------------------------------------------------
 
 I decided to get some new ultrasonic sensors and then decided to plan out the schematics and pin allocations. 
@@ -332,7 +332,7 @@ I decided to get some new ultrasonic sensors and then decided to plan out the sc
 
 Figure 12 shows the schematics that I have created using Fritzing (an open-soruce application). It shows my main electronics used for connections. Since this is just prototyping, I am using a half sized breadboard and jumper wires for my wiring.
 
-28 Apr 26 — Finished Hardware
+28 Apr 26 - Finished Hardware
 -------------------------------
 
 .. figure:: ../_images/reflections_img13.png
@@ -344,7 +344,7 @@ Figure 12 shows the schematics that I have created using Fritzing (an open-soruc
 
 Figure 13 shows my completed hardware. At this point, I already have my main.cpp for my micro-ROS ready to be flashed onto my 
 
-29 Apr 26 — E-Stop Function using Ultrasonic Sensors
+29 Apr 26 - E-Stop Function using Ultrasonic Sensors
 -----------------------------------------------------
 
 .. raw:: html
@@ -360,7 +360,7 @@ Figure 13 shows my completed hardware. At this point, I already have my main.cpp
 Video 2 shows the simple E-stop function using my ultrasonic sensors. It will stop when it detects an object 15cm in front and behind it. 
 
 
-5 May 2026 — PID Controller
+5 May 2026 - PID Controller
 -----------------------------
 .. figure:: ../_images/reflections_img14.png
    :alt: Before building
@@ -375,7 +375,7 @@ When I calculate the PID values, I had to see the maximum error possible. Assumi
 
 I also added a slew rate that allows for smoother acceleration and deceleration.
 
-6 May 2026 — Disaster #2
+6 May 2026 - Disaster #2
 -----------------------------
 .. figure:: ../_images/reflections_img15.png
    :alt: Before building
@@ -387,7 +387,7 @@ I also added a slew rate that allows for smoother acceleration and deceleration.
 PID controller works fine, but while moving the car, the coupler **snapped once again**. Since this entire project is self-funded and I have blasted a hole through my wallet, I had to save future costs of remaking and repurchasing this coupler and motor. Therefore, I decided to just get a full tank kit with correctly sized motors with encoders to ensure reliability. This way I can focus on what matters more, which is my SLAM and higher level algorithms. Though, what I 3D designed, the chassis and coupler, I wouldn't say its a waste of time since I did learn quite abit from this.
 
 
-12 May 2026 — New Kit
+12 May 2026 - New Kit
 -----------------------------
 .. figure:: ../_images/reflections_img16.png
    :alt: Before building
@@ -435,7 +435,7 @@ Figure 19 shows the new model that i built as a urdf file and visualized using u
 From Figure 20, we can see my testing notes. I tested the max speed and minimum duty cycle using debug code. I used encoder counts to estimate the distance and calculated the speed at max duty cycle (using timer from my stopwatch). As for minimum duty cycle, I create a debug code that steps down the duty cycle every 3 seconds, and I can manually count and see at which duty cycle the car can no longer move. However, from all these testing, I noticed the somehow the right motor is significantly weaker than the left.
 
 
-20 May 2026 — Integration hell
+20 May 2026 - Integration hell
 -------------------------------
 
 .. raw:: html
@@ -487,7 +487,7 @@ Video 5 represents a clanking sound when shaking the right motor after removing 
 
 Figure 21 shows the motor when I removed the gear cover. I didn't see anything odd, just poor lubrication. When I shake the motor I could still hear the clanging, and I knew it was something to do with the interal windings of the actual motor itself. But I decided not to pursue this any further and just purchase new motors (with spares cos I can't afford waiting another 1.5 weeks whenever this happens).
 
-23 May 2026 — RViz & Gazebo
+23 May 2026 - RViz & Gazebo
 ---------------------------
 
 .. figure:: ../_images/reflections_img22.png
@@ -508,7 +508,7 @@ Figure 22 shows my RViz model. Managed to set it up on my mac with much difficul
 
 Figure 23 shows Gazebo setup on my mac (also a pain due to apple's sillicon). 
 
-29 May 2026 — IMU
+29 May 2026 - IMU
 ------------------
 When i tried running the BNO085 IMU, the ROS 2 topic ``/sensors/imu`` appeared, but no data was being published to that topic. I thought it was my firmware issue, because I had to create the fully written BNO085 driver on the pico W built around the SH2 library using I2C. So I used the built-in I2C GPIO pins on the Rasberry Pi 4 for testing. 
 
@@ -550,7 +550,7 @@ When i tried running the BNO085 IMU, the ROS 2 topic ``/sensors/imu`` appeared, 
 - Im using a software bit-banged I2C bus on a free GPIO pair instead of the hardware I2C peripheral (which im been using)
 - Bit-banging means the Pi manually toggles the pins in software, which correctly honours clock stretching because I'm in full control of the timing
 
-29 May 2026 — LIDAR
+29 May 2026 - LIDAR
 --------------------
 .. raw:: html
 
@@ -565,7 +565,7 @@ When i tried running the BNO085 IMU, the ROS 2 topic ``/sensors/imu`` appeared, 
 This took me long enough, but finally I have started setting up the LIDAR and its spinning. Managed to make the LIDAR node work and I was able to see the msg being published on my lidar topic. Next was setting it up so that I can see the laser scan on rviz.
 
 
-30 May 2026 — RViz2
+30 May 2026 - RViz2
 --------------------
 
 .. figure:: ../_images/reflections_img24.png
@@ -625,7 +625,7 @@ I also understand that my LIDAR may be giving poor results due to the characteri
 
 Figure 29 shows the before and after of mapping a smaller area i created. I realised that this drastically helps with the mapping of rear of objects, since the rear of the bin is now properly shown as a fully round object. However, the drift is still a problem.
 
-5 June 2026 — Fixing Drift
+5 June 2026 - Fixing Drift
 ---------------------------
 
 This drift issue is a problem. I changed maps many times and remapped them but the laser scan was always drifting. After many hours of debugging, here's what I found.
@@ -678,7 +678,7 @@ Figure 30 shows the final result of a fully mapped out map with lidar scans stil
 Also forgot to include my live setup.
 
 
-6 June 2026 — DDS Issues + Mapping
+6 June 2026 - DDS Issues + Mapping
 -----------------------------------
 
 I was initially using fastDDS which is default for ROS 2 Humble. However, im using Pi as the robot, and my M2 mac for viz. FastDDS wasn't reliable with multi-machine discovery over WiFi and maybe its a skill issue, but this issue is known on reddit and also ROS community.
@@ -700,7 +700,7 @@ So I decided to use Foxglove Bridge. It worked wonders that's all i can say. No 
 This is my mapping in Foxglove UI.
 
 
-7 June 2026 — Nav2
+7 June 2026 - Nav2
 ---------------------------
 
 .. figure:: ../_images/reflections_img31.png
@@ -721,7 +721,7 @@ Figure 31 shows my setup. The first issue i faced was when i selected my goal po
 
 This was fixed by changing fixed frame AND display frame to map. Only fixed frame to map didn't work.
 
-8 June 2026 — Past biting you
+8 June 2026 - Past biting you
 ------------------------------
 
 This was a massive issue, spent days fixing. Btw the timeline is abit off i spent many days fixing bugs between those timeline days. Please watch this video to understand the issue. The robot is the video is already trying autonomous navigation.
@@ -740,10 +740,13 @@ This was a massive issue, spent days fixing. Btw the timeline is abit off i spen
 
 Another issue was my robot kept jittering, like move stop move stop at a very high frequency. I later found out its because i had my teleop node on on my phone which the ``/cmd_vel`` kept bouncing between my static (no) command and the Nav2's continuous command. It worked once i switched my teleop off.
 
-14 June 2026 - Completed Project
---------------------------------
+12 June 2026 - Navigation
+----------------------------
 
-Finally, what I wanted to achieve, I acheived. I strcture this in terms of nav from point A to B, and then B back to A. B back to A takes longer because of the starting pose which has a heading towards the wall so it needs to u turn (a tough part for nav).
+Finally, navigation worked! I have structured this in terms of nav from point A to B, and then B back to A. I noticed that B back to A takes longer because the starting pose at B is facing towards the wall so it needs to u turn which the robot finds it challenging. For the below navigation, im using Regulated Pure Pursuit (RPP) controller. I initially used Dynamic Window Approach (DWB) but its too computationally expensive (more about it in next timestep).
+
+*-- Part 1: A to B --*
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
@@ -755,7 +758,7 @@ Finally, what I wanted to achieve, I acheived. I strcture this in terms of nav f
    <figcaption style="color: gray; margin-top: 0.8em;">Video 9: A to B (Attempt 1)</figcaption>
    </figure>
 
-Video 9 shows successful navigation from point A to point B in Nav2 (attempt 1). Notice there is slowing down near the 2 pillars.
+Video 9 shows navigation from point A to point B (attempt 1). Notice there is slowing down near the 2 pillars.
 
 .. raw:: html
 
@@ -781,7 +784,7 @@ Below is attempt 2 from A to B.
    <figcaption style="color: gray; margin-top: 0.8em;">Video 11: A to B (Attempt 2)</figcaption>
    </figure>
 
-Video 11 shows successful navigation from point A to point B in Nav2 (attempt 2). Notice how it slows down near the pillars.
+Video 11 shows navigation from point A to point B (attempt 2). Notice how it slows down near the pillars.
 
 
 .. raw:: html
@@ -794,9 +797,12 @@ Video 11 shows successful navigation from point A to point B in Nav2 (attempt 2)
    <figcaption style="color: gray; margin-top: 0.8em;">Video 12: A to B (Attempt 2 - LIVE)</figcaption>
    </figure>
 
-Video 12 shows successful navigation from point A to point B in Nav2 (attempt 2). Likewise, you can see how it slows down near the pillars. This is because of I used ``use_regulated_linear_velocity_scaling: true`` in my ``nav2_params.yaml`` in my regulated pure pursuit.
+Video 12 shows navigation from point A to point B (attempt 2). Likewise, you can see how it slows down near the pillars. This is because I used ``use_regulated_linear_velocity_scaling: true``.
 
-Lets look at the B to A motion.
+Now, lets look at the B to A motion.
+
+*-- Part 2: B to A --*
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
@@ -849,7 +855,151 @@ Video 15 shows successful navigation from point B to point A and it took way les
 
 Video 16 shows the same point B to A as video 13 but live. You can see how it got out of the situation quicker and in a different way. This is because of a particular change i made in config, which was ``movement_time_allowance:``, this is a progress checker timeout where robot must fail to make progress for 20 seconds before Nav2 triggers recovery behaviours like spin and backup which was exactly what we can see.
 
+
+14 June 2026 - Obstacle Avoidance
+---------------------------------
+
+For this part, I used both DWB and RPP and we can see how the per-cycle compute demands of DWB really couldn't be met by my rasberry pi 4. RPP on the other hand doesn't need to do trajectory sampling, that's why its so efficient. Planner also kept at 2Hz and it ran stably with RPP. For obstacle avoidance, I split it up into Far Range and Close Range. Close range being adding the obstacle last minute right in front of the robot. Far Range is adding the obstacle when the robot is still far away, so it has time to replan its route.
+
+*-- DWB (Far Range) --*
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/dwb_far_range.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 17: DWB, Far range, Foxglove Studio</figcaption>
+   </figure>
+
+Video 17 shows foxglove view of me placing the obstacle early on. Using DWB for this and we can see at the end the robot stopped. Near the goal, the ``RotateToGoal`` and ``GoalAlign`` critics kick in. The additional scoring when the robot is trying to start orienting to the final heading, caused it to miss the cycle deadline and the recovery comes in and the loop continues. This is why the robot appears to stop nearing the end because it requires additional orienting and heading towards final pose. This is consistent.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/dwb_far_range_real.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 18: DWB, Far range, Real life</figcaption>
+   </figure>
+
+Video 18 shows the live version of video 17.
+
+*-- DWB (Close Range) --*
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/dwb_close_range.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 19: DWB, Close range, Foxglove Studio</figcaption>
+   </figure>
+
+Here in Video 19, we can see it behaves in close object avoidance. Same issue when nearing the end.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/dwb_close_range_real.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 20: DWB, Close range, Real life</figcaption>
+   </figure>
+
+Video 20 shows the live version of video 19.
+
+*-- RPP (Far Range) --*
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/rpp_far_range.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 21: RPP, Far range, Foxglove Studio</figcaption>
+   </figure>
+
+Now with RPP, we can see the stark difference in Video 21. The moment I placed the object when its far away, the new path was calculated and planned almost instantly. RPP just follows that new path. No issue at the end.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/rpp_far_range_real.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 22: RPP, Far range, Real life</figcaption>
+   </figure>
+
+Video 22 shows the live version of Video 21.
+
+
+*-- RPP (Close Range) --*
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/rpp_close_range.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 23: RPP, Close range, Foxglove Studio</figcaption>
+   </figure>
+
+Here in Video 23, we can see a close range quick object avoidance. See Video 24 for better understanding of what's happening.
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/rpp_close_range_real.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 24: RPP, Far range, Real life</figcaption>
+   </figure>
+
+Video 24 shows the live version of video 23. We can see how the robot is reacting fast to my attempts to block its path.
+
+*-- Stress Test --*
+~~~~~~~~~~~~~~~~~~~
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/stress_test.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 25: Stress Test</figcaption>
+   </figure>
+
+This stress test is my exaggerated attempt of trying to block the robot, but the RPP + NavFn combo is just so much better, at least on the CPU starved RPI4. Watch Video 26 to see my pov.
+
+
+.. raw:: html
+
+   <figure style="text-align: center;">
+   <video width="640" height="360" controls muted style="display: block; margin: auto;">
+      <source src="../_static/stress_test_real.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+   </video>
+   <figcaption style="color: gray; margin-top: 0.8em;">Video 26: Stress Test, Real Life</figcaption>
+   </figure>
+
+Video 26 is the live version of video 25.
+
+
 Conclusion
 -----------
 
-This journey was surely a long one. I managed to learn so much, from basic coding C++, python, to Robotics fundamentals, ROS 2, navigation, slam, electronics, hardware even 3d printing and designing my own model computer networks stuff like dds udp tcp, it was surely a fruitful one indeed. Now I will be focusing on VLA since thats where my FYP and current trend is heading for Modern Robotics. This gave me a glimpse of what the mature age of "old-school" robotics was like, at least for autonomous navigation and localization. On to the next chapter!
+This journey was surely a long one. I managed to learn so much, from C++, python, to Robotics fundamentals, math algorithms, ROS 2, slam, navigation, obstacle avoidance, electronics, 3d printing, modelling using fusion 360 and computer networks, it was surely a fruitful one indeed. Now I will be focusing on VLA since thats where my FYP and current trend is heading for Modern Robotics. This gave me a glimpse of what the mature age of "old-school" robotics was like, at least for autonomous navigation, obstacle avoidance and localization. I still having much to learn, anyways on to the next chapter!

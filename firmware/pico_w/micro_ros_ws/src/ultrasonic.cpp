@@ -14,12 +14,11 @@ Ultrasonic::Ultrasonic(std::string name_, std::string status_,
 
 float Ultrasonic::update()
 {
-    // 10us trigger pulse (HC-SR04 spec calls for ≥10us)
+
     gpio_put(trigger_pin, 0); busy_wait_us(5);
     gpio_put(trigger_pin, 1); busy_wait_us(15);
     gpio_put(trigger_pin, 0);
 
-    // Wait for echo line to go HIGH (38 ms ≈ "no object" timeout)
     uint64_t t0 = time_us_64();
     while (!gpio_get(echo_pin)) {
         if (time_us_64() - t0 > 38000ULL) {
@@ -28,10 +27,9 @@ float Ultrasonic::update()
         }
     }
 
-    // Measure how long echo stays HIGH
-    uint64_t rise = time_us_64();   // when pin goes high
+    uint64_t rise = time_us_64();
     while (gpio_get(echo_pin)) {
-        if (time_us_64() - rise > 38000ULL) {   // no object just return fixed -2.0
+        if (time_us_64() - rise > 38000ULL) {
             last_distance_m = -2.0f;
             return last_distance_m;
         }
@@ -39,6 +37,6 @@ float Ultrasonic::update()
     uint64_t fall = time_us_64();
 
     float dt_s = (float)(fall - rise) * 1e-6f;
-    last_distance_m = (dt_s * sound_vel) * 0.5f;     // METRES
+    last_distance_m = (dt_s * sound_vel) * 0.5f;
     return last_distance_m;
 }

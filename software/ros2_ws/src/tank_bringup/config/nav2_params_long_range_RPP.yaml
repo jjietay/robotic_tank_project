@@ -1,5 +1,5 @@
 # ==========================================================================
-#  Nav2 parameters — Autonomous Tank  [EXPERIMENT: LONG RANGE / early replan]
+#  Nav2 parameters, Autonomous Tank  [EXPERIMENT: LONG RANGE / early replan]
 #  Footprint: 31cm long × 18cm wide
 #  Controller: RPP (avoidance via global replanning only)
 # ==========================================================================

@@ -24,8 +24,6 @@ setup(
             'odometry        = rc_car_teleop.robot_core.odom:main',
             'bno085_i2c      = rc_car_teleop.robot_core.bno085_i2c_node:main',
             'lidar_processor = rc_car_teleop.robot_core.lidar_processor:main',
-            'yolo            = rc_car_teleop.robot_core.yolo:main',
-            'camera          = rc_car_teleop.robot_core.camera:main',
             'brain           = rc_car_teleop.robot_core.brain:main',
             'goal_pose_relay = rc_car_teleop.goal_pose_relay:main',
         ],

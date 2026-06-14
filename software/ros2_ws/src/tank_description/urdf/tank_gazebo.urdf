@@ -450,7 +450,7 @@
 <!-- ================================================ -->
 <!--             GAZEBO MATERIAL COLORS               -->
 <!-- ================================================ -->
-<!-- Gazebo ignores URDF <material> tags — these      -->
+<!-- Gazebo ignores URDF <material> tags, these      -->
 <!-- <gazebo> blocks set the visual appearance in sim  -->
 
 <gazebo reference="base_link">
@@ -502,11 +502,11 @@
 
 <gazebo>
     <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
-        <!-- Wheel joints — left side -->
+        <!-- Wheel joints, left side -->
         <left_joint>left_drive_joint</left_joint>
         <left_joint>left_bearing_joint</left_joint>
 
-        <!-- Wheel joints — right side -->
+        <!-- Wheel joints, right side -->
         <right_joint>right_drive_joint</right_joint>
         <right_joint>right_bearing_joint</right_joint>
 
@@ -540,7 +540,7 @@
 <!-- ================================================ -->
 <!-- Simulates the YD LIDAR X3 Pro: 360° scan,       -->
 <!-- ~8m range, publishes sensor_msgs/LaserScan       -->
-<!-- on /scan — same topic SLAM Toolbox expects.      -->
+<!-- on /scan, same topic SLAM Toolbox expects.      -->
 
 <gazebo reference="lidar_link">
     <sensor type="ray" name="lidar_sensor">
@@ -582,7 +582,7 @@
 <!-- ================================================ -->
 <!--           GAZEBO: IMU SENSOR PLUGIN              -->
 <!-- ================================================ -->
-<!-- Publishes sensor_msgs/Imu on /sensors/imu —      -->
+<!-- Publishes sensor_msgs/Imu on /sensors/imu,      -->
 <!-- same topic your real firmware publishes.          -->
 
 <gazebo reference="imu_link">

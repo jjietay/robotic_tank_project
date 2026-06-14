@@ -78,7 +78,6 @@ The TF Tree
   odom (fixed to world at startup)
   └── base_link (moving with the robot)
       ├── lidar_link
-      ├── camera_link
       ├── wheel_left_link
       └── wheel_right_link
 
@@ -147,11 +146,8 @@ Understanding packages and its contents.
   entry_points={
       'console_scripts': [
           'teleop          = rc_car_teleop.teleop:main',
-          'odometry        = rc_car_teleop.odom:main',
-          'lidar_processor = rc_car_teleop.lidar_processor:main',
-          'yolo            = rc_car_teleop.yolo:main',
-          'camera          = rc_car_teleop.camera:main',
-          'brain           = rc_car_teleop.brain:main',
+          'odometry        = rc_car_teleop.robot_core.odom:main',
+          'lidar_processor = rc_car_teleop.robot_core.lidar_processor:main'
       ],
   },
 
@@ -189,14 +185,14 @@ Understanding packages and its contents.
         ]
     )
 
-    # 2. Define your second node (e.g., the camera)
-    camera_node = Node(
+    # 2. Define your second node (e.g., the lidar processor)
+    lidar_node = Node(
         package='rc_car_teleop',
-        executable='camera',
-        name='front_camera',
+        executable='lidar_processor',
+        name='lidar_processor',
         output='screen',
         remappings=[
-            ('/image_raw', '/camera/front/image_raw') # Change topic names on the fly
+            ('/scan', '/scan_filtered')  # Change topic names on the fly
         ]
     )
 
@@ -207,7 +203,7 @@ Understanding packages and its contents.
     # containing a list of all the actions/nodes you want to start.
     return LaunchDescription([
         teleop_node,
-        camera_node
+        lidar_node
     ])
 
 
@@ -238,14 +234,14 @@ Always need to import these.
         ]
     )
 
-    # 2. Define your second node (e.g., the camera)
-    camera_node = Node(
+    # 2. Define your second node (e.g., the lidar processor)
+    lidar_node = Node(
         package='rc_car_teleop',
-        executable='camera',
-        name='front_camera',
+        executable='lidar_processor',
+        name='lidar_processor',
         output='screen',
         remappings=[
-            ('/image_raw', '/camera/front/image_raw') # Change topic names on the fly
+            ('/scan', '/scan_filtered') # Change topic names on the fly
         ]
     )
 
@@ -257,7 +253,112 @@ exact function name is mandatory, when we run ``ros2 launch``, the ros2 system s
 
   return LaunchDescription([
           teleop_node,
-          camera_node
+          lidar_node
       ])
 
 bundle all the nodes, scripts, and configs defines into a single list and pass it to ``LaunchDescription([...])``. When this object is returned, ROS2 takes over and starts spinning up the processes.
+
+4. SLAM and Mapping
+-------------------
+
+SLAM is Simultaneous Localization and Mapping. The robot builds a map of
+an unknown space while working out where it is inside that map at the same time.
+On the tank I use the ``slam_toolbox`` package in synchronous mode
+(``sync_slam_toolbox_node``).
+
+What slam_toolbox does
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* **Input**: the laser scans on ``/scan`` and the robot's rough pose from the ``odom`` to ``base_link`` transform
+* **Scan matching**: it lines each new scan up against the map so far to correct the pose
+* **Output**: an occupancy grid (the map) on ``/map``, plus the ``map`` to ``odom`` transform
+
+The map, odom and base_link frames
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+While mapping, the transform chain looks like this, with the node that owns each link:
+
+.. code-block:: text
+
+  map        <- slam_toolbox          (scan matching correction)
+   |
+  odom       <- EKF                   (encoders + IMU fused)
+   |
+  base_link  <- EKF
+   |
+  lidar_link, imu_link, ...           <- robot_state_publisher (from the URDF)
+
+* **map to odom**: the slow correction from scan matching, which cancels long term drift
+* **odom to base_link**: the fast, smooth motion estimate from the EKF
+* Only one node should publish a given transform. Both my odom node and the EKF were publishing ``odom`` to ``base_link``, so I let the EKF own it and turned off the odom node's broadcast
+
+The EKF (robot_localization)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The EKF fuses ``/odom`` (encoders) and ``/sensors/imu`` (BNO085) into a smoother
+``/odometry/filtered`` and publishes the ``odom`` to ``base_link`` transform. Key
+choices in ``ekf.yaml``:
+
+* **Encoders for linear velocity only**: the plastic tracks slip when turning, so the encoder yaw is not trustworthy, and I stop fusing the encoder angular velocity
+* **IMU for all rotation**: the BNO085 rotation vector is already fused with the magnetometer on the chip, so I trust it for yaw and set ``imu0_differential: false`` to use its absolute heading
+* **Heading zeroing**: the BNO085 boots facing a random direction, so ``bno085_i2c_node`` saves the first yaw and subtracts it from every later reading, which makes yaw always start at zero
+
+Talking to the laptop (DDS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Pi runs the robot and the laptop runs the viewer, so the two have to talk over WiFi.
+
+* **Fast DDS**: the ROS 2 Humble default, which kept dropping topics between machines over WiFi
+* **Cyclone DDS**: more reliable for a while, then the same trouble came back
+* **Foxglove Bridge**: the fix I settled on, where the Pi serves every topic over a websocket and Foxglove Studio connects to it from the laptop
+
+5. Nav2 and Navigation
+----------------------
+
+Nav2 is the ROS 2 navigation stack. Give it a map and a goal pose, and it plans a
+path and drives the robot there while avoiding obstacles.
+
+The Nav2 nodes
+~~~~~~~~~~~~~~
+
+* **map_server**: loads the saved map
+* **amcl**: localizes the robot on the map with a particle filter
+* **planner_server**: plans the global path to the goal
+* **controller_server**: follows the path and puts out the velocity command
+* **velocity_smoother**: smooths the controller output before it goes out
+* **behavior_server**: runs the recovery moves like spin and back up
+* **bt_navigator**: the behaviour tree that ties planning, following and recovery together
+* **lifecycle_manager**: brings all the Nav2 nodes up in order, which the Pi needs extra time for
+
+How a goal flows
+~~~~~~~~~~~~~~~~
+
+.. code-block:: text
+
+  goal in Foxglove
+    -> /goal_pose
+    -> goal_pose_relay        (zeroes the timestamp)
+    -> /goal_pose_relayed
+    -> bt_navigator -> planner_server + controller_server
+    -> /cmd_vel_raw -> velocity_smoother
+    -> /nav2/cmd_vel
+    -> twist_mux -> /cmd_vel
+    -> the Pico
+
+* **goal_pose_relay**: Nav2 kept transforming the goal at its original timestamp, which fell out of the TF buffer during slow recoveries and broke replanning, so this node zeroes the stamp and the planner then uses the latest transform
+* **twist_mux**: picks one velocity source by priority, where teleop (100) beats Nav2 (50) so I can always take over
+
+Controllers: RPP vs DWB
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* **DWB (Dynamic Window Approach)**: samples many possible trajectories each cycle and scores them with critics. Powerful but heavy, and too expensive for the Pi 4. Near the goal its ``RotateToGoal`` and ``GoalAlign`` critics pushed each cycle past its deadline, so the robot stalled and dropped into recovery
+* **RPP (Regulated Pure Pursuit)**: no trajectory sampling, it just follows the planned path. Light enough to run smoothly with the planner held at 2 Hz, so this is the one I use
+* **use_regulated_linear_velocity_scaling**: slows the robot near tight spots, which is why it eases past the pillars
+* **progress checker timeout**: the robot has to fail to make progress for a set time before recovery kicks in, so it does not give up too early
+
+Obstacle avoidance
+~~~~~~~~~~~~~~~~~~
+
+* **Far range**: the obstacle is placed early, so there is time to plan a fresh route around it
+* **Close range**: the obstacle is dropped right in front, so the robot has to react at the last second
+* On the Pi 4, RPP with the NavFn planner handled both cases far better than DWB, drawing a new path almost instantly when the path was blocked

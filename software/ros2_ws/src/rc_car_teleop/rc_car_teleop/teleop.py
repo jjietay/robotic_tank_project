@@ -1,24 +1,12 @@
 #!/usr/bin/env python3
-# ---------------------------------------------------------------------------
-#                   teleop.py  —  Manual WASD driving (ROS 2)
-# ---------------------------------------------------------------------------
-#  Controls:
-#      W / S    forward / backward   (linear.x = ± V_MAX_MPS)
-#      A / D    spin left / right    (angular.z = ± MAX_ANGULAR)
-#      Space    explicit stop
-#      Q        quit
-#
-#  Design: tracks an ACTIVE command as state and publishes it every timer
-#  tick at 50 Hz, regardless of whether a key event arrived this tick.
-#  This avoids jitter from the OS key-repeat initial delay (~500 ms on
-#  macOS), which would otherwise trigger the hold-timeout and send a
-#  spurious STOP before repeat events begin.
-#
-#  HOLD_TIMEOUT_MS must be > the OS initial key-repeat delay so the robot
-#  doesn't stop during that window.  600 ms works for the macOS default.
-#  After releasing a key, the robot stops within one key-repeat interval
-#  (≈33 ms) + HOLD_TIMEOUT_MS.
-# ---------------------------------------------------------------------------
+"""Keyboard teleop node.
+
+Reads WASD key presses from the terminal and publishes velocity commands as
+``geometry_msgs/msg/Twist`` on ``/teleop/cmd_vel``. W and S drive forward and
+back, A and D turn, Space stops, and Q quits. The active command is sent on a
+50 Hz timer, so the robot keeps moving while a key is held and stops shortly
+after it is released.
+"""
 
 import sys
 import termios
@@ -30,7 +18,6 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
-# Must be longer than the OS initial key-repeat delay (≈500 ms on macOS).
 HOLD_TIMEOUT_MS = 500.0
 
 WHEEL_BASE_M = 0.135
@@ -39,6 +26,11 @@ MAX_ANGULAR  = V_MAX_MPS / (WHEEL_BASE_M / 2.0) - 0.20
 
 
 def configure_terminal():
+    """Put the terminal into raw mode and return its previous settings.
+
+    Returns:
+        tuple: the stdin file descriptor and the original terminal settings.
+    """
     fd = sys.stdin.fileno()
     original = termios.tcgetattr(fd)
     tty.setraw(fd)
@@ -46,12 +38,24 @@ def configure_terminal():
 
 
 def restore_terminal(original):
+    """Restore the terminal to its original settings.
+
+    Args:
+        original: the settings returned by :func:`configure_terminal`.
+    """
     fd = sys.stdin.fileno()
     termios.tcsetattr(fd, termios.TCSADRAIN, original)
 
 
 def read_key(fd):
-    """Non-blocking single-character read. Returns None if no key available."""
+    """Read a single key without blocking.
+
+    Args:
+        fd: the stdin file descriptor.
+
+    Returns:
+        str or None: the key that was pressed, or None if no key is waiting.
+    """
     rlist, _, _ = select.select([fd], [], [], 0.0)
     if rlist:
         return sys.stdin.read(1)
@@ -59,11 +63,17 @@ def read_key(fd):
 
 
 class TeleopNode(Node):
+    """ROS 2 node that turns WASD key presses into velocity commands.
+
+    Publishes:
+        ``/teleop/cmd_vel`` (geometry_msgs/msg/Twist): the velocity command.
+    """
+
     def __init__(self):
+        """Set up the publisher, the command state, and the 50 Hz timer."""
         super().__init__('teleop')
         self.cmd_pub = self.create_publisher(Twist, '/teleop/cmd_vel', 10)
 
-        # Active command state — published every tick until hold-timeout clears it.
         self.active_linear  = 0.0
         self.active_angular = 0.0
         self.active_label   = 'X'
@@ -74,21 +84,32 @@ class TeleopNode(Node):
             'Hold WASD to drive, release to stop. Space = stop, Q = quit.'
         )
 
-        # Publish at 50 Hz — active command is sent every tick.
         self.timer = self.create_timer(0.02, self.timer_callback)
 
-    # ------------------------------------------------------------------
-    #                          Helpers
-    # ------------------------------------------------------------------
     @staticmethod
     def _make_twist(linear_x: float = 0.0, angular_z: float = 0.0) -> Twist:
+        """Build a Twist with the given linear and angular values.
+
+        Args:
+            linear_x (float): forward velocity in metres per second.
+            angular_z (float): turn rate in radians per second.
+
+        Returns:
+            Twist: the velocity message.
+        """
         t = Twist()
         t.linear.x  = float(linear_x)
         t.angular.z = float(angular_z)
         return t
 
     def _set_active(self, label: str, linear: float, angular: float) -> None:
-        """Update active command state and log on change."""
+        """Set the active command and print the label when it changes.
+
+        Args:
+            label (str): short label for the current command.
+            linear (float): forward velocity in metres per second.
+            angular (float): turn rate in radians per second.
+        """
         if label != self.active_label:
             self.active_label = label
             sys.stdout.write(f'\rCMD: {label}   ')
@@ -97,13 +118,14 @@ class TeleopNode(Node):
         self.active_angular = angular
 
     def _shutdown(self) -> None:
+        """Stop the robot, restore the terminal, and shut down ROS."""
         try:
             self.cmd_pub.publish(self._make_twist())
         except Exception:
             pass
         sys.stdout.write('\rCMD: Stop   \n')
         sys.stdout.flush()
-        self.get_logger().info('Q pressed — shutting down.')
+        self.get_logger().info('Q pressed, shutting down.')
         try:
             restore_terminal(self.original)
         except Exception:
@@ -114,15 +136,17 @@ class TeleopNode(Node):
             pass
         rclpy.shutdown()
 
-    # ------------------------------------------------------------------
-    #                          Main timer (50 Hz)
-    # ------------------------------------------------------------------
     def timer_callback(self):
+        """Read a key, update the command, and publish it every tick.
+
+        If a key arrived, the matching command is set. If no key has arrived
+        for longer than ``HOLD_TIMEOUT_MS``, the command is reset to stop. The
+        active command is published on every tick.
+        """
         try:
             key = read_key(self.fd)
 
             if key is not None:
-                # A key event arrived — update active command and reset timeout.
                 self.last_key_time = time.time()
 
                 if key in ('w', 'W'):
@@ -130,21 +154,19 @@ class TeleopNode(Node):
                 elif key in ('s', 'S'):
                     self._set_active('S', -V_MAX_MPS,  0.0)
                 elif key in ('d', 'D'):
-                    self._set_active('D',  0.0,  MAX_ANGULAR)   # changed due to wiring
+                    self._set_active('D',  0.0,  MAX_ANGULAR)
                 elif key in ('a', 'A'):
-                    self._set_active('A',  0.0, -MAX_ANGULAR)   # changed due to wiring
+                    self._set_active('A',  0.0, -MAX_ANGULAR)
                 elif key == ' ':
                     self._set_active('X',  0.0,  0.0)
                 elif key in ('q', 'Q'):
                     self._shutdown()
                     return
             else:
-                # No key this tick — check hold-timeout for key-release detection.
                 elapsed_ms = (time.time() - self.last_key_time) * 1000.0
                 if elapsed_ms >= HOLD_TIMEOUT_MS:
                     self._set_active('X', 0.0, 0.0)
 
-            # Always publish the active command every tick.
             self.cmd_pub.publish(
                 self._make_twist(self.active_linear, self.active_angular)
             )
@@ -162,6 +184,7 @@ class TeleopNode(Node):
             rclpy.shutdown()
 
     def destroy_node(self):
+        """Restore the terminal and then destroy the node."""
         try:
             restore_terminal(self.original)
         except Exception:
@@ -170,6 +193,7 @@ class TeleopNode(Node):
 
 
 def main(args=None):
+    """Start the teleop node and spin until interrupted."""
     rclpy.init(args=args)
     node = TeleopNode()
     try:

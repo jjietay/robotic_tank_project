@@ -1,5 +1,5 @@
 # ==========================================================================
-#  Nav2 parameters — Autonomous Tank
+#  Nav2 parameters, Autonomous Tank
 #
 #  Robot: tracked differential drive, can spin in place
 #  Footprint: ~20cm long × ~18cm wide (MEASURE AND ADJUST)
@@ -16,7 +16,7 @@ amcl:
     alpha2: 0.2          # rotation noise from translation
     alpha3: 0.2          # translation noise from translation
     alpha4: 0.2          # translation noise from rotation
-    alpha5: 0.2          # translation noise (omnidirectional — irrelevant for diff drive)
+    alpha5: 0.2          # translation noise (omnidirectional, irrelevant for diff drive)
     # -- Laser model --
     laser_model_type: likelihood_field
     laser_max_range: 12.0
@@ -149,7 +149,7 @@ controller_server:
       min_lookahead_dist: 0.15
       max_lookahead_dist: 0.6
       lookahead_time: 1.5                # lookahead = max(min_lookahead, vel * lookahead_time)
-      rotate_to_heading_angular_vel: 0.8 # rad/s for in-place rotation — confident spin
+      rotate_to_heading_angular_vel: 0.8 # rad/s for in-place rotation, confident spin
       transform_tolerance: 0.5
       use_velocity_scaled_lookahead_dist: true
       min_approach_linear_velocity: 0.05 # must exceed motor deadzone
@@ -163,8 +163,8 @@ controller_server:
       regulated_linear_scaling_min_speed: 0.05  # must exceed motor deadzone
       # -- Rotation behavior --
       allow_reversing: true
-      max_angular_accel: 1.6            # moderate ramp — above deadzone but won't overshoot
-      rotate_to_heading_min_angle: 1.0   # ~57° — only spin in place for large heading errors (U-turns), small errors correct while driving
+      max_angular_accel: 1.6            # moderate ramp, above deadzone but won't overshoot
+      rotate_to_heading_min_angle: 1.0   # ~57°, only spin in place for large heading errors (U-turns), small errors correct while driving
       max_robot_pose_search_dist: 1.5
 
 behavior_server:
@@ -229,7 +229,7 @@ local_costmap:
           obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0    # moderate falloff — allows straighter paths
+        cost_scaling_factor: 3.0    # moderate falloff, allows straighter paths
         inflation_radius: 0.12      
 global_costmap:
   global_costmap:
@@ -239,7 +239,7 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_link
-      # Rectangular footprint — same as local costmap
+      # Rectangular footprint, same as local costmap
       robot_footprint: "[[0.10, 0.09], [0.10, -0.09], [-0.10, -0.09], [-0.10, 0.09]]"
       resolution: 0.05
       track_unknown_space: false
@@ -249,5 +249,5 @@ global_costmap:
         map_subscribe_transient_local: true
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 3.0    # moderate falloff — allows straighter paths
+        cost_scaling_factor: 3.0    # moderate falloff, allows straighter paths
         inflation_radius: 0.12      

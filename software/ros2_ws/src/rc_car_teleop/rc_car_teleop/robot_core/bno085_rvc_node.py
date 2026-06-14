@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
-# ---------------------------------------------------------------------------
-#        bno085_rvc_node.py  —  BNO085 UART-RVC → sensor_msgs/Imu
-# ---------------------------------------------------------------------------
-#  Reads yaw/pitch/roll + linear acceleration from the BNO085 in UART-RVC
-#  mode and publishes sensor_msgs/Imu on /sensors/imu.
-#
-#  RVC mode gives Euler angles (degrees) and linear acceleration (m/s²).
-#  Angular velocity is NOT available in RVC mode, so that field is zeroed
-#  and its covariance is set to -1 (unknown).
-#
-#  Usage:
-#    sudo python3 bno085_rvc_node.py
-#
-#  Or copy to your ROS 2 workspace and run via ros2 run.
-# ---------------------------------------------------------------------------
+"""BNO085 IMU node over UART in RVC mode.
+
+Reads yaw, pitch, roll, and linear acceleration from a BNO085 IMU in UART RVC
+mode and publishes them as ``sensor_msgs/msg/Imu`` on ``/sensors/imu``. RVC
+mode does not provide angular velocity, so that field is left at zero and its
+covariance is set to negative one to mark it as unknown.
+"""
 
 import math
 import os
@@ -29,12 +21,10 @@ from sensor_msgs.msg import Imu
 
 
 def free_serial_port(port: str) -> None:
-    """Kill any leftover process still holding the serial port.
+    """Free the serial port by killing any process still holding it.
 
-    Crashes and rough Ctrl+C exits can leave a dead process gripping the
-    UART, which silently eats the BNO085's bytes so the next run gets
-    nothing. fuser -k clears them. We resolve the symlink (e.g.
-    /dev/serial0 -> /dev/ttyS0) because fuser needs the real device.
+    Args:
+        port (str): the serial port path, such as ``/dev/serial0``.
     """
     try:
         real = os.path.realpath(port)
@@ -42,17 +32,24 @@ def free_serial_port(port: str) -> None:
                        stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL,
                        check=False)
-        time.sleep(0.5)   # give the OS a moment to release the handle
+        time.sleep(0.5)
     except FileNotFoundError:
-        # fuser not installed — skip; not fatal.
         pass
 
 
 def euler_to_quaternion(yaw_deg: float, pitch_deg: float, roll_deg: float):
-    """Convert Euler angles (degrees) to quaternion (x, y, z, w).
+    """Convert Euler angles in degrees to a quaternion (x, y, z, w).
 
-    Uses ZYX convention (yaw around Z, pitch around Y, roll around X),
-    which matches ROS REP-103.
+    Uses the ZYX convention (yaw about Z, pitch about Y, roll about X), which
+    matches ROS REP 103.
+
+    Args:
+        yaw_deg (float): yaw in degrees.
+        pitch_deg (float): pitch in degrees.
+        roll_deg (float): roll in degrees.
+
+    Returns:
+        tuple: the quaternion as (x, y, z, w).
     """
     yaw   = math.radians(yaw_deg)
     pitch = math.radians(pitch_deg)
@@ -74,22 +71,33 @@ def euler_to_quaternion(yaw_deg: float, pitch_deg: float, roll_deg: float):
 
 
 class BNO085RVCNode(Node):
+    """ROS 2 node that publishes BNO085 IMU data read over UART in RVC mode.
+
+    Publishes:
+        ``/sensors/imu`` (sensor_msgs/msg/Imu): orientation and linear
+        acceleration.
+
+    Parameters:
+        serial_port (str): serial device path. Default ``/dev/serial0``.
+        baudrate (int): serial baud rate. Default 115200.
+        frame_id (str): frame id for the IMU messages. Default ``imu_link``.
+        publish_rate (double): publish rate in Hz. Default 50.
+    """
+
     def __init__(self):
+        """Free the serial port, open it, and start the publish timer."""
         super().__init__('bno085_rvc')
 
-        # -- Parameters (can override via command line) --
         self.declare_parameter('serial_port', '/dev/serial0')
         self.declare_parameter('baudrate', 115200)
         self.declare_parameter('frame_id', 'imu_link')
-        self.declare_parameter('publish_rate', 50.0)  # Hz
+        self.declare_parameter('publish_rate', 50.0)
 
         port     = self.get_parameter('serial_port').value
         baudrate = self.get_parameter('baudrate').value
         self.frame_id = self.get_parameter('frame_id').value
         rate     = self.get_parameter('publish_rate').value
 
-        # -- Serial + RVC setup --
-        # Clear any zombie process holding the port (from a prior crash).
         self.get_logger().info(f'Clearing any stale holders of {port}...')
         free_serial_port(port)
 
@@ -108,19 +116,14 @@ class BNO085RVCNode(Node):
             raise RuntimeError(f'Could not open {port} after 5 attempts')
 
         time.sleep(1.0)
-        self.uart.reset_input_buffer()   # drop any partial boot data
+        self.uart.reset_input_buffer()
         self.rvc = BNO08x_RVC(self.uart)
         self.get_logger().info('BNO085 RVC connected.')
 
-        # -- Publisher --
         self.imu_pub = self.create_publisher(Imu, '/sensors/imu', 10)
 
-        # Recovery state: track consecutive read failures so we can reset
-        # the input buffer if the stream gets out of sync (e.g. after a
-        # brief power glitch on the IMU).
         self._consec_errors = 0
 
-        # -- Timer --
         period = 1.0 / rate
         self.timer = self.create_timer(period, self.timer_callback)
 
@@ -129,48 +132,41 @@ class BNO085RVCNode(Node):
         )
 
     def timer_callback(self):
+        """Read one RVC sample, convert it, and publish it as an Imu message."""
         try:
             yaw, pitch, roll, x_accel, y_accel, z_accel = self.rvc.heading
             self._consec_errors = 0
         except Exception:
-            # Occasional UART hiccup — skip this tick. But if many in a row,
-            # the stream is likely out of sync; flush the buffer to resync.
             self._consec_errors += 1
-            if self._consec_errors >= 25:   # ~0.5 s of failures at 50 Hz
+            if self._consec_errors >= 25:
                 try:
                     self.uart.reset_input_buffer()
                 except Exception:
                     pass
                 self._consec_errors = 0
-                self.get_logger().warn('Stream out of sync — flushed buffer.')
+                self.get_logger().warn('Stream out of sync, flushed buffer.')
             return
 
         qx, qy, qz, qw = euler_to_quaternion(yaw, pitch, roll)
 
         msg = Imu()
 
-        # -- Header --
         msg.header.stamp    = self.get_clock().now().to_msg()
         msg.header.frame_id = self.frame_id
 
-        # -- Orientation (from onboard sensor fusion) --
         msg.orientation.x = qx
         msg.orientation.y = qy
         msg.orientation.z = qz
         msg.orientation.w = qw
-        # Orientation covariance: small values — BNO085 fusion is good.
-        msg.orientation_covariance[0] = 0.01   # roll  variance
-        msg.orientation_covariance[4] = 0.01   # pitch variance
-        msg.orientation_covariance[8] = 0.01   # yaw   variance
+        msg.orientation_covariance[0] = 0.01
+        msg.orientation_covariance[4] = 0.01
+        msg.orientation_covariance[8] = 0.01
 
-        # -- Angular velocity: NOT available in RVC mode --
         msg.angular_velocity.x = 0.0
         msg.angular_velocity.y = 0.0
         msg.angular_velocity.z = 0.0
-        # Set first element to -1 to indicate "unknown" per REP-145.
         msg.angular_velocity_covariance[0] = -1.0
 
-        # -- Linear acceleration (gravity removed by BNO085) --
         msg.linear_acceleration.x = float(x_accel)
         msg.linear_acceleration.y = float(y_accel)
         msg.linear_acceleration.z = float(z_accel)
@@ -181,6 +177,7 @@ class BNO085RVCNode(Node):
         self.imu_pub.publish(msg)
 
     def destroy_node(self):
+        """Close the serial port and destroy the node."""
         try:
             self.uart.close()
         except Exception:
@@ -189,6 +186,7 @@ class BNO085RVCNode(Node):
 
 
 def main(args=None):
+    """Start the BNO085 RVC node and spin until interrupted."""
     rclpy.init(args=args)
     node = BNO085RVCNode()
     try:

@@ -22,7 +22,6 @@ def generate_launch_description():
 
     return LaunchDescription([
 
-        # ── Base robot stack ────────────────────────────────────────────
 
         Node(
             package='robot_state_publisher',
@@ -46,7 +45,7 @@ def generate_launch_description():
             package='ydlidar_ros2_driver',
             executable='ydlidar_ros2_driver_node',
             name='ydlidar_ros2_driver_node',
-            output='log',              # suppress "Real points > fixed points" warnings from terminal
+            output='log',
             parameters=[ydlidar_params],
         ),
 
@@ -64,10 +63,7 @@ def generate_launch_description():
             output='screen',
         ),
 
-        # ── Teleop — run separately in its own terminal (needs TTY) ──
-        # ros2 run rc_car_teleop teleop
 
-        # ── Twist Mux — arbitrates teleop (P100) > nav2 (P50) ──────
 
         Node(
             package='twist_mux',
@@ -78,7 +74,6 @@ def generate_launch_description():
             remappings=[('cmd_vel_out', '/cmd_vel')],
         ),
 
-        # ── EKF — fuses /odom + /sensors/imu → /odometry/filtered ──
 
         TimerAction(
             period=3.0,
@@ -91,9 +86,7 @@ def generate_launch_description():
             )],
         ),
 
-        # ── Nav2 stack ──────────────────────────────────────────────
 
-        # Map server — loads your saved map
         TimerAction(
             period=8.0,
             actions=[Node(
@@ -108,7 +101,6 @@ def generate_launch_description():
             )],
         ),
 
-        # AMCL — particle-filter localization on the saved map
         TimerAction(
             period=8.0,
             actions=[Node(
@@ -120,7 +112,6 @@ def generate_launch_description():
             )],
         ),
 
-        # Planner server — global path planning (A*)
         TimerAction(
             period=12.0,
             actions=[Node(
@@ -132,8 +123,6 @@ def generate_launch_description():
             )],
         ),
 
-        # Controller server — Regulated Pure Pursuit
-        # Output goes to /cmd_vel_raw → velocity_smoother → /nav2/cmd_vel → twist_mux
         TimerAction(
             period=12.0,
             actions=[Node(
@@ -146,7 +135,6 @@ def generate_launch_description():
             )],
         ),
 
-        # Velocity smoother — smooths jittery controller output
         TimerAction(
             period=12.0,
             actions=[Node(
@@ -162,7 +150,6 @@ def generate_launch_description():
             )],
         ),
 
-        # Behavior server — recovery behaviors (spin, back up, wait)
         TimerAction(
             period=12.0,
             actions=[Node(
@@ -175,9 +162,6 @@ def generate_launch_description():
             )],
         ),
 
-        # Goal pose relay — zeros timestamp to fix TF extrapolation error
-        # Foxglove → /goal_pose → relay → /goal_pose_relayed → bt_navigator
-        # See: https://github.com/ros-planning/navigation2/issues/3075
         Node(
             package='rc_car_teleop',
             executable='goal_pose_relay',
@@ -185,8 +169,6 @@ def generate_launch_description():
             output='screen',
         ),
 
-        # BT navigator — coordinates planning + control + recovery
-        # Remapped: reads goals from /goal_pose_relayed (with zeroed timestamps)
         TimerAction(
             period=15.0,
             actions=[Node(
@@ -199,8 +181,6 @@ def generate_launch_description():
             )],
         ),
 
-        # Lifecycle manager — brings all Nav2 nodes through their lifecycle
-        # Must start AFTER all Nav2 nodes are up — RPi4 needs extra time
         TimerAction(
             period=20.0,
             actions=[Node(
