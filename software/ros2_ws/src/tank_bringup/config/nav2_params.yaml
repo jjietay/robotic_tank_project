@@ -165,9 +165,9 @@ controller_server:
       decel_lim_theta: -1.6
 
       # -- Velocity samples (the "dynamic window") --
-      vx_samples: 20
+      vx_samples: 10
       vy_samples: 1             # diff-drive: only 1
-      vtheta_samples: 40        # plenty of rotation options to steer around obstacles
+      vtheta_samples: 20        # plenty of rotation options to steer around obstacles
       sim_time: 1.5             # how far ahead each trajectory is simulated
       linear_granularity: 0.05
       angular_granularity: 0.025
@@ -187,7 +187,7 @@ controller_server:
         - "GoalDist"
 
       # critic weights
-      BaseObstacle.scale: 0.12        # obstacle avoidance strength — raise to avoid harder
+      BaseObstacle.scale: 0.15        # obstacle avoidance strength — raise to avoid harder
       PathAlign.scale: 16.0           # stay aligned with global path
       PathAlign.forward_point_distance: 0.10
       GoalAlign.scale: 16.0
@@ -273,26 +273,12 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       robot_footprint: "[[0.155, 0.09], [0.155, -0.09], [-0.155, -0.09], [-0.155, 0.09]]"
-      resolution: 0.05
+      resolution: 0.075
       track_unknown_space: false
-      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      plugins: ["static_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: true
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: true
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: true
-          marking: true
-          data_type: "LaserScan"
-          raytrace_max_range: 8.0
-          raytrace_min_range: 0.12
-          obstacle_max_range: 5.0
-          obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 2.0    # was 3.0 — wider berth for the replan experiment
