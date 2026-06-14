@@ -125,7 +125,6 @@ controller_server:
     use_sim_time: false
     controller_frequency: 5.0
     odom_topic: /odometry/filtered
-    controller_frequency: 5.0
     min_x_velocity_threshold: 0.001
     min_theta_velocity_threshold: 0.01
     progress_checker_plugins: ["progress_checker"]
@@ -263,8 +262,8 @@ local_costmap:
           obstacle_min_range: 0.12
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0    # moderate falloff — allows straighter paths
-        inflation_radius: 0.35      
+        cost_scaling_factor: 3.0    # moderate falloff — allows straighter paths
+        inflation_radius: 0.15      
 global_costmap:
   global_costmap:
     ros__parameters:
@@ -297,4 +296,4 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 2.0    # was 3.0 — wider berth for the replan experiment
-        inflation_radius: 0.35      # was 0.12 — visibly wider arc
+        inflation_radius: 0.20      # was 0.12 — visibly wider arc
