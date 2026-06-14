@@ -111,7 +111,7 @@ bt_navigator:
 planner_server:
   ros__parameters:
     use_sim_time: false
-    expected_planner_frequency: 5.0
+    expected_planner_frequency: 2.0
     transform_tolerance: 5.0     # CRITICAL: allow stale goal timestamps during recovery cycles (fixes TF extrapolation error on slow RPi4)
     planner_plugins: ["GridBased"]
     GridBased:
@@ -123,9 +123,9 @@ planner_server:
 controller_server:
   ros__parameters:
     use_sim_time: false
-    controller_frequency: 10.0
+    controller_frequency: 5.0
     odom_topic: /odometry/filtered
-    controller_frequency: 10.0
+    controller_frequency: 5.0
     min_x_velocity_threshold: 0.001
     min_theta_velocity_threshold: 0.01
     progress_checker_plugins: ["progress_checker"]
@@ -135,7 +135,7 @@ controller_server:
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.05
-      movement_time_allowance: 5.0
+      movement_time_allowance: 10.0
 
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
@@ -152,7 +152,7 @@ controller_server:
       max_vel_x: 0.12           # below your 0.14 hard max
       min_vel_y: 0.0            # diff-drive: no lateral
       max_vel_y: 0.0
-      max_vel_theta: 1.0
+      max_vel_theta: 0.7
       min_speed_xy: 0.0
       max_speed_xy: 0.12
       min_speed_theta: 0.0
@@ -169,7 +169,7 @@ controller_server:
       vx_samples: 20
       vy_samples: 1             # diff-drive: only 1
       vtheta_samples: 40        # plenty of rotation options to steer around obstacles
-      sim_time: 1.7             # how far ahead each trajectory is simulated
+      sim_time: 1.5             # how far ahead each trajectory is simulated
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.5
@@ -188,12 +188,12 @@ controller_server:
         - "GoalDist"
 
       # critic weights
-      BaseObstacle.scale: 0.04        # obstacle avoidance strength — raise to avoid harder
-      PathAlign.scale: 24.0           # stay aligned with global path
+      BaseObstacle.scale: 0.12        # obstacle avoidance strength — raise to avoid harder
+      PathAlign.scale: 16.0           # stay aligned with global path
       PathAlign.forward_point_distance: 0.10
-      GoalAlign.scale: 24.0
+      GoalAlign.scale: 16.0
       GoalAlign.forward_point_distance: 0.10
-      PathDist.scale: 32.0            # stay close to the path
+      PathDist.scale: 24.0            # stay close to the path
       GoalDist.scale: 24.0            # make progress toward goal
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 5.0
